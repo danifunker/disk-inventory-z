@@ -14,7 +14,22 @@
 //
 
 #import "DrivesPanelController.h"
+#import "DIXAboutButton.h"
+#import "DIXSnapshotInfo.h"
+#import "DIXVolumeKind.h"
 #import "FileSizeFormatter.h"
+
+@interface DrivesPanelController (FilterSwitches)
+- (void) installFilterSwitchesInWindow: (NSWindow*) window;
+- (NSView*) labeledSwitchWithTitle: (NSString*) title defaultsKey: (NSString*) key;
+- (void) filterSwitchToggled: (NSSwitch*) sender;
+- (BOOL) shouldShowVolumeKind: (DIXVolumeKind) kind;
+@end
+
+// NSUserDefaults keys for the filter switches at the bottom of the panel.
+NSString * const DIXShowNetworkDrivesKey   = @"DIXShowNetworkDrives";
+NSString * const DIXShowExternalDevicesKey = @"DIXShowExternalDevices";
+NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 #import "VolumeNameTransformer.h"
 #import "VolumeUsageTransformer.h"
 #import "NSURL-Extensions.h"
@@ -92,8 +107,30 @@
 		FileSizeFormatter *sizeFormatter = [[[FileSizeFormatter alloc] init] autorelease];
 		[[[_volumesTableView tableColumnWithIdentifier: @"totalSize"] dataCell] setFormatter: sizeFormatter];
 		[[[_volumesTableView tableColumnWithIdentifier: @"freeBytes"] dataCell] setFormatter: sizeFormatter];
+
+		// Top-right corner of the volumes panel: a small ⓘ button that opens
+		// the standard About panel. The donation/nag panel was removed in
+		// v1.5.0 so this is the user's primary entry point for project info.
+		DIXInstallAboutButtonInWindow( _volumesPanel );
+
+		// The xib doesn't ship a close button on the volumes panel — enable
+		// it here so the close affordance matches what ⌘W / ⌘Q already do.
+		[_volumesPanel setStyleMask: [_volumesPanel styleMask] | NSWindowStyleMaskClosable];
+
+		// Volumes table now renders up to three text lines (name, format,
+		// snapshot summary) — the nib's 45pt rowHeight is short by ~15pt.
+		[_volumesTableView setRowHeight: 60];
+
+		// Filter row below the table. Register sane defaults (everything on)
+		// the first time we run so existing users don't lose volumes.
+		[[NSUserDefaults standardUserDefaults] registerDefaults: @{
+			DIXShowNetworkDrivesKey:   @YES,
+			DIXShowExternalDevicesKey: @YES,
+			DIXShowMountedImagesKey:   @YES,
+		}];
+		[self installFilterSwitchesInWindow: _volumesPanel];
 	}
-	
+
 	[_volumesPanel makeFirstResponder: _volumesTableView];
 	
 	return self;
@@ -154,6 +191,133 @@
 	return _volumesPanel;
 }
 
+#pragma mark --------filter switches (programmatically injected)-----------
+
+// Build a small row of NSSwitch + NSTextField pairs positioned just *above*
+// the existing "Select Folder / Open Volume" row, in the gap between that row
+// and the volumes table. The window is grown to make room and the scroll view
+// (heightSizable) is slid up by the same amount so the new strip lives in the
+// freed space rather than overlapping the original controls.
+- (void) installFilterSwitchesInWindow: (NSWindow*) window
+{
+	NSView *content = [window contentView];
+	if ( content == nil )
+		return;
+
+	const CGFloat stripVisualHeight = 28;   // visible height of the switch row
+	const CGFloat gapAboveBottomRow = 10;   // distance below strip
+	const CGFloat gapBelowTable     = 14;   // distance above strip
+	const CGFloat addedHeight       = stripVisualHeight + gapAboveBottomRow + gapBelowTable;
+
+	// 1. Grow the window. Keep the title bar at the same screen position by
+	//    also moving origin.y down. autoresizing then enlarges the scroll view.
+	NSRect frame = [window frame];
+	frame.origin.y    -= addedHeight;
+	frame.size.height += addedHeight;
+	[window setFrame: frame display: NO];
+
+	// 2. The scroll view (heightSizable) just absorbed the extra height — slide
+	//    it back up so the gap opens *between* the table and the bottom row,
+	//    not at the very bottom (where the existing controls live).
+	NSScrollView *tableScroller = nil;
+	for ( NSView *v in [content subviews] )
+		if ( [v isKindOfClass: [NSScrollView class]] )
+			{ tableScroller = (NSScrollView*) v; break; }
+
+	if ( tableScroller != nil )
+	{
+		NSRect tf = [tableScroller frame];
+		tf.origin.y    += addedHeight;
+		tf.size.height -= addedHeight;
+		[tableScroller setFrame: tf];
+	}
+
+	// 3. Find the top edge of the existing bottom row (the highest maxY of
+	//    any non-scroll subview in the lower half of the content). Place the
+	//    strip gapAboveBottomRow above that.
+	CGFloat bottomRowTopY = 0;
+	for ( NSView *v in [content subviews] )
+	{
+		if ( v == tableScroller ) continue;
+		CGFloat maxY = NSMaxY([v frame]);
+		if ( maxY > bottomRowTopY && maxY < NSMidY([content bounds]) )
+			bottomRowTopY = maxY;
+	}
+	CGFloat stripY = bottomRowTopY + gapAboveBottomRow;
+
+	// 4. Build a horizontal stack of (switch, label) pairs.
+	NSStackView *strip = [[NSStackView alloc] initWithFrame:
+		NSMakeRect( 16, stripY, [content bounds].size.width - 32, stripVisualHeight )];
+	[strip setOrientation: NSUserInterfaceLayoutOrientationHorizontal];
+	[strip setDistribution: NSStackViewDistributionFillEqually];
+	[strip setAlignment: NSLayoutAttributeCenterY];
+	[strip setSpacing: 16];
+	[strip setAutoresizingMask: NSViewWidthSizable | NSViewMaxYMargin];
+
+	NSArray<NSString*> *titles = @[
+		NSLocalizedString(@"Show Network Drives",   @""),
+		NSLocalizedString(@"Show External Devices", @""),
+		NSLocalizedString(@"Show Mounted Images",   @""),
+	];
+	NSArray<NSString*> *keys = @[
+		DIXShowNetworkDrivesKey,
+		DIXShowExternalDevicesKey,
+		DIXShowMountedImagesKey,
+	];
+	for ( NSUInteger i = 0; i < [titles count]; i++ )
+		[strip addArrangedSubview: [self labeledSwitchWithTitle: titles[i]
+													defaultsKey: keys[i]]];
+
+	[content addSubview: strip];
+	[strip release];
+}
+
+- (NSView*) labeledSwitchWithTitle: (NSString*) title
+					   defaultsKey: (NSString*) key
+{
+	NSSwitch *sw = [[[NSSwitch alloc] initWithFrame: NSMakeRect(0,0,40,22)] autorelease];
+	[sw setState: [[NSUserDefaults standardUserDefaults] boolForKey: key]
+			? NSControlStateValueOn : NSControlStateValueOff];
+	[sw setTarget: self];
+	[sw setAction: @selector(filterSwitchToggled:)];
+	[sw setIdentifier: key];
+
+	NSTextField *label = [NSTextField labelWithString: title];
+	[label setLineBreakMode: NSLineBreakByTruncatingTail];
+	[label setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+
+	NSStackView *row = [[[NSStackView alloc] initWithFrame: NSZeroRect] autorelease];
+	[row setOrientation: NSUserInterfaceLayoutOrientationHorizontal];
+	[row setAlignment: NSLayoutAttributeCenterY];
+	[row setSpacing: 8];
+	[row addArrangedSubview: sw];
+	[row addArrangedSubview: label];
+	return row;
+}
+
+- (void) filterSwitchToggled: (NSSwitch*) sender
+{
+	NSString *key = [sender identifier];
+	if ( key == nil )
+		return;
+	[[NSUserDefaults standardUserDefaults] setBool: ([sender state] == NSControlStateValueOn)
+											forKey: key];
+	[self rebuildVolumesArray];
+}
+
+// YES if a given volume kind should be shown given the current switch state.
+- (BOOL) shouldShowVolumeKind: (DIXVolumeKind) kind
+{
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	switch ( kind )
+	{
+		case DIXVolumeKindInternal:  return YES;  // always shown
+		case DIXVolumeKindNetwork:   return [defaults boolForKey: DIXShowNetworkDrivesKey];
+		case DIXVolumeKindExternal:  return [defaults boolForKey: DIXShowExternalDevicesKey];
+		case DIXVolumeKindDiskImage: return [defaults boolForKey: DIXShowMountedImagesKey];
+	}
+	return YES;
+}
 
 @end
 
@@ -185,7 +349,16 @@
     for ( NSURL *volumeURL in vols )
     {
         [volumeURL cacheResourcesInArray: volProps];
-        
+
+        // Drop volumes the user has filtered out.
+        if ( ![self shouldShowVolumeKind: DIXClassifyVolume(volumeURL)] )
+            continue;
+
+        // Refresh the cached snapshot info for this volume so the name
+        // transformer can show "N snapshots (~size)" without spawning a task
+        // on every cell redraw.
+        DIXRefreshSnapshotInfoForVolume(volumeURL);
+
         //put NSURL object for key "volume" in the entry dictionary
         NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithObject: volumeURL forKey: @"volume"];
         

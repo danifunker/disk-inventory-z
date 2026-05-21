@@ -159,11 +159,6 @@ BOOL g_EnableLogging;
 	[[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"https://github.com/danifunker/disk-inventory-y"]];
 }
 
-- (IBAction) closeDonationPanel: (id) sender;
-{
-	[_donationPanel close]; //will release itself
-	_donationPanel = nil;
-}
 
 
 #pragma mark --------app notifications-----------------
@@ -176,7 +171,6 @@ BOOL g_EnableLogging;
 	//register factory defaults (formerly done by OmniAppKit via the OFRegistrations key in Info.plist)
 	[[NSUserDefaults standardUserDefaults] registerDefaults: @{
 		@"AnimatedZooming": @YES,
-		@"DontShowDonationMessage": @NO,
 		@"EnableLogging": @NO,
 		@"IgnoreCreatorCode": @NO,
 		@"ShareKindColors": @YES,
@@ -199,19 +193,8 @@ BOOL g_EnableLogging;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)notification
 {
-    //@@test
-    //[[OAController sharedController] applicationDidFinishLaunching:notification];
-
-    //show donate message
-	if ( ![[NSUserDefaults standardUserDefaults] boolForKey: DontShowDonationMessage] )
-	{
-		[NSBundle loadNibNamed: @"DonationPanel" owner:self];
-		[_donationPanel setWorksWhenModal: YES];
-	}
-	
-//	DIXFinderCMInstaller *installer = [DIXFinderCMInstaller installer];
-//	if ( ![installer isInstalled] )
-//		[installer installToDomain: kUserDomain];
+    //(donation/about nag panel removed in v1.5.0 -- the About panel is now
+    // reachable from a button on each main window's content view.)
 }
 
 #pragma mark -----------------NSMenu delegates-----------------------

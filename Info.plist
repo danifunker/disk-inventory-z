@@ -131,8 +131,6 @@ No data will be read.</string>
 			<dict>
 				<key>AnimatedZooming</key>
 				<true/>
-				<key>DontShowDonationMessage</key>
-				<false/>
 				<key>EnableLogging</key>
 				<false/>
 				<key>IgnoreCreatorCode</key>

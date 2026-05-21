@@ -16,6 +16,7 @@
 //
 
 #import "MainWindowController.h"
+#import "DIXAboutButton.h"
 #import "InfoPanelController.h"
 #import "Timing.h"
 #import <TreeMapView/TreeMapView.h>
@@ -104,13 +105,16 @@
 	//split window horizontally?
 	if ( [[NSUserDefaults standardUserDefaults] boolForKey: SplitWindowHorizontally] )
 	{
-		[_splitter setVertical: NO];		
+		[_splitter setVertical: NO];
 	}
-	
+
 	[_splitter setPositionAutosaveName: @"MainWindowSplitter"];
-	
+
     [_kindsDrawer toggle: self];
 	//[_selectionListDrawer toggle: self];
+
+	// Top-right ⓘ button on the main document window for the About panel.
+	DIXInstallAboutButtonInWindow( [self window] );
 }
 
 - (NSDrawer*) kindStatisticsDrawer

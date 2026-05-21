@@ -14,6 +14,7 @@
 //
 
 #import "VolumeNameTransformer.h"
+#import "DIXSnapshotInfo.h"
 #import "NSURL-Extensions.h"
 
 
@@ -52,12 +53,26 @@
 
         NSAttributedString *volumeTypeString = [[NSAttributedString alloc] initWithString: volumeType
                                                                                attributes: [VolumeNameTransformer volumeTypeAttributes]];
-	
+
         //add volume format as second line
         [attribString appendAttributedString: volumeTypeString];
         [volumeTypeString release];
     }
-    
+
+    // Third line: APFS local snapshot count + estimated reclaimable size,
+    // when present. Reads from the in-process cache populated during
+    // rebuildVolumesArray; no syscalls happen on cell redraw.
+    NSString *snapshotInfo = DIXSnapshotInfoStringForVolume(vol);
+    if ( snapshotInfo != nil )
+    {
+        [attribString appendAttributedString: [[[NSAttributedString alloc] initWithString: @"\n " ] autorelease]];
+        NSAttributedString *snapshotString = [[NSAttributedString alloc]
+            initWithString: snapshotInfo
+                attributes: [VolumeNameTransformer volumeTypeAttributes]];
+        [attribString appendAttributedString: snapshotString];
+        [snapshotString release];
+    }
+
 	return [attribString autorelease];
 }
 

@@ -7,13 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		21098ABD1725F8F89A6ABC50 /* DIXAboutButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D1283356C8800F87CF3FA6EC /* DIXAboutButton.m */; };
 		26C482916ECAED8DB4994039 /* TMVItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C96ACE8083885C47567A708 /* TMVItem.m */; };
 		2DD454BDAE0AF0A331D0748A /* NSBitmapImageRep-CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = E46532D8A6495FF2312B0081 /* NSBitmapImageRep-CreationExtensions.m */; };
 		6A03E85170FE81E08EEFB4A1 /* NSView-BackingCoordsHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */; };
 		778E869169D40BD19649FB43 /* TreeMapView.m in Sources */ = {isa = PBXBuildFile; fileRef = E7613DE8A0A8E92E9F7A8EEC /* TreeMapView.m */; };
+		B102E701E70E99F02E1B891F /* DIXVolumeKind.m in Sources */ = {isa = PBXBuildFile; fileRef = A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */; };
 		C9319C68DD9CD87895D00DE6 /* TMVCushionRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EC29FAF9FF52B40F7E758F7 /* TMVCushionRenderer.m */; };
 		D6231F9913BFBDCA716FCE1D /* ZoomInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 44A53064AD9343FD0094705B /* ZoomInfo.m */; };
+		D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */; };
 		DA0000000000000000000001 /* OASplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0000000000000000000003 /* OASplitView.m */; };
+		E7C86F9EB6E86FDD4DC84467 /* DiskArbitration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F0264D19B4168EF4E7790337 /* DiskArbitration.framework */; };
 		FC2B2BBB277E472C0040ED6C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
 		FC2B2BBC277E472F0040ED6C /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */; };
 		FC2B2BBD277E47320040ED6C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */; };
@@ -77,7 +81,6 @@
 		FCCFB349097FA44A009EA2B6 /* GeneralPreferences.tiff in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB338097FA44A009EA2B6 /* GeneralPreferences.tiff */; };
 		FCCFB34A097FA44A009EA2B6 /* FinderCMPreferences.tiff in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB339097FA44A009EA2B6 /* FinderCMPreferences.tiff */; };
 		FCCFB370097FA4C1009EA2B6 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB34D097FA4C1009EA2B6 /* Credits.rtf */; };
-		FCCFB371097FA4C1009EA2B6 /* DonationPanel.nib in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB34F097FA4C1009EA2B6 /* DonationPanel.nib */; };
 		FCCFB372097FA4C1009EA2B6 /* FinderCMPreferencesPage.nib in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB351097FA4C1009EA2B6 /* FinderCMPreferencesPage.nib */; };
 		FCCFB373097FA4C1009EA2B6 /* GeneralPreferencesPage.nib in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB353097FA4C1009EA2B6 /* GeneralPreferencesPage.nib */; };
 		FCCFB37A097FA4C1009EA2B6 /* InfoPanel.nib in Resources */ = {isa = PBXBuildFile; fileRef = FCCFB35E097FA4C1009EA2B6 /* InfoPanel.nib */; };
@@ -113,20 +116,26 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* Disk Inventory Y_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Disk Inventory Y_Prefix.pch"; sourceTree = "<group>"; };
+		42DA6D1FE7620EB6F264CF44 /* DIXSnapshotInfo.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXSnapshotInfo.h; sourceTree = "<group>"; };
 		44A53064AD9343FD0094705B /* ZoomInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = ZoomInfo.m; sourceTree = "<group>"; };
+		4A58663686AF12732142B439 /* DIXVolumeKind.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXVolumeKind.h; sourceTree = "<group>"; };
 		4EC29FAF9FF52B40F7E758F7 /* TMVCushionRenderer.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TMVCushionRenderer.m; sourceTree = "<group>"; };
+		585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXSnapshotInfo.m; sourceTree = "<group>"; };
 		5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "NSView-BackingCoordsHelpers.m"; sourceTree = "<group>"; };
+		70EAE5E91B5B02E625227421 /* DIXAboutButton.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXAboutButton.h; sourceTree = "<group>"; };
 		7C96ACE8083885C47567A708 /* TMVItem.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TMVItem.m; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* Disk Inventory Y.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disk Inventory Y.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9784D69E74CA9FA5D9BAB2C8 /* TMVItem.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = TMVItem.h; sourceTree = "<group>"; };
+		A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXVolumeKind.m; sourceTree = "<group>"; };
 		CBB2B22F0368E553A70A10DB /* TMVCushionRenderer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = TMVCushionRenderer.h; sourceTree = "<group>"; };
+		D1283356C8800F87CF3FA6EC /* DIXAboutButton.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXAboutButton.m; sourceTree = "<group>"; };
 		DA0000000000000000000002 /* OASplitView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OASplitView.h; sourceTree = "<group>"; };
 		DA0000000000000000000003 /* OASplitView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OASplitView.m; sourceTree = "<group>"; };
 		E46532D8A6495FF2312B0081 /* NSBitmapImageRep-CreationExtensions.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "NSBitmapImageRep-CreationExtensions.m"; sourceTree = "<group>"; };
 		E7613DE8A0A8E92E9F7A8EEC /* TreeMapView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TreeMapView.m; sourceTree = "<group>"; };
 		EFCC16A462BEBB257AA1D654 /* NSBitmapImageRep-CreationExtensions.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "NSBitmapImageRep-CreationExtensions.h"; sourceTree = "<group>"; };
+		F0264D19B4168EF4E7790337 /* DiskArbitration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DiskArbitration.framework; path = System/Library/Frameworks/DiskArbitration.framework; sourceTree = SDKROOT; };
 		FC2B2B7A277E43D00040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		FC2B2B7B277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = en.lproj/DonationPanel.nib; sourceTree = "<group>"; };
 		FC2B2B7C277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en; path = en.lproj/Help; sourceTree = "<group>"; };
 		FC2B2B7D277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = en.lproj/InfoPanel.nib; sourceTree = "<group>"; };
 		FC2B2B7E277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -144,7 +153,6 @@
 		FC2D7D7221FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/TreeMapPreferencesPage.nib; sourceTree = "<group>"; };
 		FC2D7D7321FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/GeneralPreferencesPage.nib; sourceTree = "<group>"; };
 		FC2D7D7421FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Preferences.strings; sourceTree = "<group>"; };
-		FC2D7D7521FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/DonationPanel.nib; sourceTree = "<group>"; };
 		FC2D7D7621FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/InfoPanel.nib; sourceTree = "<group>"; };
 		FC2D7D7721FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/LoadingPanel.nib; sourceTree = "<group>"; };
 		FC2D7D7821FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/MainMenu.nib; sourceTree = "<group>"; };
@@ -162,7 +170,6 @@
 		FC42B8632202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/GeneralPreferencesPage.nib; sourceTree = "<group>"; };
 		FC42B8642202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/FinderCMPreferencesPage.nib; sourceTree = "<group>"; };
 		FC42B8652202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Preferences.strings; sourceTree = "<group>"; };
-		FC42B8662202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/DonationPanel.nib; sourceTree = "<group>"; };
 		FC42B8672202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/InfoPanel.nib; sourceTree = "<group>"; };
 		FC42B8682202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/LoadingPanel.nib; sourceTree = "<group>"; };
 		FC42B8692202405A0080570A /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = es.lproj/MainMenu.nib; sourceTree = "<group>"; };
@@ -188,7 +195,6 @@
 		FCA1D0BB2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/GeneralPreferencesPage.nib; sourceTree = "<group>"; };
 		FCA1D0BC2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/FinderCMPreferencesPage.nib; sourceTree = "<group>"; };
 		FCA1D0BD2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Preferences.strings; sourceTree = "<group>"; };
-		FCA1D0BE2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/DonationPanel.nib; sourceTree = "<group>"; };
 		FCA1D0BF2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/InfoPanel.nib; sourceTree = "<group>"; };
 		FCA1D0C02205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/LoadingPanel.nib; sourceTree = "<group>"; };
 		FCA1D0C12205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/MainMenu.nib; sourceTree = "<group>"; };
@@ -299,6 +305,7 @@
 				FC2B2BBD277E47320040ED6C /* Foundation.framework in Frameworks */,
 				FC2B2BBB277E472C0040ED6C /* Cocoa.framework in Frameworks */,
 				FC2B2BBC277E472F0040ED6C /* AppKit.framework in Frameworks */,
+				E7C86F9EB6E86FDD4DC84467 /* DiskArbitration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,6 +362,12 @@
 				FCEE299D106266CB00B16DBB /* Project References */,
 				19C28FB0FE9D524F11CA2CBB /* Products */,
 				F0B94D38BEDF9D5F223957DE /* TreeMapView */,
+				70EAE5E91B5B02E625227421 /* DIXAboutButton.h */,
+				D1283356C8800F87CF3FA6EC /* DIXAboutButton.m */,
+				4A58663686AF12732142B439 /* DIXVolumeKind.h */,
+				A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */,
+				42DA6D1FE7620EB6F264CF44 /* DIXSnapshotInfo.h */,
+				585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */,
 			);
 			name = "Disk Inventory Y";
 			sourceTree = "<group>";
@@ -374,7 +387,6 @@
 				FCFB17B521B876A400E3F8C4 /* Images.xcassets */,
 				FCCFB336097FA44A009EA2B6 /* Preferences */,
 				FCCFB329097FA44A009EA2B6 /* Toolbar */,
-				FCCFB34F097FA4C1009EA2B6 /* DonationPanel.nib */,
 				FCCFB35E097FA4C1009EA2B6 /* InfoPanel.nib */,
 				FCCFB362097FA4C1009EA2B6 /* LoadingPanel.nib */,
 				FCCFB366097FA4C1009EA2B6 /* MainMenu.nib */,
@@ -395,6 +407,7 @@
 			children = (
 				1058C7A6FEA54F5311CA2CBB /* Linked Frameworks */,
 				1058C7A8FEA54F5311CA2CBB /* Other Frameworks */,
+				F0264D19B4168EF4E7790337 /* DiskArbitration.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -734,7 +747,6 @@
 				FCCFB349097FA44A009EA2B6 /* GeneralPreferences.tiff in Resources */,
 				FCCFB34A097FA44A009EA2B6 /* FinderCMPreferences.tiff in Resources */,
 				FCCFB370097FA4C1009EA2B6 /* Credits.rtf in Resources */,
-				FCCFB371097FA4C1009EA2B6 /* DonationPanel.nib in Resources */,
 				FCCFB372097FA4C1009EA2B6 /* FinderCMPreferencesPage.nib in Resources */,
 				FCCFB373097FA4C1009EA2B6 /* GeneralPreferencesPage.nib in Resources */,
 				FCCFB37A097FA4C1009EA2B6 /* InfoPanel.nib in Resources */,
@@ -822,6 +834,9 @@
 				26C482916ECAED8DB4994039 /* TMVItem.m in Sources */,
 				778E869169D40BD19649FB43 /* TreeMapView.m in Sources */,
 				D6231F9913BFBDCA716FCE1D /* ZoomInfo.m in Sources */,
+				21098ABD1725F8F89A6ABC50 /* DIXAboutButton.m in Sources */,
+				B102E701E70E99F02E1B891F /* DIXVolumeKind.m in Sources */,
+				D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -848,17 +863,6 @@
 				FC2B2B7A277E43D00040ED6C /* en */,
 			);
 			name = Credits.rtf;
-			sourceTree = "<group>";
-		};
-		FCCFB34F097FA4C1009EA2B6 /* DonationPanel.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				FC2D7D7521FE4ABB004D0614 /* de */,
-				FC42B8662202405A0080570A /* es */,
-				FCA1D0BE2205FF2D004E9468 /* fr */,
-				FC2B2B7B277E43D10040ED6C /* en */,
-			);
-			name = DonationPanel.nib;
 			sourceTree = "<group>";
 		};
 		FCCFB351097FA4C1009EA2B6 /* FinderCMPreferencesPage.nib */ = {

@@ -21,7 +21,6 @@ extern NSString *UseSmallFontInSelectionList;
 extern NSString *SplitWindowHorizontally;
 extern NSString *AnimatedZooming;
 extern NSString *EnableLogging;
-extern NSString *DontShowDonationMessage;
 extern NSString *DontShowPrivacyWarningMessage;
 extern NSString *ShareKindColors;
 

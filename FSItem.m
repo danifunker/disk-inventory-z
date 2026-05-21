@@ -971,8 +971,13 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
     BOOL lastItemWasDir = NO;
     FSItem *lastDirItem = nil;
     
-    for ( NSURL *currentUrl in dirEnum)
+    for ( NSURL *currentUrl in dirEnum) @autoreleasepool
     {
+        // Wrapping each iteration in @autoreleasepool keeps peak memory flat
+        // on large scans — NSURL/getResourceValue produces many transient
+        // autoreleased objects per item and without this pool they all sit
+        // on the outer pool until the entire enumeration finishes.
+        //
         // cache all needed properties (NSURL purges all values upon next pass through the run loop)
         [currentUrl cacheResourcesInArray: urlProperties];
         
