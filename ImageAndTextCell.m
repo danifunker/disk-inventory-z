@@ -184,10 +184,16 @@
         imageFrame.origin.x += IMAGE_OFFSET;
         imageFrame.size = imageSize;
 
-        if ([controlView isFlipped])
-            imageFrame.origin.y += ceil((cellFrame.size.height + imageFrame.size.height) / 2);
-        else
-            imageFrame.origin.y += ceil((cellFrame.size.height - imageFrame.size.height) / 2);
+        // Vertical centering: -drawInRect:respectFlipped:YES treats the
+        // destination rect's origin as the top-left in the current coord
+        // system regardless of whether the view is flipped. The legacy
+        // branch here added (cellH + imgH)/2 because -compositeToPoint:
+        // (now removed) interpreted the point as the bottom-left of the
+        // image in flipped coords -- that offset put the image one row
+        // below where we wanted it under the new API, which is why icons
+        // appeared next to the wrong rows. The formula is now the same
+        // for both flipped and unflipped views.
+        imageFrame.origin.y += ceil((cellFrame.size.height - imageFrame.size.height) / 2);
 
        [_image drawInRect: imageFrame
                  fromRect: NSZeroRect/*entire image*/
