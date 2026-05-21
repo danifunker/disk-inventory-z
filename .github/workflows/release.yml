@@ -28,19 +28,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Universal (arm64 + x86_64) — tracks current Xcode / runner.
+          # Universal (arm64 + x86_64) — tracks current runner default Xcode.
           - variant: universal
             runner: macos-14
-            xcode: /Applications/Xcode_15.4.app/Contents/Developer
             archs: ""              # empty = Xcode default = ARCHS_STANDARD
             notarize: true
             dmg_suffix: ""
             volume_suffix: ""
           # Intel-only — pinned to the intel runner so it can keep shipping
-          # while the universal job rolls forward to newer runners / Xcode.
+          # while the universal job rolls forward to newer runners.
           - variant: intel
             runner: macos-26-intel
-            xcode: /Applications/Xcode_15.4.app/Contents/Developer
             archs: "x86_64"
             notarize: true
             dmg_suffix: "-intel"
@@ -49,8 +47,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s "${{ matrix.xcode }}"
+      - name: Show active Xcode
+        run: xcodebuild -version
 
       - name: Detect signing availability
         id: signing
@@ -112,7 +110,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
             archive \
-            "${ARCH_ARGS[@]}" \
+            ${ARCH_ARGS[@]+"${ARCH_ARGS[@]}"} \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
@@ -156,7 +154,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/dd" \
             build \
-            "${ARCH_ARGS[@]}" \
+            ${ARCH_ARGS[@]+"${ARCH_ARGS[@]}"} \
             CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
           mkdir -p "$RUNNER_TEMP/export"
           cp -R "$RUNNER_TEMP/dd/Build/Products/$CONFIGURATION/$APP_NAME.app" "$RUNNER_TEMP/export/"
