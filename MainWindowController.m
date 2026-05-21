@@ -111,6 +111,27 @@
 
 	[_splitter setPositionAutosaveName: @"MainWindowSplitter"];
 
+    // Widen the kinds drawer before opening it so all four columns
+    // (Color, Kind, Size, Files) fit at default sizes. The nib was set up
+    // for a narrower drawer where the right-most Files column got clipped.
+    {
+        NSSize current = [_kindsDrawer contentSize];
+        const CGFloat desiredWidth = 420;
+        if ( current.width < desiredWidth )
+        {
+            [_kindsDrawer setContentSize: NSMakeSize( desiredWidth, current.height )];
+            NSSize minSize = [_kindsDrawer minContentSize];
+            if ( minSize.width < desiredWidth )
+                [_kindsDrawer setMinContentSize: NSMakeSize( desiredWidth, minSize.height )];
+        }
+    }
+    // Force the drawer to always open on the right (NSMaxXEdge). NSDrawer's
+    // default is "wherever has more free space", which means if the window
+    // happens to be parked far enough right that there's more room on the
+    // left, the drawer pops on the left -- visually backwards from the
+    // intended design. Pinning the edge avoids that.
+    [_kindsDrawer setPreferredEdge: NSMaxXEdge];
+    [_selectionListDrawer setPreferredEdge: NSMaxXEdge];
     [_kindsDrawer toggle: self];
 	//[_selectionListDrawer toggle: self];
 
@@ -124,6 +145,89 @@
 												 name: FSItemsChangedNotification
 											   object: [self document]];
 	[self updateStatusBar];
+
+	// The nib was authored on a larger display; the saved frame from
+	// NSUserDefaults can exceed the user's current visibleFrame, pushing the
+	// window's bottom (search field, status bar) off the screen. Clamp to
+	// the screen's visibleFrame with a margin so every control is reachable.
+	//
+	// NSWindowController applies the saved frame (via -setFrameUsingName:)
+	// during nib load, but on some launches the layout re-applies the saved
+	// frame *after* awakeFromNib runs and undoes our clamp. Defer one extra
+	// clamp to the next runloop turn so any post-awakeFromNib restoration
+	// has settled by then.
+	[self constrainWindowToScreen];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[self constrainWindowToScreen];
+	});
+}
+
+- (void) constrainWindowToScreen
+{
+	NSWindow *window = [self window];
+	NSScreen *screen = [window screen] ?: [NSScreen mainScreen];
+	if ( screen == nil )
+		return;
+
+	const CGFloat margin = 20;
+	// Reserve vertical space for a bottom-edge drawer (file kinds / selection
+	// list) plus its search field, and horizontal space for the right-edge
+	// kinds drawer that extends past the window when opened. We don't know
+	// the actual drawer edge at constrain time, so budget for a typical
+	// drawer size + padding.
+	const CGFloat reservedBelowForDrawer = 260;
+	// Reserve a generous margin on the right so the kinds drawer (420pt) +
+	// its window-edge insets fit, and so a user-resized drawer up to ~500pt
+	// still has elbow room. Without enough headroom NSDrawer will pop on
+	// the wrong edge of the window.
+	const CGFloat reservedRightForDrawer = 560;
+	NSRect visible = [screen visibleFrame];
+	NSRect wf      = [window frame];
+
+	BOOL changed = NO;
+
+	CGFloat maxHeight = NSHeight(visible) - reservedBelowForDrawer - margin;
+	if ( maxHeight < 400 )  // safety floor on small displays
+		maxHeight = NSHeight(visible) - margin;
+	if ( NSHeight(wf) > maxHeight )
+	{
+		wf.size.height = maxHeight;
+		changed = YES;
+	}
+
+	CGFloat maxWidth = NSWidth(visible) - reservedRightForDrawer - margin;
+	if ( maxWidth < 700 )  // safety floor on narrow displays
+		maxWidth = NSWidth(visible) - margin;
+	if ( NSWidth(wf) > maxWidth )
+	{
+		wf.size.width = maxWidth;
+		changed = YES;
+	}
+
+	// After resizing, re-park inside the visible frame.
+	if ( NSMaxY(wf) > NSMaxY(visible) )
+	{
+		wf.origin.y = NSMaxY(visible) - NSHeight(wf);
+		changed = YES;
+	}
+	if ( NSMinY(wf) < NSMinY(visible) )
+	{
+		wf.origin.y = NSMinY(visible);
+		changed = YES;
+	}
+	if ( NSMaxX(wf) > NSMaxX(visible) )
+	{
+		wf.origin.x = NSMaxX(visible) - NSWidth(wf);
+		changed = YES;
+	}
+	if ( NSMinX(wf) < NSMinX(visible) )
+	{
+		wf.origin.x = NSMinX(visible);
+		changed = YES;
+	}
+
+	if ( changed )
+		[window setFrame: wf display: YES];
 }
 
 #pragma mark ----------------- bottom status bar -----------------
@@ -131,6 +235,18 @@
 // Inject a small text field along the bottom of the window's content view.
 // Shows the original scan root, total size and file count -- stable through
 // zooming, unlike the window title (which reflects the zoomed item).
+// Recursively re-tile every NSScrollView under `root`. Called after we shift
+// subview frames by setFrame: (same size, new origin) -- AppKit doesn't
+// re-tile NSScrollView in that case so the header view ends up overlapping
+// the first content row.
+- (void) dixTileAllScrollViewsUnder: (NSView*) root
+{
+	if ( [root isKindOfClass: [NSScrollView class]] )
+		[(NSScrollView*)root tile];
+	for ( NSView *child in [root subviews] )
+		[self dixTileAllScrollViewsUnder: child];
+}
+
 - (void) installStatusBar
 {
 	NSView *content = [[self window] contentView];
@@ -143,12 +259,19 @@
 	[[self window] setFrame: wf display: NO];
 
 	// Shift existing subviews up by barHeight so the bottom strip is free.
+	// Then force any NSScrollView descendants to re-tile: setFrame: with the
+	// same size only changes origin, and NSScrollView's internal layout
+	// (header view position, clip view position) re-tiles automatically on
+	// SIZE changes but not on pure origin shifts. Without the explicit -tile
+	// the header and the first content row can end up at the same y inside
+	// the scroll view, drawing on top of each other.
 	for ( NSView *v in [content subviews] )
 	{
 		NSRect r = [v frame];
 		r.origin.y += barHeight;
 		[v setFrame: r];
 	}
+	[self dixTileAllScrollViewsUnder: content];
 
 	NSTextField *f = [[NSTextField alloc] initWithFrame:
 		NSMakeRect( 12, 3, [content bounds].size.width - 24, barHeight - 6 )];

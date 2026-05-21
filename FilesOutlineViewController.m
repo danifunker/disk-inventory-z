@@ -16,6 +16,8 @@
 //
 
 #import "FilesOutlineViewController.h"
+#import "DIXTableView+Sizing.h"
+#import "FileKindsTableController.h"  /* for DIXShowKindInSelectionListNotification */
 #import "FSItem.h"
 #import "FSItem-Utilities.h"
 #import "MainWindowController.h"
@@ -65,6 +67,11 @@
 	//set FileSizeFormatter for the size column
 	FileSizeFormatter *sizeFormatter = [[[FileSizeFormatter alloc] init] autorelease];
 	[[[_outlineView tableColumnWithIdentifier: @"size"] dataCell] setFormatter: sizeFormatter];
+
+	//columns should fill the window; size column fixed-width, name column
+	//absorbs the rest with tail-truncation.
+	[_outlineView dixConfigureColumnsWithNumericIdentifiers: @[ @"size" ]
+	                                     flexibleIdentifier: nil  /*outline column*/];
         
 	[[NSUserDefaultsController sharedUserDefaultsController] addObserver: self
 															  forKeyPath: [@"values." stringByAppendingString: UseSmallFontInFilesView]
@@ -78,30 +85,42 @@
 
     [self reloadData];
 
-    // Install a right-click context menu on the outline view with the most
-    // useful actions. AppKit handles "click-row-first then show menu" via
-    // -menuForEvent:; we set up a menu delegate that selects the clicked
-    // row before the menu pops up.
-    NSMenu *menu = [[[NSMenu alloc] initWithTitle: @""] autorelease];
-    NSMenuItem *refreshItem = [menu addItemWithTitle: NSLocalizedString(@"Refresh", @"")
-                                              action: @selector(refresh:)
-                                       keyEquivalent: @""];
-    [refreshItem setTarget: nil]; // first responder chain
-    NSMenuItem *refreshAllItem = [menu addItemWithTitle: NSLocalizedString(@"Refresh All", @"")
-                                                 action: @selector(refreshAll:)
-                                          keyEquivalent: @""];
-    [refreshAllItem setTarget: nil];
-    [menu addItem: [NSMenuItem separatorItem]];
-    NSMenuItem *revealItem = [menu addItemWithTitle: NSLocalizedString(@"Reveal in Finder", @"")
-                                             action: @selector(showInFinder:)
-                                      keyEquivalent: @""];
-    [revealItem setTarget: nil];
-    NSMenuItem *trashItem = [menu addItemWithTitle: NSLocalizedString(@"Move To Trash", @"")
-                                            action: @selector(moveToTrash:)
-                                     keyEquivalent: @""];
-    [trashItem setTarget: nil];
-    [menu setDelegate: self];
-    [_outlineView setMenu: menu];
+    // The outline view's right-click menu is wired in the nib (the
+    // `_contextMenu` IBOutlet) and returned by our
+    // -outlineView:menuForTableColumn:item: delegate method. We can't use
+    // -[NSOutlineView setMenu:] -- DIXOutlineView.menuForEvent: ignores it
+    // and consults the delegate instead. So extend the nib menu in place
+    // with our new "Show Files in Selection List" entry, idempotently in
+    // case awakeFromNib runs more than once.
+    if ( _contextMenu != nil
+         && [_contextMenu indexOfItemWithTarget: self
+                                      andAction: @selector(showFilesInSelectionList:)] < 0 )
+    {
+        [_contextMenu addItem: [NSMenuItem separatorItem]];
+        NSMenuItem *selListItem = [_contextMenu addItemWithTitle: NSLocalizedString(@"Show Files in Selection List", @"")
+                                                          action: @selector(showFilesInSelectionList:)
+                                                   keyEquivalent: @""];
+        [selListItem setTarget: self];
+    }
+}
+
+// Right-click "Show Files in Selection List" on the outline view: look up the
+// clicked file's kind name and ask the FileKindsTableController (via
+// notification) to select that kind in the kinds drawer, which auto-fills
+// the selection list and opens it.
+- (IBAction) showFilesInSelectionList: (id) sender
+{
+    FSItem *item = [_outlineView selectedItem];
+    if ( item == nil || [item isSpecialItem] )
+        return;
+
+    NSString *kindName = [item kindName];
+    if ( [kindName length] == 0 )
+        return;
+
+    [[NSNotificationCenter defaultCenter] postNotificationName: DIXShowKindInSelectionListNotification
+                                                        object: self
+                                                      userInfo: @{ DIXShowKindInSelectionListKindNameKey: kindName }];
 }
 
 // NSMenuDelegate: select the row under the right-click before the menu shows,

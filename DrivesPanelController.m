@@ -14,6 +14,7 @@
 //
 
 #import "DrivesPanelController.h"
+#import "DIXTableView+Sizing.h"
 #import "DIXAboutButton.h"
 #import "DIXSnapshotInfo.h"
 #import "DIXVolumeKind.h"
@@ -137,6 +138,10 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		FileSizeFormatter *sizeFormatter = [[[FileSizeFormatter alloc] init] autorelease];
 		[[[_volumesTableView tableColumnWithIdentifier: @"totalSize"] dataCell] setFormatter: sizeFormatter];
 		[[[_volumesTableView tableColumnWithIdentifier: @"freeBytes"] dataCell] setFormatter: sizeFormatter];
+
+		//columns fill the panel width; size columns fixed, name column flexible.
+		[_volumesTableView dixConfigureColumnsWithNumericIdentifiers: @[ @"totalSize", @"freeBytes" ]
+		                                          flexibleIdentifier: nil  /*first column = volume name*/];
 
 		// Top-right corner of the volumes panel: a small ⓘ button that opens
 		// the standard About panel. The donation/nag panel was removed in
@@ -460,6 +465,17 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
     [self rebuildProgressIndicatorArray];
 
     [self didChangeValueForKey: @"volumes"];
+
+    // On first build, seed the selection to the first visible volume so the
+    // user can press Return / double-click immediately without first having
+    // to click a row. Subsequent rebuilds (e.g. mount/unmount) preserve the
+    // current selection.
+    if ( !_didSeedInitialSelection && [_volumes count] > 0 )
+    {
+        [_volumesTableView selectRowIndexes: [NSIndexSet indexSetWithIndex: 0]
+                       byExtendingSelection: NO];
+        _didSeedInitialSelection = YES;
+    }
 
     inRebuild = NO;
 }

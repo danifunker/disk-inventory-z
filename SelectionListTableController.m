@@ -15,6 +15,7 @@
 //
 
 #import "SelectionListTableController.h"
+#import "DIXTableView+Sizing.h"
 #import "ImageAndTextCell.h"
 
 @interface SelectionListTableController(Privat)
@@ -77,6 +78,10 @@
 
 	//set small font for all for all columns if needed
 	[self setTableViewFont];
+
+	//columns fill the drawer width; size column fixed, displayName flexible.
+	[_tableView dixConfigureColumnsWithNumericIdentifiers: @[ @"size" ]
+	                                   flexibleIdentifier: @"displayName"];
 }
 
 #pragma mark --------NSTableView delegate-----------------

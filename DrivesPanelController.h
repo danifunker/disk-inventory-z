@@ -26,6 +26,7 @@
 	IBOutlet NSArrayController *_volumesController;
     
     unsigned long long _maxVolumeSize; // size of largest volumes
+    BOOL _didSeedInitialSelection;     // first -rebuildVolumesArray seeded row 0
 }
 
 + (DrivesPanelController*) sharedController;

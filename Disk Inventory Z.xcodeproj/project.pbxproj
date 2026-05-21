@@ -13,6 +13,7 @@
 		6A03E85170FE81E08EEFB4A1 /* NSView-BackingCoordsHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */; };
 		778E869169D40BD19649FB43 /* TreeMapView.m in Sources */ = {isa = PBXBuildFile; fileRef = E7613DE8A0A8E92E9F7A8EEC /* TreeMapView.m */; };
 		B102E701E70E99F02E1B891F /* DIXVolumeKind.m in Sources */ = {isa = PBXBuildFile; fileRef = A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */; };
+		D17AB1E1C42A6BCD7EF99001 /* DIXTableView+Sizing.m in Sources */ = {isa = PBXBuildFile; fileRef = D17AB1E1C42A6BCD7EF99003 /* DIXTableView+Sizing.m */; };
 		C9319C68DD9CD87895D00DE6 /* TMVCushionRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EC29FAF9FF52B40F7E758F7 /* TMVCushionRenderer.m */; };
 		D6231F9913BFBDCA716FCE1D /* ZoomInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 44A53064AD9343FD0094705B /* ZoomInfo.m */; };
 		D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */; };
@@ -120,6 +121,8 @@
 		42DA6D1FE7620EB6F264CF44 /* DIXSnapshotInfo.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXSnapshotInfo.h; sourceTree = "<group>"; };
 		44A53064AD9343FD0094705B /* ZoomInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = ZoomInfo.m; sourceTree = "<group>"; };
 		4A58663686AF12732142B439 /* DIXVolumeKind.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXVolumeKind.h; sourceTree = "<group>"; };
+		D17AB1E1C42A6BCD7EF99002 /* DIXTableView+Sizing.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "DIXTableView+Sizing.h"; sourceTree = "<group>"; };
+		D17AB1E1C42A6BCD7EF99003 /* DIXTableView+Sizing.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "DIXTableView+Sizing.m"; sourceTree = "<group>"; };
 		4EC29FAF9FF52B40F7E758F7 /* TMVCushionRenderer.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TMVCushionRenderer.m; sourceTree = "<group>"; };
 		585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXSnapshotInfo.m; sourceTree = "<group>"; };
 		5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "NSView-BackingCoordsHelpers.m"; sourceTree = "<group>"; };
@@ -367,6 +370,8 @@
 				D1283356C8800F87CF3FA6EC /* DIXAboutButton.m */,
 				4A58663686AF12732142B439 /* DIXVolumeKind.h */,
 				A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */,
+				D17AB1E1C42A6BCD7EF99002 /* DIXTableView+Sizing.h */,
+				D17AB1E1C42A6BCD7EF99003 /* DIXTableView+Sizing.m */,
 				42DA6D1FE7620EB6F264CF44 /* DIXSnapshotInfo.h */,
 				585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */,
 			);
@@ -836,6 +841,7 @@
 				D6231F9913BFBDCA716FCE1D /* ZoomInfo.m in Sources */,
 				21098ABD1725F8F89A6ABC50 /* DIXAboutButton.m in Sources */,
 				B102E701E70E99F02E1B891F /* DIXVolumeKind.m in Sources */,
+				D17AB1E1C42A6BCD7EF99001 /* DIXTableView+Sizing.m in Sources */,
 				D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

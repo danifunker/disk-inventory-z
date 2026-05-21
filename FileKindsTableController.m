@@ -14,12 +14,16 @@
 //
 
 #import "FileKindsTableController.h"
+#import "DIXTableView+Sizing.h"
 #import <TreeMapView/TMVCushionRenderer.h>
 #import <TreeMapView/NSBitmapImageRep-CreationExtensions.h>
 #import "Preferences.h"
 #import "MainWindowController.h"
 
 #import "FSItemIndex.h"
+
+NSString * const DIXShowKindInSelectionListNotification    = @"DIXShowKindInSelectionList";
+NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 
 
 //============ interface FileKindsTableController(Private) ==========================================================
@@ -71,10 +75,78 @@
 	NSTableColumn *sizeColumn = [_tableView tableColumnWithIdentifier: @"size"];
 	NSArray *initialSortDescriptors = [NSArray arrayWithObject: [[sizeColumn sortDescriptorPrototype] reversedSortDescriptor]];
 	[_kindsTableArrayController setSortDescriptors: initialSortDescriptors];
+
+	//columns fill the drawer width; numeric columns fixed-width, kind name flexible.
+	// "kind" is the flexible column. The first table column ("color") is just
+	// a tiny swatch, so we don't want it absorbing extra width.
+	[_tableView dixConfigureColumnsWithNumericIdentifiers: @[ @"size", @"fileCount" ]
+	                                   flexibleIdentifier: @"kind"];
+
+	// Right-click menu on the kinds table: a single "Show Files in Selection
+	// List" item that reuses our existing IBAction.
+	NSMenu *menu = [[[NSMenu alloc] initWithTitle: @""] autorelease];
+	NSMenuItem *showItem = [menu addItemWithTitle: NSLocalizedString(@"Show Files in Selection List", @"")
+	                                       action: @selector(showFilesInSelectionList:)
+	                                keyEquivalent: @""];
+	[showItem setTarget: self];
+	[menu setDelegate: self];
+	[_tableView setMenu: menu];
+
+	// Other controllers (e.g. the files outline view's right-click menu) ask
+	// us to select a kind by name via this notification; see DIX...Notification
+	// declaration in the header.
+	[[NSNotificationCenter defaultCenter] addObserver: self
+	                                         selector: @selector(handleShowKindInSelectionListNotification:)
+	                                             name: DIXShowKindInSelectionListNotification
+	                                           object: nil];
+}
+
+// NSMenuDelegate: select the right-clicked row before the context menu shows
+// so -showFilesInSelectionList: operates on the row under the cursor.
+- (void) menuNeedsUpdate: (NSMenu*) menu
+{
+	NSEvent *event = [NSApp currentEvent];
+	if ( event == nil )
+		return;
+	NSPoint pt = [_tableView convertPoint: [event locationInWindow] fromView: nil];
+	NSInteger row = [_tableView rowAtPoint: pt];
+	if ( row >= 0 && row != [_tableView selectedRow] )
+	{
+		[_tableView selectRowIndexes: [NSIndexSet indexSetWithIndex: row]
+		        byExtendingSelection: NO];
+	}
+}
+
+- (void) handleShowKindInSelectionListNotification: (NSNotification*) note
+{
+	NSString *kindName = [[note userInfo] objectForKey: DIXShowKindInSelectionListKindNameKey];
+	if ( [kindName length] == 0 )
+		return;
+
+	// Find the FileKindStatistic with this kindName in our arranged objects
+	// and select it -- that lights up the same code path as a manual click
+	// on the row, which the selection list is already wired to observe.
+	NSArray *arranged = (NSArray*)[_kindsTableArrayController arrangedObjects];
+	NSUInteger idx = [arranged indexOfObjectPassingTest:
+		^BOOL (FileKindStatistic *stat, NSUInteger i, BOOL *stop)
+		{
+			return [[stat kindName] isEqualToString: kindName];
+		}];
+
+	if ( idx == NSNotFound )
+		return;
+
+	[_tableView selectRowIndexes: [NSIndexSet indexSetWithIndex: idx]
+	        byExtendingSelection: NO];
+	[_tableView scrollRowToVisible: idx];
+	[self showFilesInSelectionList: nil];
 }
 
 - (void) dealloc
-{    
+{
+    [[NSNotificationCenter defaultCenter] removeObserver: self
+                                                    name: DIXShowKindInSelectionListNotification
+                                                  object: nil];
     [_cushionImages release];
 
     [super dealloc];
@@ -106,6 +178,8 @@
 {
 	if ( [[tableColumn identifier] isEqualToString: @"color"] )
 		[cell setImage: [self colorImageForRow: row column: tableColumn]];
+	// Kind column truncation is handled by the DIXTruncatingTextFieldCell
+	// installed as that column's dataCell in -dixConfigureColumns...
 }
 
 #pragma mark --------NSTableView notifications-----------------
