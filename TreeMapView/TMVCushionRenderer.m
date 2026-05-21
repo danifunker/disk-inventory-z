@@ -97,9 +97,9 @@ SEL g_renderFunction;	//optimized rendering function depending on processor feat
 - (void) setColor: (NSColor*) newColor
 {
 	//we need the color in the RGB color space
-	if ( ![[newColor colorSpaceName] isEqualToString: NSCalibratedRGBColorSpace] )
-		newColor = [newColor colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-	
+	if ( ![[newColor colorSpace] isEqual: [NSColorSpace genericRGBColorSpace]] )
+		newColor = [newColor colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
+
     [newColor retain];
     [_color release];
 
@@ -458,9 +458,9 @@ Unoptimized:
 + (NSColor*) normalizeColor: (NSColor*) color
 {
 	//we need the color in the RGB color space
-	if ( ![[color colorSpaceName] isEqualToString: NSCalibratedRGBColorSpace] )
-		color = [color colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-	
+	if ( ![[color colorSpace] isEqual: [NSColorSpace genericRGBColorSpace]] )
+		color = [color colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
+
     CGFloat red = [color redComponent];
     CGFloat green = [color greenComponent];
     CGFloat blue = [color blueComponent];

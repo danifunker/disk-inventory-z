@@ -189,14 +189,12 @@
         else
             imageFrame.origin.y += ceil((cellFrame.size.height - imageFrame.size.height) / 2);
 
-       //[_image drawInRect: imageFrame
-       //          fromRect: NSZeroRect/*entire image*/
-       //         operation: NSCompositeSourceOver
-       //          fraction: 1.0/*opaque*/
-       //    respectFlipped: YES
-       //             hints: nil];
-       
-       [_image compositeToPoint:imageFrame.origin operation:NSCompositeSourceOver];
+       [_image drawInRect: imageFrame
+                 fromRect: NSZeroRect/*entire image*/
+                operation: NSCompositingOperationSourceOver
+                 fraction: 1.0/*opaque*/
+           respectFlipped: YES
+                    hints: nil];
     }
     
     // (Manual truncation hack removed: it predates modern AppKit, fed

@@ -33,6 +33,13 @@
 - (void) updateStatus: (NSTimer*) timer;
 @end
 
+// Holds the nib's top-level objects. -[NSBundle loadNibNamed:owner:] (deprecated)
+// gave its top-level objects an extra retain; the modern instance method hands
+// ownership to the caller, so we retain them here to keep the panel alive.
+@interface LoadingPanelController ()
+@property (nonatomic, retain) NSArray *nibTopLevelObjects;
+@end
+
 @implementation LoadingPanelController
 
 - (id) init
@@ -40,9 +47,11 @@
 	self = [super init];
 	
     //load Nib with progress panel
-	if ( ![NSBundle loadNibNamed: @"LoadingPanel" owner: self] )
+	NSArray *topLevelObjects = nil;
+	if ( ![[NSBundle mainBundle] loadNibNamed: @"LoadingPanel" owner: self topLevelObjects: &topLevelObjects] )
 		NSAssert( NO, @"couldn't load LoadingPanel.nib" );
-	
+	self.nibTopLevelObjects = topLevelObjects;
+
 	[_loadingProgressIndicator setUsesThreadedAnimation: NO];
     [_loadingProgressIndicator startAnimation: self];
 
@@ -85,9 +94,11 @@
 	self = [super init];
 	
     //load Nib with progress panel
-	if ( ![NSBundle loadNibNamed: @"LoadingPanel" owner: self] )
+	NSArray *topLevelObjects = nil;
+	if ( ![[NSBundle mainBundle] loadNibNamed: @"LoadingPanel" owner: self topLevelObjects: &topLevelObjects] )
 		NSAssert( NO, @"couldn't load LoadingPanel.nib" );
-	
+	self.nibTopLevelObjects = topLevelObjects;
+
 	[NSApp beginSheet: _loadingPanel
 	   modalForWindow: window
 		modalDelegate: self
@@ -119,6 +130,7 @@
 		[self close];
 	[self stopStatusTimer];
 	// _statusField is owned by the panel's content view; no separate release.
+	[_nibTopLevelObjects release];
 
 	[super dealloc];
 }

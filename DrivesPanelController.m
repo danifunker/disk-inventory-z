@@ -27,6 +27,15 @@
 - (BOOL) shouldShowVolumeKind: (DIXVolumeKind) kind;
 @end
 
+// Retains the nib's top-level objects, since the modern instance-method
+// -loadNibNamed:owner:topLevelObjects: hands ownership to the caller (unlike
+// the deprecated +loadNibNamed:owner: which leaked them).
+@interface DrivesPanelController ()
+{
+	NSArray *_nibTopLevelObjects;
+}
+@end
+
 // NSUserDefaults keys for the filter switches at the bottom of the panel.
 NSString * const DIXShowNetworkDrivesKey   = @"DIXShowNetworkDrives";
 NSString * const DIXShowExternalDevicesKey = @"DIXShowExternalDevices";
@@ -94,13 +103,16 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	[self rebuildVolumesArray];
 	
 	//load Nib with volume panel
-    if ( ![NSBundle loadNibNamed: @"VolumesPanel" owner: self] )
+	NSArray *topLevelObjects = nil;
+    if ( ![[NSBundle mainBundle] loadNibNamed: @"VolumesPanel" owner: self topLevelObjects: &topLevelObjects] )
 	{
 		[self release];
 		self = nil;
 	}
 	else
 	{
+		_nibTopLevelObjects = [topLevelObjects retain];
+
 		//open volume on double clicked (can't be configured in IB?)
 		[_volumesTableView setDoubleAction: @selector(openVolume:)];
 		
@@ -150,7 +162,8 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 
     [_volumes release];
 	[_progressIndicators release];
-	
+	[_nibTopLevelObjects release];
+
     [super dealloc];
 }
 
@@ -451,7 +464,7 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		if ( i >= [_progressIndicators count] )
 		{
 			progrInd = [[[NSProgressIndicator alloc] init] autorelease];
-			[progrInd setStyle: NSProgressIndicatorBarStyle];
+			[progrInd setStyle: NSProgressIndicatorStyleBar];
 			[progrInd setIndeterminate: NO];
 			
 			[_progressIndicators addObject: progrInd];
@@ -514,7 +527,7 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		int colIndex = [tableView columnWithIdentifier: [tableColumn identifier]];
 		NSRect cellRect = [tableView frameOfCellAtColumn: colIndex row: row];
 		
-		const float progrIndThickness = NSProgressIndicatorPreferredLargeThickness; 
+		const float progrIndThickness = 18; //was NSProgressIndicatorPreferredLargeThickness (deprecated); keep exact geometry
 		const float extraSpace = 16; //space before and after progress indicator (relative to left and right side of cell)
 		
 		//center it vertically in cell

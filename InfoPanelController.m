@@ -16,6 +16,15 @@
 #import "InfoPanelController.h"
 #import "DIXFileInfoView.h"
 
+// Retains the nib's top-level objects, since the modern instance-method
+// -loadNibNamed:owner:topLevelObjects: hands ownership to the caller (unlike
+// the deprecated +loadNibNamed:owner: which leaked them).
+@interface InfoPanelController ()
+{
+	NSArray *_nibTopLevelObjects;
+}
+@end
+
 @implementation InfoPanelController
 
 + (InfoPanelController*) sharedController
@@ -33,7 +42,8 @@
 	self = [super init];
 		
 	//load Nib with info panel
-    if ( ![NSBundle loadNibNamed: @"InfoPanel" owner: self] )
+	NSArray *topLevelObjects = nil;
+    if ( ![[NSBundle mainBundle] loadNibNamed: @"InfoPanel" owner: self topLevelObjects: &topLevelObjects] )
 	{
 		[self release];
 		self = nil;
@@ -52,13 +62,15 @@
 		
 		[[_infoPanel contentView] addSubview: _infoView];
 		 */
+		_nibTopLevelObjects = [topLevelObjects retain];
 	}
-	
+
 	return self;
 }
 
 - (void) dealloc
-{	
+{
+	[_nibTopLevelObjects release];
     [super dealloc];
 }
 
