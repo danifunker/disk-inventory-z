@@ -18,6 +18,7 @@
 		D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */; };
 		DA0000000000000000000001 /* OASplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0000000000000000000003 /* OASplitView.m */; };
 		E7C86F9EB6E86FDD4DC84467 /* DiskArbitration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F0264D19B4168EF4E7790337 /* DiskArbitration.framework */; };
+		D1A2B3C4D5E6F70819203140 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A2B3C4D5E6F70819203141 /* UniformTypeIdentifiers.framework */; };
 		F27B93B42BB93CF5EF5E1951 /* DIXLegacyOmniHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = E16A8C009544FF11A5EA32F7 /* DIXLegacyOmniHelpers.m */; };
 		FC2B2BBB277E472C0040ED6C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
 		FC2B2BBC277E472F0040ED6C /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */; };
@@ -138,6 +139,7 @@
 		E7613DE8A0A8E92E9F7A8EEC /* TreeMapView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TreeMapView.m; sourceTree = "<group>"; };
 		EFCC16A462BEBB257AA1D654 /* NSBitmapImageRep-CreationExtensions.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "NSBitmapImageRep-CreationExtensions.h"; sourceTree = "<group>"; };
 		F0264D19B4168EF4E7790337 /* DiskArbitration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DiskArbitration.framework; path = System/Library/Frameworks/DiskArbitration.framework; sourceTree = SDKROOT; };
+		D1A2B3C4D5E6F70819203141 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		FC2B2B7A277E43D00040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		FC2B2B7C277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en; path = en.lproj/Help; sourceTree = "<group>"; };
 		FC2B2B7D277E43D10040ED6C /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = en.lproj/InfoPanel.nib; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 				FC2B2BBB277E472C0040ED6C /* Cocoa.framework in Frameworks */,
 				FC2B2BBC277E472F0040ED6C /* AppKit.framework in Frameworks */,
 				E7C86F9EB6E86FDD4DC84467 /* DiskArbitration.framework in Frameworks */,
+				D1A2B3C4D5E6F70819203140 /* UniformTypeIdentifiers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +414,7 @@
 				1058C7A6FEA54F5311CA2CBB /* Linked Frameworks */,
 				1058C7A8FEA54F5311CA2CBB /* Other Frameworks */,
 				F0264D19B4168EF4E7790337 /* DiskArbitration.framework */,
+				D1A2B3C4D5E6F70819203141 /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

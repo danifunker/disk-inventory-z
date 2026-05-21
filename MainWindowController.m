@@ -42,7 +42,7 @@
     initialized = YES;
 	
 	//initalize support for the service menu
-    NSArray *sendTypes = [NSArray arrayWithObjects: NSFilenamesPboardType, nil];
+    NSArray *sendTypes = [NSArray arrayWithObjects: NSPasteboardTypeFileURL, nil];
     NSArray *returnTypes = [NSArray array];
 	
 	[NSApp registerServicesMenuSendTypes: sendTypes returnTypes: returnTypes];

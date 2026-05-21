@@ -18,6 +18,7 @@
 #import "FSItem.h"
 #import "NSURL-Extensions.h"
 #import "NTFilePasteboardSource.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 //for debugging and logging purposes
 unsigned g_fileCount;
@@ -605,7 +606,7 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 
     if ( _kindName == nil )
     {
-        _kindName = (NSString*) UTTypeCopyDescription((CFStringRef)uti);
+        _kindName = [[UTType typeWithIdentifier: uti].localizedDescription retain];
         
         //remember kind name for similar files
         if ( _kindName != nil )
@@ -750,25 +751,25 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 
 - (NSArray<NSPasteboardType>*) supportedPasteboardTypes
 {
-	NSMutableArray<NSPasteboardType> *types = [NSMutableArray arrayWithObjects: NSFilenamesPboardType,
-                                                                                NSStringPboardType,
+	NSMutableArray<NSPasteboardType> *types = [NSMutableArray arrayWithObjects: NSPasteboardTypeFileURL,
+                                                                                NSPasteboardTypeString,
                                                                                 NSFileContentsPboardType,
                                                                                 nil ];
 
     NSString * uti = [[self fileURL] cachedUTI];
 
-#define TESTTYPE( test, type ) if ( [uti isEqualToString:(NSString*)test] ) [types addObject: type]
+#define TESTTYPE( test, type ) if ( [uti isEqualToString: test] ) [types addObject: type]
 
-	TESTTYPE( kUTTypeRTF, NSRTFPboardType );
-	TESTTYPE( kUTTypeRTFD, NSRTFDPboardType );
-	TESTTYPE( kUTTypeHTML, NSHTMLPboardType );
-	TESTTYPE( kUTTypePDF, NSPDFPboardType );
+	TESTTYPE( UTTypeRTF.identifier, NSPasteboardTypeRTF );
+	TESTTYPE( UTTypeRTFD.identifier, NSPasteboardTypeRTFD );
+	TESTTYPE( UTTypeHTML.identifier, NSPasteboardTypeHTML );
+	TESTTYPE( UTTypePDF.identifier, NSPasteboardTypePDF );
 
 #undef TESTTYPE
-    
+
     // add TIFF is this is an image
-    if ( UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeImage) )
-        [types addObject: NSTIFFPboardType];
+    if ( [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage] )
+        [types addObject: NSPasteboardTypeTIFF];
 
 	return types;
 }
@@ -776,16 +777,16 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 - (BOOL) supportsPasteboardType: (NSString*) type
 {
 	NSString * uti = [[self fileURL] cachedUTI];
-	
+
 	//this if clause is derived from the code in NTFilePasteboardSource's "- (NSArray*)pasteboardTypes:(NSArray *)types"
-	return [type isEqualToString: NSFilenamesPboardType]
-			|| [type isEqualToString: NSStringPboardType]
+	return [type isEqualToString: NSPasteboardTypeFileURL]
+			|| [type isEqualToString: NSPasteboardTypeString]
 			|| [type isEqualToString: NSFileContentsPboardType]
-			|| ([type isEqualToString: NSTIFFPboardType] && UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeImage))
-			|| ([type isEqualToString: NSRTFPboardType] && [uti isEqualToString:(__bridge NSString*)kUTTypeRTF])
-			|| ([type isEqualToString: NSRTFDPboardType] && [uti isEqualToString:(__bridge NSString*)kUTTypeFlatRTFD])
-			|| ([type isEqualToString: NSHTMLPboardType] && [uti isEqualToString:(__bridge NSString*)NSHTMLPboardType])
-			|| ([type isEqualToString: NSPDFPboardType] && [uti isEqualToString:(__bridge NSString*)NSPDFPboardType]);
+			|| ([type isEqualToString: NSPasteboardTypeTIFF] && [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage])
+			|| ([type isEqualToString: NSPasteboardTypeRTF] && [uti isEqualToString: UTTypeRTF.identifier])
+			|| ([type isEqualToString: NSPasteboardTypeRTFD] && [uti isEqualToString: UTTypeFlatRTFD.identifier])
+			|| ([type isEqualToString: NSPasteboardTypeHTML] && [uti isEqualToString: UTTypeHTML.identifier])
+			|| ([type isEqualToString: NSPasteboardTypePDF] && [uti isEqualToString: UTTypePDF.identifier]);
 }
 
 - (void) writeToPasteboard: (NSPasteboard*) pboard
@@ -813,27 +814,25 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
     NSString *path = [url cachedPath];
     NSString * uti = [url cachedUTI];
 
-	if ([type isEqualToString:NSFilenamesPboardType])
+	if ([type isEqualToString:NSPasteboardTypeFileURL])
 	{
-		NSArray* pathsArray = [NSArray arrayWithObject: path];
-		
-		[pboard setPropertyList:pathsArray forType:NSFilenamesPboardType];
+		[pboard setString:[url absoluteString] forType:NSPasteboardTypeFileURL];
 	}
-	else if ([type isEqualToString:NSStringPboardType])
+	else if ([type isEqualToString:NSPasteboardTypeString])
 	{
 		// set the path
-		[pboard setString:path forType:NSStringPboardType];
+		[pboard setString:path forType:NSPasteboardTypeString];
 	}
 	else if ([type isEqualToString:NSFileContentsPboardType])
 	{
 		// write the contents
 		[pboard writeFileContents:path];
 	}
-    else if ([type isEqualToString:NSTIFFPboardType])
+    else if ([type isEqualToString:NSPasteboardTypeTIFF])
     {
-        if ([uti isEqualToString: (__bridge NSString *)kUTTypeTIFF])
-            [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSTIFFPboardType];
-        else if ( UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeImage) )
+        if ([uti isEqualToString: UTTypeTIFF.identifier])
+            [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeTIFF];
+        else if ( [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage] )
         {
             // open the image and return TIFFRepresentation
             NSImage *image = [[[NSImage alloc] initWithContentsOfFile:[url path]] autorelease];
@@ -843,32 +842,32 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
                 NSData* data = [image TIFFRepresentation];
 
                 if (data)
-                    [pboard setData:data forType:NSTIFFPboardType];
+                    [pboard setData:data forType:NSPasteboardTypeTIFF];
             }
         }
     }
-	else if ([type isEqualToString:NSRTFPboardType])
+	else if ([type isEqualToString:NSPasteboardTypeRTF])
 	{
-		if ([uti isEqualToString:(__bridge NSString*)kUTTypeRTF])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSRTFPboardType];
+		if ([uti isEqualToString: UTTypeRTF.identifier])
+			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeRTF];
 	}
-	else if ([type isEqualToString:NSRTFDPboardType])
+	else if ([type isEqualToString:NSPasteboardTypeRTFD])
 	{
-		if ([uti isEqualToString:(__bridge NSString*)kUTTypeFlatRTFD])
+		if ([uti isEqualToString: UTTypeFlatRTFD.identifier])
 		{
 			NSFileWrapper *tempRTFDData = [[[NSFileWrapper alloc] initWithPath:path] autorelease];
-			[pboard setData:[tempRTFDData serializedRepresentation] forType:NSRTFDPboardType];
+			[pboard setData:[tempRTFDData serializedRepresentation] forType:NSPasteboardTypeRTFD];
 		}
 	}
-	else if ([type isEqualToString:NSHTMLPboardType])
+	else if ([type isEqualToString:NSPasteboardTypeHTML])
 	{
-		if ([uti isEqualToString:(__bridge NSString*)kUTTypeHTML])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSHTMLPboardType];
+		if ([uti isEqualToString: UTTypeHTML.identifier])
+			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeHTML];
 	}
-	else if ([type isEqualToString:NSPDFPboardType])
+	else if ([type isEqualToString:NSPasteboardTypePDF])
 	{
-		if ([uti isEqualToString:(__bridge NSString*)kUTTypePDF])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPDFPboardType];
+		if ([uti isEqualToString: UTTypePDF.identifier])
+			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypePDF];
 	}
 	
 	LOG( @"    exiting FSItem.pasteboard:provideDataForType: %@", type )
