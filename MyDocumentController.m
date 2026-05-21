@@ -19,7 +19,6 @@
 #import "Preferences.h"
 #import "PrefsPanelController.h"
 #import "FileSystemDoc.h"
-#import "AppController.h"
 
 //global variable which enables/disables logging
 BOOL g_EnableLogging;
@@ -170,12 +169,26 @@ BOOL g_EnableLogging;
 
 - (void) applicationWillFinishLaunching: (NSNotification*) notification
 {
-    //verify that our custom DocumentController is in use 
+    //verify that our custom DocumentController is in use
     NSAssert( [[NSDocumentController sharedDocumentController] isKindOfClass: [MyDocumentController class]], @"the shared DocumentController is not our custom class!" );
-    
-    //@@test
-    //[[OAController sharedController] applicationWillFinishLaunching:notification];
-	
+
+	//register factory defaults (formerly done by OmniAppKit via the OFRegistrations key in Info.plist)
+	[[NSUserDefaults standardUserDefaults] registerDefaults: @{
+		@"AnimatedZooming": @YES,
+		@"DontShowDonationMessage": @NO,
+		@"EnableLogging": @NO,
+		@"IgnoreCreatorCode": @NO,
+		@"ShareKindColors": @YES,
+		@"ShowFreeSpace": @NO,
+		@"ShowOtherSpace": @NO,
+		@"ShowPackageContents": @NO,
+		@"ShowPhysicalFileSize": @YES,
+		@"SplitWindowHorizontally": @NO,
+		@"UseSmallFontInFilesView": @NO,
+		@"UseSmallFontInKindStatisticView": @NO,
+		@"UseSmallFontInSelectionList": @NO,
+	}];
+
 	g_EnableLogging = [[NSUserDefaults standardUserDefaults] boolForKey: EnableLogging];
     
 	//show the drives panel before "applicationDidFinishLaunching" so the panel is visible before the first document is loaded

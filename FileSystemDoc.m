@@ -22,7 +22,6 @@
 #import "Timing.h"
 #import "InfoPanelController.h"
 #import "FSItem-Utilities.h"
-#import <OmniFoundation/NSArray-OFExtensions.h>
 #import "NSFileManager-Extensions.h"
 
 NSString *CollectFileKindStatisticsCanceledException = @"CollectFileKindStatisticsCanceledException";
@@ -1131,35 +1130,53 @@ NSString *OldItem = @"OldItem";
 {
     NSFileManager *fileMgr = [NSFileManager defaultManager];
     NSArray<NSURL*> *protectedFolders = [fileMgr privacyProtectedFoldersInURL:[NSURL fileURLWithPath:folder]];
-    if ( [protectedFolders count] > 0 )
+    if ( [protectedFolders count] == 0 )
+        return;
+
+    // If we already have access to every protected folder in the scan path,
+    // there is nothing the user needs to do — skip the warning entirely.
+    if ( [fileMgr hasAccessToProtectedFolders: protectedFolders] )
+        return;
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if ( ![defaults boolForVersionDependantKey: DontShowPrivacyWarningMessage] )
     {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if ( ![defaults boolForVersionDependantKey: DontShowPrivacyWarningMessage] )
+        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+
+        alert.alertStyle = NSAlertStyleInformational;
+
+        alert.messageText = NSLocalizedString(@"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected.", @"");
+        alert.informativeText = NSLocalizedString(@"To grant access in one step, open System Settings and enable Disk Inventory X under Privacy & Security → Full Disk Access. macOS will ask you to relaunch the app after enabling it.", @"");
+
+        // Primary button: deep-link to the Full Disk Access pane.
+        [alert addButtonWithTitle: NSLocalizedString(@"Open System Settings", @"")];
+        [alert addButtonWithTitle: NSLocalizedString(@"OK", @"")];
+
+        alert.showsSuppressionButton = YES;
+        alert.suppressionButton.title = NSLocalizedString(@"Do not show this information again.", @"");
+
+        NSModalResponse response = [alert runModal];
+
+        if (alert.suppressionButton.state == NSOnState)
         {
-            NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-            
-            alert.alertStyle = NSAlertStyleInformational;
-            
-            alert.messageText = NSLocalizedString(@"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected.", @"");
-            alert.informativeText = NSLocalizedString(@"You can change the access settings in the System Preferences (Security/Privacy).", @"");
-            
-            alert.showsSuppressionButton = YES;
-            alert.suppressionButton.title = NSLocalizedString(@"Do not show this information again.", @"");
-            
-            [alert runModal];
-            
-            if (alert.suppressionButton.state == NSOnState)
-            {
-                // Suppress this alert for the current version
-                [defaults setBool: YES forVersionDependantKey: DontShowPrivacyWarningMessage];
-            }
-            
-            // let the alert disappear before the consent dialogs pop up
-            [[NSRunLoop currentRunLoop] runUntilDate: [NSDate date]];
+            // Suppress this alert for the current version
+            [defaults setBool: YES forVersionDependantKey: DontShowPrivacyWarningMessage];
         }
-        
-        [fileMgr triggerConsentDialogForPrivacyProtectedFolders:protectedFolders];
+
+        if ( response == NSAlertFirstButtonReturn )
+        {
+            NSURL *fdaPane = [NSURL URLWithString:
+                @"x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"];
+            [[NSWorkspace sharedWorkspace] openURL: fdaPane];
+        }
+
+        // let the alert disappear before the consent dialogs pop up
+        [[NSRunLoop currentRunLoop] runUntilDate: [NSDate date]];
     }
+
+    // Still fire per-folder consent dialogs (Photos, etc.) for anything not
+    // covered by Full Disk Access.
+    [fileMgr triggerConsentDialogForPrivacyProtectedFolders:protectedFolders];
 }
 
 //@@test

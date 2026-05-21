@@ -17,7 +17,7 @@
  redistribute this Apple software.
  
  In consideration of your agreement to abide by the following terms, and subject to these 
- terms, Apple grants you a personal, non-exclusive license, under AppleÕs copyrights in 
+ terms, Apple grants you a personal, non-exclusive license, under Appleï¿½s copyrights in 
  this original Apple software (the "Apple Software"), to use, reproduce, modify and 
  redistribute the Apple Software, with or without modifications, in source and/or binary 
  forms; provided that if you redistribute the Apple Software in its entirety and without 
@@ -43,8 +43,6 @@
 */
 
 #import "ImageAndTextCell.h"
-//#import <OmniAppKit/NSString-OAExtensions.h>
-#import <OmniFoundation/NSString-OFUnicodeCharacters.h>
 
 #define TEXT_OFFSET	10	//space between image and text
 #define IMAGE_OFFSET	5	//space between left side of cell rect and image
@@ -122,7 +120,7 @@
     {
         NSString *ellipsis = [NSString horizontalEllipsisString];
         
-       // Accommodate for ellipsis weÕll tack on the end
+       // Accommodate for ellipsis weï¿½ll tack on the end
         width -= [ellipsis sizeWithAttributes:attribs].width;
         
         if ( width < 0 )

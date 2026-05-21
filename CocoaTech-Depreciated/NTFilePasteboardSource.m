@@ -7,7 +7,6 @@
 //
 
 #import "NTFilePasteboardSource.h"
-#import <OmniAppKit/OAPasteboardHelper.h>
 #import "NSURL-Extensions.h"
 
 // SNG 666 add NSPICTPboardType
@@ -69,15 +68,14 @@
 + (NTFilePasteboardSource*)files:(NSArray<NSURL*> *)URLs toPasteboard:(NSPasteboard *)pboard types:(NSArray<NSPasteboardType> *)types;
 {
     NTFilePasteboardSource* source = [[[NTFilePasteboardSource alloc] initWithURLs:URLs] autorelease];
-    OAPasteboardHelper *helper;
     NSArray<NSPasteboardType>* pasteboardTypes = [source pasteboardTypes:types];
 
     if (pasteboardTypes)
     {
-        helper = [OAPasteboardHelper helperWithPasteboard:pboard];
-
-        // the helper is retained for as long as it stays in the pasteboard, the source is retained by the helper
-        [helper declareTypes:pasteboardTypes owner:source];
+        // NSPasteboard provides the data lazily by calling the owner's
+        // -pasteboard:provideDataForType: and retains the owner until the
+        // pasteboard contents change.
+        [pboard declareTypes:pasteboardTypes owner:source];
     }
 
     return source;

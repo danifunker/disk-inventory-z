@@ -14,7 +14,6 @@
 //
 
 #import "FSItemIndex.h"
-#import <OmniFoundation/NSString-OFExtensions.h>
 
 @interface NSMutableDictionary(Indexing)
 - (void) addObject: (id) object forTerm: (id) term; 

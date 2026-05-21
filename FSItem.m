@@ -16,7 +16,6 @@
 
 #import "FSItem.h"
 #import "NSURL-Extensions.h"
-#import <OmniFoundation/NSMutableArray-OFExtensions.h>
 #import "NTFilePasteboardSource.h"
 
 //for debugging and logging purposes

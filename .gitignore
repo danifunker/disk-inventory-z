@@ -1,0 +1,34 @@
+# Xcode build outputs
+build/
+DerivedData/
+*.xcarchive
+*.dSYM.zip
+*.dSYM
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcuserstatepackage
+*.xcuserdatad/
+project.xcworkspace/xcshareddata/swiftpm/
+
+# macOS junk
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager (in case anything pulls it in later)
+.swiftpm/
+.build/
+Package.resolved
+
+# Notarization / signing scratch
+*.p12
+*.cer
+*.mobileprovision
+ExportOptions.plist.local
+
+# Tooling
+.vscode/
+.idea/
+*.swp

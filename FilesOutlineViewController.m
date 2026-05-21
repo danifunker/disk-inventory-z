@@ -17,7 +17,6 @@
 #import "FilesOutlineViewController.h"
 #import "FSItem.h"
 #import "FSItem-Utilities.h"
-#import <OmniAppKit/NSTableView-OAExtensions.h>
 #import "MainWindowController.h"
 #import "Preferences.h"
 

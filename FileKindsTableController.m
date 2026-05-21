@@ -13,7 +13,6 @@
 //
 
 #import "FileKindsTableController.h"
-#import <OmniAppKit/NSTableView-OAExtensions.h>
 #import <TreeMapView/TMVCushionRenderer.h>
 #import <TreeMapView/NSBitmapImageRep-CreationExtensions.h>
 #import "Preferences.h"

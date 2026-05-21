@@ -8,8 +8,6 @@
  */
 
 #include "Preferences.h"
-#import <OmniFoundation/NSDictionary-OFExtensions.h>
-#import <OmniFoundation/NSMutableDictionary-OFExtensions.h>
 
 //keys for preference values
 NSString *ShowPackageContents			= @"ShowPackageContents";
@@ -75,6 +73,25 @@ NSString *ShareKindColors				= @"ShareKindColors";
 @end
 
 #pragma mark ----------------- NSMutableDictionary(PreferencesValues) -------------------
+
+// Replacements for the Omni NSMutableDictionary helpers we used to inherit
+// from OmniFoundation. Kept private to this file.
+@interface NSMutableDictionary(DiskInventoryXBoolHelpers)
+- (BOOL) boolForKey: (NSString*) key;
+- (void) setBoolValue: (BOOL) value forKey: (NSString*) key;
+@end
+
+@implementation NSMutableDictionary(DiskInventoryXBoolHelpers)
+- (BOOL) boolForKey: (NSString*) key
+{
+    id value = [self objectForKey: key];
+    return [value respondsToSelector: @selector(boolValue)] ? [value boolValue] : NO;
+}
+- (void) setBoolValue: (BOOL) value forKey: (NSString*) key
+{
+    [self setObject: [NSNumber numberWithBool: value] forKey: key];
+}
+@end
 
 @interface NSMutableDictionary(DocumentPreferences_Private)
 - (void) copyValuesFromSharedDefaults;

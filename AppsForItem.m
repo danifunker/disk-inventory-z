@@ -13,7 +13,6 @@
 //
 
 #import "AppsForItem.h"
-#import <OmniFoundation/NSMutableArray-OFExtensions.h>
 #import "NSURL-Extensions.h"
 
 @interface AppsForItem(Private)

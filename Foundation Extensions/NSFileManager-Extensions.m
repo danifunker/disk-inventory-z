@@ -146,6 +146,58 @@
     return relevantURLs;
 }
 
+// YES if every protected URL in `urls` is readable by this process (or doesn't
+// exist). A failure with NSFileReadNoPermissionError / EPERM / EACCES is what
+// TCC returns when Full Disk Access hasn't been granted yet.
+- (BOOL) hasAccessToProtectedFolders: (NSArray<NSURL*>*) urls
+{
+    for ( NSURL *protectedURL in urls )
+    {
+        NSString *path = [protectedURL path];
+
+        // If the protected item doesn't exist on this machine, treat as
+        // accessible — there's nothing for us to be blocked from.
+        if ( ![self fileExistsAtPath: path] )
+            continue;
+
+        NSError *err = nil;
+        NSDictionary *attribs = [self attributesOfItemAtPath: path error: &err];
+        if ( attribs == nil )
+        {
+            if ( [[err domain] isEqualToString: NSCocoaErrorDomain]
+                 && [err code] == NSFileReadNoPermissionError )
+                return NO;
+
+            if ( [[err domain] isEqualToString: NSPOSIXErrorDomain]
+                 && ( [err code] == EPERM || [err code] == EACCES ) )
+                return NO;
+
+            // Any other error (e.g. transient I/O) — don't block on it.
+            continue;
+        }
+
+        // For directories, also probe enumeration: TCC sometimes lets stat()
+        // through but blocks readdir().
+        NSNumber *isDir = nil;
+        [protectedURL getResourceValue: &isDir forKey: NSURLIsDirectoryKey error: nil];
+        if ( isDir != nil && [isDir boolValue] )
+        {
+            NSError *enumErr = nil;
+            NSArray *contents = [self contentsOfDirectoryAtPath: path error: &enumErr];
+            if ( contents == nil )
+            {
+                if ( [[enumErr domain] isEqualToString: NSCocoaErrorDomain]
+                     && [enumErr code] == NSFileReadNoPermissionError )
+                    return NO;
+                if ( [[enumErr domain] isEqualToString: NSPOSIXErrorDomain]
+                     && ( [enumErr code] == EPERM || [enumErr code] == EACCES ) )
+                    return NO;
+            }
+        }
+    }
+    return YES;
+}
+
 // access the protected URLs to trigger macOS' consent dialogs
 - (void) triggerConsentDialogForPrivacyProtectedFolders: (NSArray<NSURL*>*) urls
 {

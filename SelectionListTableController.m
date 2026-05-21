@@ -14,7 +14,6 @@
 //
 
 #import "SelectionListTableController.h"
-#import <OmniAppKit/NSTableView-OAExtensions.h>
 #import "ImageAndTextCell.h"
 
 @interface SelectionListTableController(Privat)
