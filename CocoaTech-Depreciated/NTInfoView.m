@@ -11,9 +11,6 @@
 #import "AppsForItem.h"
 #import "NSURL-Extensions.h"
 
-#pragma warning "ID3 support removed"
-//#import "NTID3Helper.h"
-
 @interface NTInfoView (Private)
 - (void)createInfoView;
 - (void)updateInfoView;
@@ -250,14 +247,6 @@
                     [infoPairs addObject:[NTTitledInfoPair infoPair:NSLocalizedString(@"Application:",@"") info:[appURL displayName]]];
             }
         }
-#pragma warning "ID3 support disabled"
-/*
-        if ([typeID isMP3])
-        {
-            NTID3Helper* helper = [NTID3Helper helperWithPath:[_desc path]];
-            [infoPairs addObject:[NTTitledInfoPair infoPair:NSLocalizedString(@"MP3:",@"") info:[helper infoString]]];
-        }
-*/
 
         /*
         [infoPairs addObject:[NTTitledInfoPair infoPair:NSLocalizedString(@"Format:",@"") info:[_URL cachedVolumeFormatName]]];
@@ -325,16 +314,6 @@
                 [infoPairs addObject:[NTTitledInfoPair infoPair:NSLocalizedString(@"Application:",@"") info:[appDesc displayName]]];
         }
 */
-#pragma warning "ID3 support removed"
-        // mp3
-       /*
-       if ([typeID isMP3])
-        {
-            NTID3Helper* helper = [NTID3Helper helperWithPath:[_desc path]];
-            [infoPairs addObject:[NTTitledInfoPair infoPair:NSLocalizedString(@"MP3:",@"") info:[helper infoString]]];
-        }
-        */
-
 #pragma warning "to be reimplemented using NSURL & co"
 /*
          NTVolume *volume = [_desc volume];

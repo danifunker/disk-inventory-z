@@ -192,8 +192,6 @@
 		FC7F77D41067C9500090E839 /* NTTitledInfoPair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTTitledInfoPair.m; sourceTree = "<group>"; };
 		FC7F77D51067C9500090E839 /* NTTitledInfoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTTitledInfoView.h; sourceTree = "<group>"; };
 		FC7F77D61067C9500090E839 /* NTTitledInfoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTTitledInfoView.m; sourceTree = "<group>"; };
-		FC7F77F31067CA7D0090E839 /* NTID3Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTID3Helper.h; sourceTree = "<group>"; };
-		FC7F77F41067CA7D0090E839 /* NTID3Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTID3Helper.m; sourceTree = "<group>"; };
 		FCA1D0BA2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/TreeMapPreferencesPage.nib; sourceTree = "<group>"; };
 		FCA1D0BB2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/GeneralPreferencesPage.nib; sourceTree = "<group>"; };
 		FCA1D0BC2205FF2D004E9468 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = fr.lproj/FinderCMPreferencesPage.nib; sourceTree = "<group>"; };
@@ -459,8 +457,6 @@
 				FC7F77D41067C9500090E839 /* NTTitledInfoPair.m */,
 				FC7F77D51067C9500090E839 /* NTTitledInfoView.h */,
 				FC7F77D61067C9500090E839 /* NTTitledInfoView.m */,
-				FC7F77F31067CA7D0090E839 /* NTID3Helper.h */,
-				FC7F77F41067CA7D0090E839 /* NTID3Helper.m */,
 			);
 			path = "CocoaTech-Depreciated";
 			sourceTree = "<group>";
