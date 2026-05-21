@@ -16,6 +16,7 @@
 //
 
 #import "MainWindowController.h"
+#import "DIXLegacyOmniHelpers.h"
 #import "DIXAboutButton.h"
 #import "InfoPanelController.h"
 #import "Timing.h"

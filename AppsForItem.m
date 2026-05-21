@@ -89,7 +89,15 @@
 			}
 		}
 		
-		[_additionalAppURLs sortOnAttribute: @selector(name) usingSelector: @selector(caseInsensitiveCompare:)];
+		// Replacement for OmniFoundation's -[NSMutableArray sortOnAttribute:
+		// usingSelector:], which we lost when the Omni frameworks were
+		// removed. Compares each pair by the value returned from sending
+		// @selector(name) to each object.
+		[_additionalAppURLs sortUsingComparator: ^NSComparisonResult(id a, id b) {
+			id va = [a performSelector: @selector(name)];
+			id vb = [b performSelector: @selector(name)];
+			return [va caseInsensitiveCompare: vb];
+		}];
 	}
 	
 	return _additionalAppURLs;

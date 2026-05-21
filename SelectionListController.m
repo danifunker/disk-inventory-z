@@ -15,6 +15,7 @@
 //
 
 #import "SelectionListController.h"
+#import "DIXLegacyOmniHelpers.h"
 #import "FileSystemDoc.h"
 #import "FileKindsPopupController.h"
 #import "Timing.h"

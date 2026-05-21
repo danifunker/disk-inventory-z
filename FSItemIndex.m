@@ -15,6 +15,7 @@
 //
 
 #import "FSItemIndex.h"
+#import "DIXLegacyOmniHelpers.h"
 
 @interface NSMutableDictionary(Indexing)
 - (void) addObject: (id) object forTerm: (id) term; 

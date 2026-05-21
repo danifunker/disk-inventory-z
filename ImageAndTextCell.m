@@ -113,8 +113,17 @@
 
 + (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(NSFont *)font withString:(NSString *)string
 {
+    // Defensive coercion: modern AppKit returns the NSAttributedString itself
+    // from -[NSCell stringValue] when the objectValue is attributed, instead
+    // of extracting the plain string. -sizeWithAttributes: is an NSString-only
+    // selector and throws on NSAttributedString, so we normalize here.
+    if ( [string isKindOfClass: [NSAttributedString class]] )
+        string = [(NSAttributedString*)string string];
+    if ( string == nil || ![string isKindOfClass: [NSString class]] || font == nil )
+        return string ?: @"";
+
     NSDictionary *attribs = @{ NSFontAttributeName : font };
-    
+
     // Make sure string is longer than requested width
     if ([string sizeWithAttributes:attribs].width > width)
     {
@@ -190,28 +199,14 @@
        [_image compositeToPoint:imageFrame.origin operation:NSCompositeSourceOver];
     }
     
-    NSString *truncatedString = [ImageAndTextCell stringByTruncatingToWidth: NSWidth(cellFrame)
-                                                                       withFont: [self font]
-                                                                     withString: [self stringValue]];
-
-    [self setStringValue: truncatedString];
-
-/*
-	ThemeFontID themeFont = kThemeSystemFont;
-	float fontSize = [[self font] pointSize];
-	
-	if ( fontSize == [NSFont systemFontSize] )
-		themeFont = kThemeSystemFont;
-	else if ( fontSize == [NSFont smallSystemFontSize] )
-		themeFont = kThemeSmallSystemFont;
-	else
-		LOG( @"ImageTextCell can't determine appropriate truncating method" );
-
-    [self setStringValue: [[self stringValue] truncatedStringWithMaxWidth: NSWidth(cellFrame)
-															  themeFontID: themeFont
-														   truncationMode: truncEnd]];
- */
-
+    // (Manual truncation hack removed: it predates modern AppKit, fed
+    // [self stringValue] through +stringByTruncatingToWidth: and then
+    // overwrote the cell's attributed objectValue with a plain string,
+    // discarding the multi-line formatting on every redraw. On macOS 26+
+    // -[NSCell stringValue] also stopped extracting the plain string from
+    // an attributed objectValue, which made the helper throw inside
+    // -sizeWithAttributes:. NSTextFieldCell's own draw path already handles
+    // truncation via the cell's lineBreakMode setting.)
     [super drawWithFrame:cellFrame inView:controlView];
 }
 
