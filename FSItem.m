@@ -1013,13 +1013,31 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
     NSUInteger lastEnumLevel = 1;
     BOOL lastItemWasDir = NO;
     FSItem *lastDirItem = nil;
-    
+    NSUInteger filesSinceYield = 0;
+
     for ( NSURL *currentUrl in dirEnum) @autoreleasepool
     {
         // Wrapping each iteration in @autoreleasepool keeps peak memory flat
         // on large scans — NSURL/getResourceValue produces many transient
         // autoreleased objects per item and without this pool they all sit
         // on the outer pool until the entire enumeration finishes.
+
+        // Every ~64 entries, give the runloop a chance to dispatch events.
+        // Without this, a huge flat directory (e.g. node_modules, mailbox
+        // stores) can hold the main thread for many seconds, producing a
+        // beach-ball and making the Cancel / Quit / About menu items
+        // unreachable. Reusing fsItemEnteringFolder: also picks up the
+        // Cancel button press, so deep scans inside one folder can still
+        // be aborted.
+        if ( ++filesSinceYield >= 64 )
+        {
+            filesSinceYield = 0;
+            if ( [delegate respondsToSelector: @selector(fsItemEnteringFolder:)]
+                 && ![delegate fsItemEnteringFolder: [itemStack lastObject]] )
+            {
+                [NSException raise: FSItemLoadingCanceledException format: @""];
+            }
+        }
 
         // Always exclude /Volumes from any scan. On modern macOS it cross-
         // mounts back to the system volume root (/Volumes/Macintosh HD) and

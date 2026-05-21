@@ -109,11 +109,14 @@
 {
 	[self stopStatusTimer];
 
+	if ( _loadingPanel == nil )
+		return;
+
 	if ( [_loadingPanel isSheet] )
 	{
 		[NSApp endSheet: _loadingPanel];
 		[_loadingPanel close]; //will be released (panel has style "release when close")
-		
+
 		_loadingPanel = nil;
 		_loadingProgressIndicator = nil;
 		_loadingTextField = nil;
@@ -121,10 +124,15 @@
 	}
 	else
 	{
-		OBPRECONDITION( _loadingPanelModalSession != 0 );
-		[[NSApplication sharedApplication] endModalSession: _loadingPanelModalSession];
-		_loadingPanelModalSession = 0;
-		
+		// The initial-scan panel is now a non-modal floating window (see
+		// -init), so the modal session may be zero. Older callers using
+		// the modal-session path are still supported.
+		if ( _loadingPanelModalSession != 0 )
+		{
+			[[NSApplication sharedApplication] endModalSession: _loadingPanelModalSession];
+			_loadingPanelModalSession = 0;
+		}
+
 		[self closeNoModalEnd];
 	}
 }
@@ -176,10 +184,14 @@
 
 - (void) runEventLoop
 {
-	//we only let the UI update itself every 0.2 second, otherwise running
-	//the event loop eats over half of the total scan time!
+	// Pump the runloop at ~20 Hz during a scan. The original 0.2s (5 Hz)
+	// throttle dates from 2004-era hardware where pumping was expensive.
+	// On modern macs the per-pump cost is microseconds, and 5 Hz is just
+	// past the threshold where macOS draws the beach-ball, so users
+	// couldn't click Cancel or use the App menu (Quit / About) reliably
+	// during long scans.
 	uint64_t currentTime = getTime();
-	BOOL runEventLoop = _lastEventLoopRun == 0 || subtractTime( currentTime, _lastEventLoopRun ) > 0.2;
+	BOOL runEventLoop = _lastEventLoopRun == 0 || subtractTime( currentTime, _lastEventLoopRun ) > 0.05;
 
 	if ( _message != nil )
 	{
