@@ -370,15 +370,26 @@ void LoadFirmlinks()
     }
 }
 
-// Drop the per-URL NSMutableDictionary that holds cached resource values.
-// Once an FSItem has stamped size + kind name onto itself, the cache is dead
-// weight retained for the lifetime of the URL (which we keep retained on the
-// FSItem). On a 1M-file scan this dictionary chain accounts for the bulk of
-// the post-scan resident memory.
+// Drop the *contents* of the per-URL NSMutableDictionary that holds cached
+// resource values. Once an FSItem has stamped size + kind name onto itself,
+// the cached values are dead weight retained for the lifetime of the URL.
+//
+// We empty the dict in place rather than detaching it (via
+// setTemporaryResourceValue:nil) because NSURL's temporary-value store on
+// recent macOS keeps an NSNull sentinel when you try to clear a slot — the
+// next read would then return NSNull instead of an NSMutableDictionary and
+// crash callers with -[NSNull objectForKey:]. An empty dict shell is ~32B
+// per URL (vs ~300-500B full), still ~90% memory saved on a 1M-file scan,
+// and the get-path will repopulate entries on demand for the few files the
+// user actually inspects.
 - (void) purgeResourceValueCache
 {
     static NSString* cacheKey = @"io.github.danifunker.disk-inventory-y.URLResourceValueCacheKey";
-    [self setTemporaryResourceValue: nil forKey: cacheKey];
+    id cache = nil;
+    if ( ![self getResourceValue: &cache forKey: cacheKey error: nil] )
+        return;
+    if ( [cache isKindOfClass: [NSMutableDictionary class]] )
+        [(NSMutableDictionary*)cache removeAllObjects];
 }
 
 #pragma mark ----------------- helper functions -----------------------
@@ -397,7 +408,10 @@ void LoadFirmlinks()
     if ( ![self getResourceValue: &cache forKey: cacheKey error: nil] )
         return nil;
     
-    if ( cache == nil )
+    // Defensively reject anything that isn't actually an NSMutableDictionary
+    // — historically, an earlier bug here could leave an NSNull sentinel in
+    // the temporary-value slot, which would crash callers in -objectForKey:.
+    if ( ![cache isKindOfClass: [NSMutableDictionary class]] )
     {
         cache = [[NSMutableDictionary alloc] init];
         [self setTemporaryResourceValue:cache forKey:cacheKey];
