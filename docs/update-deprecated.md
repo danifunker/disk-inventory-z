@@ -1,5 +1,39 @@
 # Plan: Resolve Deprecated APIs in Disk Inventory Z
 
+## PROGRESS (updated 2026-05-21)
+Worked autonomously through the safe/verifiable stages; stopped before the one
+stage that needs Interface Builder + visual testing.
+
+| Stage | Status | Commit |
+|---|---|---|
+| 1 Dead code (NTID3Helper) | ✅ done | 464a17c |
+| 2 Enum/constant renames | ✅ done | cda96ca |
+| 3 Drawing/nib/geometry/progress | ✅ done | 6d0417c |
+| 4 Legacy CocoaTech internals | ✅ done | 931ffc4 |
+| 5 UTType + pasteboard | ✅ done | aff87e9 |
+| 6 NSWorkspace + document open | ✅ done | 38cf23a |
+| 7 Alert/sheet modernization | ✅ done | dbe1978 |
+| 8 NSDrawer → NSSplitViewController | ⏸ NOT STARTED | — |
+| 9 Hardening | ⏸ NOT STARTED | — |
+
+Deprecation warnings: **~100 → 36**. All 36 remaining are `NSDrawer`/`NSDrawer*`
+(Stage 8). Every stage builds cleanly (`BUILD SUCCEEDED`).
+
+**Needs manual verification when awake** (behavior changed, could not test
+headless): Stage 5 drag-to-Finder/Trash + ⌘C/paste (RTF/HTML/PDF/image) +
+Services; Stage 6 "Open With <app>" + File>Open… of a folder; Stage 7 the
+network-volume delete confirmation (Yes/No), a failed delete, and refreshing a
+deleted folder.
+
+**Why Stage 8 was left:** the two drawers (`_kindsDrawer`, `_selectionListDrawer`)
+live in `en.lproj`/`English.lproj` **`MainMenu.nib`** — compiled binary nibs, not
+editable `.xib`. Converting to `NSSplitViewController` requires Interface Builder
+and visual confirmation of toggle/resize/width-persistence, so it was not safe to
+attempt headless. Code touch points are listed in Stage 8 below.
+
+---
+
+
 ## Goal
 Eliminate all ~100 `-Wdeprecated-declarations` warnings emitted by a clean build
 against the macOS 26.5 SDK (deployment target 13.0), without behavior regressions,
