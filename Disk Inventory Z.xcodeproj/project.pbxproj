@@ -483,7 +483,7 @@
 				FCCFB2B5097FA42B009EA2B6 /* OAToolbarWindowControllerEx.h */,
 				FCCFB2B6097FA42B009EA2B6 /* OAToolbarWindowControllerEx.m */,
 			);
-			name = OmniAppKitExtensions;
+			name = AppKitExtensions;
 			sourceTree = "<group>";
 		};
 		FCCFB2C0097FA42B009EA2B6 /* Preferences */ = {

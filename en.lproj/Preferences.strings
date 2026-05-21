@@ -1,4 +1,4 @@
-/* Prefs for Icon buttons - OmniAppKit is coded to look for Preferences.strings */
+/* Localized titles for the toolbar icons in the Preferences window. */
 
 "General" = "General";
 "Treemap" = "Treemap";
