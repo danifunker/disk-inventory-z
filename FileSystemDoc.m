@@ -233,21 +233,21 @@ NSString *OldItem = @"OldItem";
     // Add any code here that needs to be executed once the windowController has loaded the document's window.
 }
 
-- (BOOL) readFromFile: (NSString *) folder ofType: (NSString *) docType
+- (BOOL) scanFolderAtURL: (NSURL*) url error: (NSError**) outError
 {
-    [self checkForProtectedFolders:folder];
-    
+    [self checkForProtectedFolders: [url path]];
+
     //now the real work: loading the folder contents
     @try
     {
         g_fileCount = g_folderCount = 0;
-        
+
 		_progressController = [[LoadingPanelController alloc] init];
-		[_progressController startAnimation];	
-		
+		[_progressController startAnimation];
+
 		uint64_t startTime = getTime();
-		
-        _rootItem = [[FSItem alloc] initWithPath: folder];
+
+        _rootItem = [[FSItem alloc] initWithURL: url];
 		if ( ![[_rootItem fileURL] stillExists] )
 		{
 			[_rootItem release];
@@ -255,7 +255,11 @@ NSString *OldItem = @"OldItem";
 			[_progressController close];
 			[_progressController release];
 			_progressController = nil;
-			LOG( @"readFromFile: path '%@' doesn't exits", folder );
+			LOG( @"readFromURL: path '%@' doesn't exist", [url path] );
+			if ( outError != nil )
+				*outError = [NSError errorWithDomain: NSCocoaErrorDomain
+				                                code: NSFileReadNoSuchFileError
+				                            userInfo: @{ NSURLErrorKey: url }];
 			return NO;
 		}
 		
@@ -305,14 +309,24 @@ NSString *OldItem = @"OldItem";
 		if ( [[localException name] isEqualToString: FSItemLoadingCanceledException]
 			 || [[localException name] isEqualToString: CollectFileKindStatisticsCanceledException] )
 		{
-			//loading canceled by user
+			//loading canceled by user; propagate as user-cancelled so
+			//NSDocumentController doesn't show its own error sheet
+			if ( outError != nil )
+				*outError = [NSError errorWithDomain: NSCocoaErrorDomain
+				                                code: NSUserCancelledError
+				                            userInfo: nil];
 		}
 		else
 		{
 			//error
-			NSRunInformationalAlertPanel( NSLocalizedString( @"The folder's content could not be loaded.", @""), @"%@", nil, nil, nil, [localException reason]);
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			alert.alertStyle = NSAlertStyleInformational;
+			alert.messageText = NSLocalizedString( @"The folder's content could not be loaded.", @"");
+			if ( [localException reason] != nil )
+				alert.informativeText = [localException reason];
+			[alert runModal];
 		}
-		
+
         return NO;
     }
     @finally
@@ -912,11 +926,22 @@ NSString *OldItem = @"OldItem";
 	//if we don't show the progress panel, we don't need to do anything
 	if ( _progressController == nil )
 		return YES; //YES == continue loading
-	
+
     NSAssert( [_directoryStack lastObject] == item, @"last stack object: %@, item: %@", [[_directoryStack lastObject] fileURL], [item fileURL] );
 	[_directoryStack removeLastObject];
-	
+
 	return YES;
+}
+
+//Mid-directory runloop pump (no stack accounting). Called every ~64 files by
+//the walker so we can keep the UI responsive and notice a Cancel press.
+- (BOOL) fsItemShouldContinueLoading
+{
+	if ( _progressController == nil )
+		return YES;
+
+	[_progressController runEventLoop];
+	return ![_progressController cancelPressed];
 }
 
 - (BOOL) fsItemShouldIgnoreCreatorCode: (FSItem*) item

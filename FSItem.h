@@ -119,6 +119,10 @@ typedef enum
 @interface NSObject(FSItemDelegate)
 - (BOOL) fsItemEnteringFolder: (FSItem*) item; //delegate may return NO to stop loading in "loadChilds"
 - (BOOL) fsItemExittingFolder: (FSItem*) item;
+//Pumped periodically by the walker inside a single directory so the delegate
+//can yield the runloop and report whether the user pressed Cancel. No
+//stack-state implications -- the walker has not entered or exited anything.
+- (BOOL) fsItemShouldContinueLoading;
 - (BOOL) fsItemShouldIgnoreCreatorCode: (FSItem*) item; //default is NO (if not implemented by delegate)
 - (BOOL) fsItemShouldLookIntoPackages: (FSItem*) item; //set kind string in "loadChilds?";
 													   //default is NO (if not implemented by delegate)

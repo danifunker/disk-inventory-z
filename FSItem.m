@@ -1025,14 +1025,17 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
         // Without this, a huge flat directory (e.g. node_modules, mailbox
         // stores) can hold the main thread for many seconds, producing a
         // beach-ball and making the Cancel / Quit / About menu items
-        // unreachable. Reusing fsItemEnteringFolder: also picks up the
-        // Cancel button press, so deep scans inside one folder can still
-        // be aborted.
+        // unreachable. Use the dedicated -fsItemShouldContinueLoading hook
+        // (which has no stack-state implications) rather than reusing
+        // fsItemEnteringFolder: -- doing the latter pushes a duplicate of
+        // the current folder onto the delegate's directory stack every
+        // 64 files, which corrupts the bookkeeping (silently in Release,
+        // tripping NSParameterAssert in Debug).
         if ( ++filesSinceYield >= 64 )
         {
             filesSinceYield = 0;
-            if ( [delegate respondsToSelector: @selector(fsItemEnteringFolder:)]
-                 && ![delegate fsItemEnteringFolder: [itemStack lastObject]] )
+            if ( [delegate respondsToSelector: @selector(fsItemShouldContinueLoading)]
+                 && ![delegate fsItemShouldContinueLoading] )
             {
                 [NSException raise: FSItemLoadingCanceledException format: @""];
             }
