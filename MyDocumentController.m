@@ -76,7 +76,9 @@ BOOL g_EnableLogging;
 
 - (void) openDocumentWithContentsOfFile: (NSString*) fileName
 {
-	[self openDocumentWithContentsOfFile: fileName display: [self shouldCreateUI]];
+	[self openDocumentWithContentsOfURL: [NSURL fileURLWithPath: fileName]
+	                            display: YES
+	                  completionHandler: nil];
 }
 
 - (BOOL) applicationShouldOpenUntitledFile: (NSApplication*) sender
@@ -111,7 +113,7 @@ BOOL g_EnableLogging;
 	
 	for ( NSURL *dir in fileNames )
 	{
-		[self openDocumentWithContentsOfFile: [dir path] display: YES];
+		[self openDocumentWithContentsOfURL: dir display: YES completionHandler: nil];
 	}
 }
 

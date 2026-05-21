@@ -115,7 +115,10 @@
 
 + (void) openItemURL: (NSURL*) itemURL withAppURL: (NSURL*) appURL
 {
-	[[NSWorkspace sharedWorkspace] openFile: [itemURL path] withApplication: [appURL path]];
+	[[NSWorkspace sharedWorkspace] openURLs: @[itemURL]
+	                   withApplicationAtURL: appURL
+	                          configuration: [NSWorkspaceOpenConfiguration configuration]
+	                      completionHandler: nil];
 }
 
 @end
@@ -145,32 +148,26 @@
 // NOTE: this searches network volumes!!
 + (NSArray<NSURL*>*) applicationURLsForItemURL:(NSURL*)inItemURL;
 {
-    CFArrayRef outURLs;
-    NSMutableArray* result=nil;
-	
-    outURLs = LSCopyApplicationURLsForURL( (CFURLRef) inItemURL, kLSRolesViewer | kLSRolesEditor );
-    if (outURLs)
+    NSArray<NSURL*>* appURLs = [[NSWorkspace sharedWorkspace] URLsForApplicationsToOpenURL: inItemURL];
+    NSMutableArray* result = nil;
+
+    if (appURLs)
     {
-        if ([(id)outURLs isKindOfClass:[NSArray class]])
+        result = [NSMutableArray arrayWithArray: appURLs];
+
+        // filter out .exe files
+        int i, cnt = [result count];
+        NSURL *url;
+
+        for (i=(cnt-1);i>=0;i--)
         {
-            result = [NSMutableArray arrayWithArray:(NSArray*)outURLs];
-            
-            // filter out .exe files
-            int i, cnt = [result count];
-            NSURL *url;
-            
-            for (i=(cnt-1);i>=0;i--)
-            {
-                url = [result objectAtIndex:i];
-                
-                if ([[[url path] pathExtension] caseInsensitiveCompare:@"exe"] == NSOrderedSame)
-                    [result removeObjectAtIndex:i];
-            }            
+            url = [result objectAtIndex:i];
+
+            if ([[[url path] pathExtension] caseInsensitiveCompare:@"exe"] == NSOrderedSame)
+                [result removeObjectAtIndex:i];
         }
-        
-        CFRelease(outURLs);
     }
-	
+
     return result;
 }
 
