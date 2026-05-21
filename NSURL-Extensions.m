@@ -377,7 +377,7 @@ void LoadFirmlinks()
     // we keep the cached values in a seperate NSMutableDictionary object, as keeping them individually as "temporary resource values" (see NSURL docs) takes about 50% more memory.
     // The NSMutableDictionary is then kept as the single URL's temporary resource value.
     
-    static NSString* cacheKey = @"com.derlien.URLResourceValueCacheKey";
+    static NSString* cacheKey = @"io.github.danifunker.disk-inventory-y.URLResourceValueCacheKey";
     
     NSMutableDictionary* cache = nil;
     

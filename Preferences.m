@@ -4,6 +4,7 @@
  *
  *  Created by Tjark Derlien on 24.11.04.
  *  Copyright 2004 Tjark Derlien. All rights reserved.
+ *  Modifications © 2026 Dani Sarfati.
  *
  */
 

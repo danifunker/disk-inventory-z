@@ -4,6 +4,7 @@
 //
 //  Created by Tjark Derlien on Mon Sep 29 2003.
 //  Copyright (c) 2003 Tjark Derlien.
+//  Modifications © 2026 Dani Sarfati.
 //  
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License

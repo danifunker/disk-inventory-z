@@ -1,5 +1,5 @@
 /* Localized versions of Info.plist keys */
-CFBundleGetInfoString = "Disk Inventory Y version 1.4b2, Tjark Derlien 2022";
+CFBundleGetInfoString = "Disk Inventory Y version 1.5.0, Dani Sarfati 2026";
 NSHumanReadableCopyright = "Licencia GPL";
 
 NSCalendarsUsageDescription = "Disk Inventory Y necesita acceder a los archivos de calendario para inspeccionar sus tamaños y otros atributos de archivo.\nNo se leerán datos.";

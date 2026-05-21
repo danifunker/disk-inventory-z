@@ -5,6 +5,7 @@
 //  Created by Tjark Derlien on 08.11.19.
 //
 //  Copyright (C) 2019 Tjark Derlien.
+//  Modifications © 2026 Dani Sarfati.
 //  
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
