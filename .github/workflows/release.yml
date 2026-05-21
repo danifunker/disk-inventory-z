@@ -8,6 +8,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   PROJECT: Disk Inventory Y.xcodeproj
   SCHEME: Disk Inventory Y
@@ -17,15 +20,37 @@ env:
 
 jobs:
   build:
-    name: Build (${{ github.ref_type == 'tag' && 'release' || 'ci' }})
-    runs-on: macos-14
+    name: Build (${{ matrix.variant }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Universal (arm64 + x86_64) — tracks current Xcode / runner.
+          - variant: universal
+            runner: macos-14
+            xcode: /Applications/Xcode_15.4.app/Contents/Developer
+            archs: ""              # empty = Xcode default = ARCHS_STANDARD
+            notarize: true
+            dmg_suffix: ""
+            volume_suffix: ""
+          # Intel-only — pinned to the intel runner so it can keep shipping
+          # while the universal job rolls forward to newer runners / Xcode.
+          - variant: intel
+            runner: macos-26-intel
+            xcode: /Applications/Xcode_15.4.app/Contents/Developer
+            archs: "x86_64"
+            notarize: true
+            dmg_suffix: "-intel"
+            volume_suffix: " (Intel)"
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+        run: sudo xcode-select -s "${{ matrix.xcode }}"
 
       - name: Detect signing availability
         id: signing
@@ -72,8 +97,14 @@ jobs:
 
       - name: Archive (signed)
         if: steps.signing.outputs.have_cert == 'true'
+        env:
+          ARCHS_OVERRIDE: ${{ matrix.archs }}
         run: |
           set -euo pipefail
+          ARCH_ARGS=()
+          if [ -n "$ARCHS_OVERRIDE" ]; then
+            ARCH_ARGS=(ARCHS="$ARCHS_OVERRIDE" ONLY_ACTIVE_ARCH=NO)
+          fi
           xcodebuild \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -81,6 +112,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
             archive \
+            "${ARCH_ARGS[@]}" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
@@ -103,11 +135,20 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$RUNNER_TEMP/export/$APP_NAME.app"
           codesign -dvv "$RUNNER_TEMP/export/$APP_NAME.app" 2>&1 | grep -E "Authority|TeamIdentifier|Identifier|Signature|Runtime"
 
+          echo "Architectures in built binary:"
+          lipo -archs "$RUNNER_TEMP/export/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+
       # ---------- Unsigned path ----------
       - name: Build (unsigned, ad-hoc)
         if: steps.signing.outputs.have_cert == 'false'
+        env:
+          ARCHS_OVERRIDE: ${{ matrix.archs }}
         run: |
           set -euo pipefail
+          ARCH_ARGS=()
+          if [ -n "$ARCHS_OVERRIDE" ]; then
+            ARCH_ARGS=(ARCHS="$ARCHS_OVERRIDE" ONLY_ACTIVE_ARCH=NO)
+          fi
           xcodebuild \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -115,13 +156,14 @@ jobs:
             -destination 'generic/platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/dd" \
             build \
+            "${ARCH_ARGS[@]}" \
             CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
           mkdir -p "$RUNNER_TEMP/export"
           cp -R "$RUNNER_TEMP/dd/Build/Products/$CONFIGURATION/$APP_NAME.app" "$RUNNER_TEMP/export/"
 
       # ---------- Notarization ----------
       - name: Notarize and staple
-        if: steps.signing.outputs.have_cert == 'true' && env.APPLE_ID != ''
+        if: matrix.notarize && steps.signing.outputs.have_cert == 'true' && env.APPLE_ID != ''
         env:
           APPLE_ID:           ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -144,6 +186,9 @@ jobs:
 
       # ---------- DMG ----------
       - name: Build DMG
+        env:
+          DMG_SUFFIX:    ${{ matrix.dmg_suffix }}
+          VOLUME_SUFFIX: ${{ matrix.volume_suffix }}
         run: |
           set -euo pipefail
           APP_PATH="$RUNNER_TEMP/export/$APP_NAME.app"
@@ -153,22 +198,24 @@ jobs:
           ln -s /Applications "$STAGE/Applications"
 
           VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist")
-          DMG_NAME="$APP_NAME-$VERSION.dmg"
+          DMG_NAME="$APP_NAME-$VERSION$DMG_SUFFIX.dmg"
           DMG_PATH="$RUNNER_TEMP/$DMG_NAME"
 
-          hdiutil create -volname "$APP_NAME" \
+          hdiutil create -volname "$APP_NAME$VOLUME_SUFFIX" \
             -srcfolder "$STAGE" \
             -ov -format UDZO "$DMG_PATH"
 
-          # Sign + staple the DMG too (when we have a cert)
+          # Sign + staple the DMG too (when we have a cert, and notarization is enabled)
           if [ "${{ steps.signing.outputs.have_cert }}" = "true" ]; then
             codesign --force --sign "Developer ID Application" --timestamp "$DMG_PATH"
-            xcrun notarytool submit "$DMG_PATH" \
-              --apple-id "${{ secrets.APPLE_ID }}" \
-              --password "${{ secrets.APPLE_APP_PASSWORD }}" \
-              --team-id  "$TEAM_ID" \
-              --wait
-            xcrun stapler staple "$DMG_PATH"
+            if [ "${{ matrix.notarize }}" = "true" ]; then
+              xcrun notarytool submit "$DMG_PATH" \
+                --apple-id "${{ secrets.APPLE_ID }}" \
+                --password "${{ secrets.APPLE_APP_PASSWORD }}" \
+                --team-id  "$TEAM_ID" \
+                --wait
+              xcrun stapler staple "$DMG_PATH"
+            fi
           fi
 
           echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
