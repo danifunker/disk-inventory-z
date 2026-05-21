@@ -87,18 +87,65 @@ BOOL g_EnableLogging;
     return NO;
 }
 
-- (id)makeDocumentWithContentsOfFile:(NSString *)fileName ofType:(NSString *)docType
+- (void) openDocumentWithContentsOfURL: (NSURL*) url
+                               display: (BOOL) displayDocument
+                     completionHandler: (void (^)(NSDocument*, BOOL, NSError*)) completionHandler
 {
-	//check whether "fileName" is a folder
-	NSDictionary *attribs = [[NSFileManager defaultManager] fileAttributesAtPath: fileName traverseLink: NO];
-    if ( attribs != nil )
+	// Bypass NSDocumentController's URL-based open machinery. The framework
+	// wraps reads in NSFileCoordinator and dispatches a continuation block
+	// to the main thread; if our scan runs synchronously on main and pumps
+	// the runloop (which it does, via the progress panel), the continuation
+	// fires before the read has actually finished and over-releases an
+	// autoreleased element when its per-callout autorelease pool pops -- an
+	// EXC_BAD_ACCESS in objc_release with `__144-[NSDocumentController
+	// _coordinateReadingAndGetAlternateContentsForOpeningDocumentAtURL...]`
+	// on the lr. For a directory tree there's nothing to coordinate (we're
+	// not reading file contents), so own the lifecycle directly.
+
+	// Reject non-directories early with a sensible error.
+	NSNumber *isDir = nil;
+	if ( ![url getResourceValue: &isDir forKey: NSURLIsDirectoryKey error: nil]
+	     || ![isDir boolValue] )
 	{
-		NSString *type = [attribs fileType];
-		if ( type != nil && [type isEqualToString: NSFileTypeDirectory] )
-			return [super makeDocumentWithContentsOfFile:fileName ofType: @"Folder"];
+		NSError *err = [NSError errorWithDomain: NSCocoaErrorDomain
+		                                   code: NSFileReadUnsupportedSchemeError
+		                               userInfo: @{ NSURLErrorKey: url }];
+		if ( completionHandler != nil )
+			completionHandler( nil, NO, err );
+		return;
 	}
-	
-	return nil;
+
+	// Re-show an existing document for this URL rather than re-scanning.
+	NSDocument *existing = [self documentForURL: url];
+	if ( existing != nil )
+	{
+		if ( displayDocument )
+			[existing showWindows];
+		if ( completionHandler != nil )
+			completionHandler( existing, YES, nil );
+		return;
+	}
+
+	FileSystemDoc *doc = [[[FileSystemDoc alloc] init] autorelease];
+	[doc setFileURL: url];
+	[doc setFileType: @"Folder"];
+
+	NSError *scanError = nil;
+	if ( ![doc scanFolderAtURL: url error: &scanError] )
+	{
+		// User-cancel is reported via NSUserCancelledError; don't surface it.
+		if ( completionHandler != nil )
+			completionHandler( nil, NO, scanError );
+		return;
+	}
+
+	[self addDocument: doc];
+	[doc makeWindowControllers];
+	if ( displayDocument )
+		[doc showWindows];
+
+	if ( completionHandler != nil )
+		completionHandler( doc, NO, nil );
 }
 
 //"Open..." menu handler

@@ -66,6 +66,16 @@
 	double _lastScanDurationSeconds;
 }
 
+// Walk the directory tree rooted at `url`, populating the document's
+// internal model (rootItem + kind statistics). Synchronous on the calling
+// thread; uses the LoadingPanelController for progress + cancel. Returns
+// NO on cancel or error; on cancel, *outError is NSUserCancelledError.
+// Not an NSDocument override -- MyDocumentController calls this directly,
+// bypassing NSDocumentController's URL-based open (which wraps reads in
+// NSFileCoordinator; that machinery doesn't mix with a long-running
+// runloop-pumping directory walk).
+- (BOOL) scanFolderAtURL: (NSURL*) url error: (NSError**) outError;
+
 // Total scan duration of the last completed scan, in seconds.
 - (double) lastScanDurationSeconds;
 
