@@ -63,6 +63,23 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 
 @implementation DrivesPanelController
 
++ (void) initialize
+{
+	// Register the filter defaults (everything on) before any instance method
+	// runs. -init calls -rebuildVolumesArray, which reads these keys via
+	// -shouldShowVolumeKind: to decide which volumes to list; registering them
+	// here guarantees the volume list and the filter switches agree on first
+	// launch (otherwise rebuild saw unregistered NO while the switches saw YES).
+	if ( self == [DrivesPanelController class] )
+	{
+		[[NSUserDefaults standardUserDefaults] registerDefaults: @{
+			DIXShowNetworkDrivesKey:   @YES,
+			DIXShowExternalDevicesKey: @YES,
+			DIXShowMountedImagesKey:   @YES,
+		}];
+	}
+}
+
 + (DrivesPanelController*) sharedController
 {
 	static DrivesPanelController *controller = nil;
@@ -141,13 +158,9 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		// snapshot summary) — the nib's 45pt rowHeight is short by ~15pt.
 		[_volumesTableView setRowHeight: 60];
 
-		// Filter row below the table. Register sane defaults (everything on)
-		// the first time we run so existing users don't lose volumes.
-		[[NSUserDefaults standardUserDefaults] registerDefaults: @{
-			DIXShowNetworkDrivesKey:   @YES,
-			DIXShowExternalDevicesKey: @YES,
-			DIXShowMountedImagesKey:   @YES,
-		}];
+		// Filter row below the table. Defaults (everything on) are registered
+		// in +initialize so the volume list built in -rebuildVolumesArray and
+		// these switches stay consistent on first launch.
 		[self installFilterSwitchesInWindow: _volumesPanel];
 	}
 
