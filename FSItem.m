@@ -586,7 +586,7 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 		if ( kindName != nil )
 		{
 			//remember kind name for similar files
-			[g_kindNameDictionary setObject: kindName forKey: kindNameKey];Re: DiskInventory X is not compatible with MacOS Catalina (10.15)
+			[g_kindNameDictionary setObject: kindName forKey: kindNameKey];
 			
 			[fileDesc setKindString: kindName];
 			[kindName release];

@@ -76,12 +76,12 @@ NSString *ShareKindColors				= @"ShareKindColors";
 
 // Replacements for the Omni NSMutableDictionary helpers we used to inherit
 // from OmniFoundation. Kept private to this file.
-@interface NSMutableDictionary(DiskInventoryXBoolHelpers)
+@interface NSMutableDictionary(DiskInventoryZBoolHelpers)
 - (BOOL) boolForKey: (NSString*) key;
 - (void) setBoolValue: (BOOL) value forKey: (NSString*) key;
 @end
 
-@implementation NSMutableDictionary(DiskInventoryXBoolHelpers)
+@implementation NSMutableDictionary(DiskInventoryZBoolHelpers)
 - (BOOL) boolForKey: (NSString*) key
 {
     id value = [self objectForKey: key];
