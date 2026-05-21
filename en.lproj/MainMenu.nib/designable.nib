@@ -17,7 +17,7 @@
                 <menuItem title="NewApplication" id="56">
                     <menu key="submenu" title="NewApplication" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="About Disk Inventory Y" id="58">
+                            <menuItem title="About Disk Inventory Z" id="58">
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
                                 </connections>
@@ -58,7 +58,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Quit Disk Inventory Y" keyEquivalent="q" id="136">
+                            <menuItem title="Quit Disk Inventory Z" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="139"/>
                                 </connections>
@@ -287,12 +287,12 @@ CA
                 <menuItem title="Help" id="103">
                     <menu key="submenu" title="Help" id="106">
                         <items>
-                            <menuItem title="Disk Inventory Y Help" keyEquivalent="?" id="316">
+                            <menuItem title="Disk Inventory Z Help" keyEquivalent="?" id="316">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="317"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Visit Disk Inventory Y Website" id="111">
+                            <menuItem title="Visit Disk Inventory Z Website" id="111">
                                 <connections>
                                     <action selector="gotoHomepage:" target="208" id="315"/>
                                 </connections>

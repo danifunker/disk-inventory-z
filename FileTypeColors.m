@@ -1,6 +1,6 @@
 //
 //  FileTypeColors.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on Sun Oct 05 2003.
 //

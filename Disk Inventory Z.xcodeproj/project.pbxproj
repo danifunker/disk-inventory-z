@@ -117,7 +117,7 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		2F1533CDA4CB315D90207B72 /* DIXLegacyOmniHelpers.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXLegacyOmniHelpers.h; sourceTree = "<group>"; };
-		32DBCF750370BD2300C91783 /* Disk Inventory Y_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Disk Inventory Y_Prefix.pch"; sourceTree = "<group>"; };
+		32DBCF750370BD2300C91783 /* Disk Inventory Z_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Disk Inventory Z_Prefix.pch"; sourceTree = "<group>"; };
 		42DA6D1FE7620EB6F264CF44 /* DIXSnapshotInfo.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXSnapshotInfo.h; sourceTree = "<group>"; };
 		44A53064AD9343FD0094705B /* ZoomInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = ZoomInfo.m; sourceTree = "<group>"; };
 		4A58663686AF12732142B439 /* DIXVolumeKind.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXVolumeKind.h; sourceTree = "<group>"; };
@@ -126,7 +126,7 @@
 		5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "NSView-BackingCoordsHelpers.m"; sourceTree = "<group>"; };
 		70EAE5E91B5B02E625227421 /* DIXAboutButton.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXAboutButton.h; sourceTree = "<group>"; };
 		7C96ACE8083885C47567A708 /* TMVItem.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TMVItem.m; sourceTree = "<group>"; };
-		8D15AC370486D014006FF6A4 /* Disk Inventory Y.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disk Inventory Y.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D15AC370486D014006FF6A4 /* Disk Inventory Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disk Inventory Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9784D69E74CA9FA5D9BAB2C8 /* TMVItem.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = TMVItem.h; sourceTree = "<group>"; };
 		A55B9463494BB7401E3E87B5 /* DIXVolumeKind.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXVolumeKind.m; sourceTree = "<group>"; };
 		CBB2B22F0368E553A70A10DB /* TMVCushionRenderer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = TMVCushionRenderer.h; sourceTree = "<group>"; };
@@ -165,7 +165,7 @@
 		FC2D7D7C21FE4ABB004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = de; path = de.lproj/Credits.rtf; sourceTree = "<group>"; };
 		FC2D7D7D21FE4ABC004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		FC2D7D7E21FE4ABC004D0614 /* de */ = {isa = PBXFileReference; lastKnownFileType = folder; name = de; path = de.lproj/Help; sourceTree = "<group>"; };
-		FC2DB78221AF4E1100F24C1E /* Disk Inventory Y.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Disk Inventory Y.entitlements"; sourceTree = "<group>"; };
+		FC2DB78221AF4E1100F24C1E /* Disk Inventory Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Disk Inventory Z.entitlements"; sourceTree = "<group>"; };
 		FC2E58FE21D3BFDF00F6F03B /* Disk Inventory Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Disk Inventory Icon.png"; sourceTree = "<group>"; };
 		FC33B458230C846F00133632 /* NSURL-Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL-Extensions.h"; sourceTree = SOURCE_ROOT; };
 		FC33B459230C846F00133632 /* NSURL-Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURL-Extensions.m"; sourceTree = SOURCE_ROOT; };
@@ -297,7 +297,7 @@
 		FCD71DB60984141E00590D16 /* known bugs.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "known bugs.txt"; path = "documentation/known bugs.txt"; sourceTree = "<group>"; };
 		FCD71DB70984141E00590D16 /* release notes.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "release notes.txt"; path = "documentation/release notes.txt"; sourceTree = "<group>"; };
 		FCEEFC0421FE5B6700E9785E /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/FinderCMPreferencesPage.nib; sourceTree = "<group>"; };
-		FCFB17B521B876A400E3F8C4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "Disk Inventory Y/Images.xcassets"; sourceTree = "<group>"; };
+		FCFB17B521B876A400E3F8C4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "Disk Inventory Z/Images.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -335,7 +335,7 @@
 		19C28FB0FE9D524F11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D15AC370486D014006FF6A4 /* Disk Inventory Y.app */,
+				8D15AC370486D014006FF6A4 /* Disk Inventory Z.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -344,7 +344,7 @@
 			isa = PBXGroup;
 			children = (
 				FCB5709822CD2DE60014B794 /* BuildRelease.sh */,
-				FC2DB78221AF4E1100F24C1E /* Disk Inventory Y.entitlements */,
+				FC2DB78221AF4E1100F24C1E /* Disk Inventory Z.entitlements */,
 				FCD71DB4098413FF00590D16 /* Documentation */,
 				FCCFB2AB097FA42B009EA2B6 /* AppKit Extension */,
 				FC33B457230C842700133632 /* Foundation Extensions */,
@@ -374,13 +374,13 @@
 				2F1533CDA4CB315D90207B72 /* DIXLegacyOmniHelpers.h */,
 				E16A8C009544FF11A5EA32F7 /* DIXLegacyOmniHelpers.m */,
 			);
-			name = "Disk Inventory Y";
+			name = "Disk Inventory Z";
 			sourceTree = "<group>";
 		};
 		2A37F4AFFDCFA73011CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				32DBCF750370BD2300C91783 /* Disk Inventory Y_Prefix.pch */,
+				32DBCF750370BD2300C91783 /* Disk Inventory Z_Prefix.pch */,
 				FCCFB2A9097FA3FD009EA2B6 /* main.m */,
 			);
 			name = "Other Sources";
@@ -667,9 +667,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8D15AC270486D014006FF6A4 /* Disk Inventory Y */ = {
+		8D15AC270486D014006FF6A4 /* Disk Inventory Z */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C05733C708A9546B00998B17 /* Build configuration list for PBXNativeTarget "Disk Inventory Y" */;
+			buildConfigurationList = C05733C708A9546B00998B17 /* Build configuration list for PBXNativeTarget "Disk Inventory Z" */;
 			buildPhases = (
 				8D15AC2B0486D014006FF6A4 /* Resources */,
 				8D15AC300486D014006FF6A4 /* Sources */,
@@ -681,10 +681,10 @@
 			);
 			dependencies = (
 			);
-			name = "Disk Inventory Y";
+			name = "Disk Inventory Z";
 			productInstallPath = "$(HOME)/Applications";
-			productName = "Disk Inventory Y";
-			productReference = 8D15AC370486D014006FF6A4 /* Disk Inventory Y.app */;
+			productName = "Disk Inventory Z";
+			productReference = 8D15AC370486D014006FF6A4 /* Disk Inventory Z.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -708,7 +708,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Disk Inventory Y" */;
+			buildConfigurationList = C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Disk Inventory Z" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 1;
@@ -723,7 +723,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D15AC270486D014006FF6A4 /* Disk Inventory Y */,
+				8D15AC270486D014006FF6A4 /* Disk Inventory Z */,
 			);
 		};
 /* End PBXProject section */
@@ -1024,8 +1024,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.5.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.github.danifunker.disk-inventory-y";
-				PRODUCT_NAME = "Disk Inventory Y";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.danifunker.disk-inventory-z";
+				PRODUCT_NAME = "Disk Inventory Z";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 4.2;
@@ -1060,8 +1060,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.github.danifunker.disk-inventory-y";
-				PRODUCT_NAME = "Disk Inventory Y";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.danifunker.disk-inventory-z";
+				PRODUCT_NAME = "Disk Inventory Z";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 4.2;
 				WRAPPER_EXTENSION = app;
@@ -1075,7 +1075,7 @@
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Disk Inventory Y_Prefix.pch";
+				GCC_PREFIX_HEADER = "Disk Inventory Z_Prefix.pch";
 				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
@@ -1091,7 +1091,7 @@
 			buildSettings = {
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Disk Inventory Y_Prefix.pch";
+				GCC_PREFIX_HEADER = "Disk Inventory Z_Prefix.pch";
 				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
@@ -1104,7 +1104,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C05733C708A9546B00998B17 /* Build configuration list for PBXNativeTarget "Disk Inventory Y" */ = {
+		C05733C708A9546B00998B17 /* Build configuration list for PBXNativeTarget "Disk Inventory Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C05733C808A9546B00998B17 /* Debug */,
@@ -1113,7 +1113,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Disk Inventory Y" */ = {
+		C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Disk Inventory Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C05733CC08A9546B00998B17 /* Debug */,

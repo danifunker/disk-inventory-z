@@ -1,6 +1,6 @@
 //
 //  DIXFileInfoView.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 04.12.04.
 //

@@ -1,6 +1,6 @@
 //
 //  FSItemIndex.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 01.04.05.
 //

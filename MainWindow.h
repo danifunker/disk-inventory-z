@@ -1,6 +1,6 @@
 //
 //  MainWindow.h
-//  Disk Inventory X new
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 19.03.06.
 //  Copyright 2006 Tjark Derlien. All rights reserved.

@@ -1,6 +1,6 @@
 //
 //  FSItem.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on Mon Sep 29 2003.
 //

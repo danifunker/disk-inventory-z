@@ -1,6 +1,6 @@
 
 /* the "move to trash" command failed (the selected file/folder name will be placed in front of this text) */
-"\"%@\" cannot be moved to the trash by Disk Inventory Y." = "\"%@ konnte von Disk Inventory Y nicht in den Papierkorb verschoben werden.";
+"\"%@\" cannot be moved to the trash by Disk Inventory Z." = "\"%@ konnte von Disk Inventory Z nicht in den Papierkorb verschoben werden.";
 "OK" = "OK";
 
 /* deleting items on network volumes*/
@@ -54,7 +54,7 @@
 
 /* strings for the Finder CM preference page */
 "The Finder plugin is not installed. Click 'Install' to install it on your computer." = "Die Finder-Erweiterung ist nicht installiert. Klicken Sie auf \"Installieren\", um sie auf Ihrem Computer zu installieren.";
-"The folder will remain visible in Disk Inventory Y, but the files cannot be accessed (e.g. shown in the Finder)." = "Der Ordner bleibt in Disk Inventory Y sichtbar, aber sie können nicht mehr auf die Dateien zugreifen (z.B. im Finder anzeigen)";
+"The folder will remain visible in Disk Inventory Z, but the files cannot be accessed (e.g. shown in the Finder)." = "Der Ordner bleibt in Disk Inventory Z sichtbar, aber sie können nicht mehr auf die Dateien zugreifen (z.B. im Finder anzeigen)";
 
 /* error message if an error occurred during the scanning of a folder's content */
 "The folder's content could not be loaded." = "Der Ordnerinhalt konnte nicht geladen werden.";
@@ -65,8 +65,8 @@
 "Used" = "benutzt";
 
 /* warning before accessing private files */
-"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Y access to these folders and files.\n\nDisk Inventory Y does not read any data - just information like file sizes and types are collected." =
-"Einige Ordner, die durchsucht werden, enthalten private Dateien. Der Zugriff wird durch den Schutz der Privatsphäre von macOS geschützt.\n\nBeim ersten Zugriff fragt macOS nach, ob Sie Disk Inventory Y den Zugriff auf diese Ordner und Dateien erlauben.\n\nDisk Inventory Y liest dabei keine Daten - lediglich Informationen wie Dateigrößen und -typen werden erfasst.";
+"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Z access to these folders and files.\n\nDisk Inventory Z does not read any data - just information like file sizes and types are collected." =
+"Einige Ordner, die durchsucht werden, enthalten private Dateien. Der Zugriff wird durch den Schutz der Privatsphäre von macOS geschützt.\n\nBeim ersten Zugriff fragt macOS nach, ob Sie Disk Inventory Z den Zugriff auf diese Ordner und Dateien erlauben.\n\nDisk Inventory Z liest dabei keine Daten - lediglich Informationen wie Dateigrößen und -typen werden erfasst.";
 
 "You can change the access settings in the System Preferences (Security/Privacy)." = "Sie können die Zugriffseinstellungen in den Systemeinstellungen ändern (Sicherheit/Datenschutz).";
 

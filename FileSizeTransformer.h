@@ -1,6 +1,6 @@
 //
 //  FileSizeTransformer.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 25.03.05.
 //

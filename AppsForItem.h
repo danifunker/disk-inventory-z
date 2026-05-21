@@ -1,6 +1,6 @@
 //
 //  AppsForItem.h
-//  Disk Inventory X new
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 20.01.06.
 //

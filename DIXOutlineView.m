@@ -1,6 +1,6 @@
 //
 //  DIXOutlineView.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 29.03.05.
 //

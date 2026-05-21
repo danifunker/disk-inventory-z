@@ -156,7 +156,7 @@ BOOL g_EnableLogging;
 
 - (IBAction) gotoHomepage: (id) sender
 {
-	[[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"https://github.com/danifunker/disk-inventory-y"]];
+	[[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"https://github.com/danifunker/disk-inventory-z"]];
 }
 
 

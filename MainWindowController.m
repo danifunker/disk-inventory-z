@@ -1,6 +1,6 @@
 //
 //  MainWindowController.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on Mon Sep 29 2003.
 //
@@ -719,7 +719,7 @@
 	else
 	{
 		//failed
-        NSString *msg = [NSString stringWithFormat: NSLocalizedString(@"\"%@\" cannot be moved to the trash by Disk Inventory X.",@""), [selectedItem displayName] ];
+        NSString *msg = [NSString stringWithFormat: NSLocalizedString(@"\"%@\" cannot be moved to the trash by Disk Inventory Z.",@""), [selectedItem displayName] ];
         NSString *subMsg = error.localizedFailureReason; //NSLocalizedString( @"Maybe you do not have sufficient access privileges.", @"" );
         
         NSBeginInformationalAlertSheet( msg,

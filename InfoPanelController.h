@@ -1,6 +1,6 @@
 //
 //  InfoPanelController.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 16.11.04.
 //

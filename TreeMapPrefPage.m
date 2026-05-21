@@ -1,6 +1,6 @@
 //
 //  TreeMapPrefPage.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 27.11.04.
 //

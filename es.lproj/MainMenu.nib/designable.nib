@@ -17,7 +17,7 @@
                 <menuItem title="NuevaAplicación" id="56">
                     <menu key="submenu" title="NuevaAplicación" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="Acerca de Disk Inventory Y" id="58">
+                            <menuItem title="Acerca de Disk Inventory Z" id="58">
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
                                 </connections>
@@ -39,7 +39,7 @@
                             <menuItem isSeparatorItem="YES" id="144">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Ocultar Disk Inventory Y" keyEquivalent="h" id="134">
+                            <menuItem title="Ocultar Disk Inventory Z" keyEquivalent="h" id="134">
                                 <connections>
                                     <action selector="hide:" target="-2" id="152"/>
                                 </connections>
@@ -58,7 +58,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Salir de Disk Inventory Y" keyEquivalent="q" id="136">
+                            <menuItem title="Salir de Disk Inventory Z" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="139"/>
                                 </connections>
@@ -327,12 +327,12 @@ CA
                 <menuItem title="Ayuda" id="103">
                     <menu key="submenu" title="Ayuda" id="106">
                         <items>
-                            <menuItem title="Ayuda Disk Inventory Y" keyEquivalent="?" id="316">
+                            <menuItem title="Ayuda Disk Inventory Z" keyEquivalent="?" id="316">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="317"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Visitar sitio web de Disk Inventory Y" id="111">
+                            <menuItem title="Visitar sitio web de Disk Inventory Z" id="111">
                                 <connections>
                                     <action selector="gotoHomepage:" target="208" id="315"/>
                                 </connections>

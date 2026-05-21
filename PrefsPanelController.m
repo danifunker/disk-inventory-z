@@ -1,6 +1,6 @@
 //
 //  PrefsPanelController.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 28.11.04.
 //
@@ -144,8 +144,13 @@
 	if ( view == nil )
 		return;
 
+	// Capture the nib's intended size BEFORE -setContentView: — that call
+	// resizes `view` to fill the current content area, so reading the size
+	// afterwards would just echo the previous pane's dimensions and clip
+	// larger panes on the right/bottom.
+	NSSize paneSize = [view frame].size;
 	[_window setContentView: view];
-	[_window setContentSize: [view frame].size];
+	[_window setContentSize: paneSize];
 	[[_window toolbar] setSelectedItemIdentifier: identifier];
 
 	NSDictionary *info = [self infoForIdentifier: identifier];

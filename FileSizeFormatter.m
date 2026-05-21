@@ -1,6 +1,6 @@
 //
 //  FileSizeFormatter.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on Sat Mar 27 2004.
 //  Copyright (c) 2004 Tjark Derlien. All rights reserved.

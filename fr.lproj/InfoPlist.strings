@@ -1,13 +1,13 @@
 /* Localized versions of Info.plist keys */
-CFBundleGetInfoString = "Disk Inventory Y version 1.5.0, Dani Sarfati 2026";
+CFBundleGetInfoString = "Disk Inventory Z version 1.5.0, Dani Sarfati 2026";
 NSHumanReadableCopyright = "Mis à disposition selon la GPL";
 
-NSCalendarsUsageDescription = "Disk Inventory Y doit accéder aux fichiers de calendrier pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSRemindersUsageDescription = "Disk Inventory Y doit accéder aux rappels pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSContactsUsageDescription = "Disk Inventory Y doit accéder aux fichiers du carnet d'adresses pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSPhotoLibraryUsageDescription = "Disk Inventory Y doit accéder aux photothèques pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSDocumentsFolderUsageDescription = "Disk Inventory Y doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSDesktopFolderUsageDescription = "Disk Inventory Y doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSDownloadsFolderUsageDescription = "Disk Inventory Y doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSNetworkVolumesUsageDescription = "Disk Inventory Y doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
-NSRemovableVolumesUsageDescription = "Disk Inventory Y doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSCalendarsUsageDescription = "Disk Inventory Z doit accéder aux fichiers de calendrier pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSRemindersUsageDescription = "Disk Inventory Z doit accéder aux rappels pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSContactsUsageDescription = "Disk Inventory Z doit accéder aux fichiers du carnet d'adresses pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSPhotoLibraryUsageDescription = "Disk Inventory Z doit accéder aux photothèques pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSDocumentsFolderUsageDescription = "Disk Inventory Z doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSDesktopFolderUsageDescription = "Disk Inventory Z doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSDownloadsFolderUsageDescription = "Disk Inventory Z doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSNetworkVolumesUsageDescription = "Disk Inventory Z doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";
+NSRemovableVolumesUsageDescription = "Disk Inventory Z doit accéder à ces fichiers pour inspecter leurs tailles et autres attributs de fichier.\nAucune donnée ne sera lue.";

@@ -1,6 +1,6 @@
 //
 //  FSItem-Utilities.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 19.11.04.
 //

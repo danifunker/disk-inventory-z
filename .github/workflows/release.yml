@@ -12,9 +12,9 @@ permissions:
   contents: write
 
 env:
-  PROJECT: Disk Inventory Y.xcodeproj
-  SCHEME: Disk Inventory Y
-  APP_NAME: Disk Inventory Y
+  PROJECT: Disk Inventory Z.xcodeproj
+  SCHEME: Disk Inventory Z
+  APP_NAME: Disk Inventory Z
   CONFIGURATION: Release
   TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 

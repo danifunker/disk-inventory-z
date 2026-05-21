@@ -1,4 +1,4 @@
-# Disk Inventory Y
+# Disk Inventory Z
 
 A native macOS disk usage explorer that visualizes folders and files as a [tree map](https://en.wikipedia.org/wiki/Treemapping). Pick a volume or folder, scan it, and see where your disk space actually went.
 
@@ -12,12 +12,12 @@ This is a fork of [Disk Inventory X](https://gitlab.com/tderlien/disk-inventory-
 ## Building
 
 ```sh
-xcodebuild -project "Disk Inventory Y.xcodeproj" \
-           -scheme "Disk Inventory Y" \
+xcodebuild -project "Disk Inventory Z.xcodeproj" \
+           -scheme "Disk Inventory Z" \
            -configuration Release build
 ```
 
-The build product lands at `build/Release/Disk Inventory Y.app`. Xcode 15.x on macOS 13+ is the supported environment.
+The build product lands at `build/Release/Disk Inventory Z.app`. Xcode 15.x on macOS 13+ is the supported environment.
 
 ## Releases
 

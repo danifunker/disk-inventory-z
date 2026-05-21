@@ -1,6 +1,6 @@
 /*
  *  Preferences.m
- *  Disk Inventory X
+ *  Disk Inventory Z
  *
  *  Created by Tjark Derlien on 24.11.04.
  *  Copyright 2004 Tjark Derlien. All rights reserved.

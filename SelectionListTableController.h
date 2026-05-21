@@ -1,6 +1,6 @@
 //
 //  SelectionListTableController.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //	This class implemented the controller/delagte for the NSTableView
 //	in the selection list drawer.

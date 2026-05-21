@@ -1,6 +1,6 @@
 //
 //  DIXSnapshotInfo.h
-//  Disk Inventory Y
+//  Disk Inventory Z
 //
 //  Copyright (C) 2026 Dani Sarfati.
 //

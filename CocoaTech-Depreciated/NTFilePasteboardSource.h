@@ -8,7 +8,7 @@
 
 // NTFilePasteboardSource isn't included in the CocoaTech Frameworks any more
 // (and there is no replacement class either).
-// So I copied this class to the Disk Inventory X project.
+// So I copied this class to the Disk Inventory Z project.
 
 @class NTFileDesc;
 

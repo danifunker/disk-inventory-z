@@ -1,6 +1,6 @@
 //
 //  FileKindsPopupController.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 31.03.05.
 //

@@ -1,6 +1,6 @@
 //
 //  LoadingPanelController.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 03.12.04.
 //

@@ -1,6 +1,6 @@
 //
 //  OAToolbarWindowControllerEx.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 01.12.04.
 //

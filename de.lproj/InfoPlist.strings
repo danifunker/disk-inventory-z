@@ -1,14 +1,14 @@
 /* Localized versions of Info.plist keys */
-CFBundleGetInfoString = "Disk Inventory Y Version 1.5.0, Dani Sarfati 2026";
+CFBundleGetInfoString = "Disk Inventory Z Version 1.5.0, Dani Sarfati 2026";
 NSHumanReadableCopyright = "veröffentlicht unter der GPL";
 
-NSCalendarsUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Kalender-Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
-NSRemindersUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
-NSContactsUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Adressbuch-Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
-NSPhotoLibraryUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Fotobibliotheken, um die darin enthaltenen Dateien auf deren Dateigrößen untersuchen zu können.\nEs werden keine Daten gelesen.";
-NSDocumentsFolderUsageDescription = "Disk Inventory Y benötigt Zugriff auf den Ordner, um die darin enthaltenen Dateien auf deren Dateigrößen untersuchen zu können.\n
+NSCalendarsUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Kalender-Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
+NSRemindersUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
+NSContactsUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Adressbuch-Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
+NSPhotoLibraryUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Fotobibliotheken, um die darin enthaltenen Dateien auf deren Dateigrößen untersuchen zu können.\nEs werden keine Daten gelesen.";
+NSDocumentsFolderUsageDescription = "Disk Inventory Z benötigt Zugriff auf den Ordner, um die darin enthaltenen Dateien auf deren Dateigrößen untersuchen zu können.\n
 Es werden keine Daten gelesen.";
-NSDesktopFolderUsageDescription = "Disk Inventory Y benötigt Zugriff auf den Ordner, wenn die darin enthaltenen Dateien hinsichtlich Dateigrößen untersucht werden sollen.\nEs werden keine Daten gelesen.";
-NSDownloadsFolderUsageDescription = "Disk Inventory Y benötigt Zugriff auf den Ordner, wenn die darin enthaltenen Dateien hinsichtlich Dateigrößen untersucht werden sollen.\nEs werden keine Daten gelesen.";
-NSNetworkVolumesUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
-NSRemovableVolumesUsageDescription = "Disk Inventory Y benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
+NSDesktopFolderUsageDescription = "Disk Inventory Z benötigt Zugriff auf den Ordner, wenn die darin enthaltenen Dateien hinsichtlich Dateigrößen untersucht werden sollen.\nEs werden keine Daten gelesen.";
+NSDownloadsFolderUsageDescription = "Disk Inventory Z benötigt Zugriff auf den Ordner, wenn die darin enthaltenen Dateien hinsichtlich Dateigrößen untersucht werden sollen.\nEs werden keine Daten gelesen.";
+NSNetworkVolumesUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";
+NSRemovableVolumesUsageDescription = "Disk Inventory Z benötigt Zugriff auf die Dateien, um deren Dateigrößen zu ermitteln.\nEs werden keine Daten gelesen.";

@@ -1,6 +1,6 @@
 //
 //  OASplitView.h
-//  Disk Inventory Y
+//  Disk Inventory Z
 //
 //  Minimal local replacement for OmniAppKit's OASplitView.
 //  TreeMap.nib references this class by name, so the name is preserved.

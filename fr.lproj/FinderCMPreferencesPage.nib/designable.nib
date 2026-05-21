@@ -113,7 +113,7 @@
                     <autoresizingMask key="autoresizingMask"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" id="61">
                         <font key="font" metaFont="system"/>
-                        <string key="title">L'extension de menu contextuel de Disk Inventory X vous permet d'afficher le contenu du dossier ou du paquet de l'application en ajoutant au menu contextuel du Finder une commande "Afficher dans Disk Inventory X".</string>
+                        <string key="title">L'extension de menu contextuel de Disk Inventory Z vous permet d'afficher le contenu du dossier ou du paquet de l'application en ajoutant au menu contextuel du Finder une commande "Afficher dans Disk Inventory Z".</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>

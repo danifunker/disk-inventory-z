@@ -570,7 +570,7 @@ NSString *OldItem = @"OldItem";
 	{
 		//the folder/volume which we are showing doesn't exist anymore!
         NSString *msg = [NSString stringWithFormat: @"\"%@\" does not exist any more.", [[self rootItem] displayPath]];
-        NSString *subMsg = NSLocalizedString( @"The folder will remain visible in Disk Inventory X, but the files cannot be accessed (e.g. shown in the Finder).",@"");
+        NSString *subMsg = NSLocalizedString( @"The folder will remain visible in Disk Inventory Z, but the files cannot be accessed (e.g. shown in the Finder).",@"");
         
         NSBeginInformationalAlertSheet( msg,
                                        NSLocalizedString(@"OK",@""),
@@ -1169,8 +1169,8 @@ NSString *OldItem = @"OldItem";
 
         alert.alertStyle = NSAlertStyleInformational;
 
-        alert.messageText = NSLocalizedString(@"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected.", @"");
-        alert.informativeText = NSLocalizedString(@"To grant access in one step, open System Settings and enable Disk Inventory X under Privacy & Security → Full Disk Access. macOS will ask you to relaunch the app after enabling it.", @"");
+        alert.messageText = NSLocalizedString(@"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Z access to these folders and files.\n\nDisk Inventory Z does not read any data - just information like file sizes and types are collected.", @"");
+        alert.informativeText = NSLocalizedString(@"To grant access in one step, open System Settings and enable Disk Inventory Z under Privacy & Security → Full Disk Access. macOS will ask you to relaunch the app after enabling it.", @"");
 
         // Primary button: deep-link to the Full Disk Access pane.
         [alert addButtonWithTitle: NSLocalizedString(@"Open System Settings", @"")];

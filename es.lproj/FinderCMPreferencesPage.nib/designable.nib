@@ -113,7 +113,7 @@
                     <autoresizingMask key="autoresizingMask"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" id="61">
                         <font key="font" metaFont="system"/>
-                        <string key="title">La extensión del Finder provee un menu contextual que permite mostrar una carpeta o paquete de aplicación en Disk Inventory X por medio de una opción llamada "Mostrar en Disk Inventory X".</string>
+                        <string key="title">La extensión del Finder provee un menu contextual que permite mostrar una carpeta o paquete de aplicación en Disk Inventory Z por medio de una opción llamada "Mostrar en Disk Inventory Z".</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>

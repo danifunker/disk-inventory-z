@@ -1,6 +1,6 @@
 //
 //  NSFileManager-Extensions.h
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 08.11.19.
 //

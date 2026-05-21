@@ -1,6 +1,6 @@
 //
 //  DIXAboutButton.m
-//  Disk Inventory Y
+//  Disk Inventory Z
 //
 //  Copyright (C) 2026 Dani Sarfati.
 //
@@ -40,7 +40,7 @@ void DIXInstallAboutButtonInWindow(NSWindow *window)
     [btn setTag: kDIXAboutButtonTag];
     [btn setTarget: NSApp];
     [btn setAction: @selector(orderFrontStandardAboutPanel:)];
-    [btn setToolTip: NSLocalizedString(@"About Disk Inventory Y", @"")];
+    [btn setToolTip: NSLocalizedString(@"About Disk Inventory Z", @"")];
     [btn sizeToFit];
 
     // The accessory view is laid out inside the title bar; size its container

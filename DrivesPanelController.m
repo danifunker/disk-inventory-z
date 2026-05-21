@@ -1,6 +1,6 @@
 //
 //  DrivesPanelController.m
-//  Disk Inventory X
+//  Disk Inventory Z
 //
 //  Created by Tjark Derlien on 15.11.04.
 //
@@ -118,6 +118,13 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		// it here so the close affordance matches what ⌘W / ⌘Q already do.
 		[_volumesPanel setStyleMask: [_volumesPanel styleMask] | NSWindowStyleMaskClosable];
 
+		// Closing the volumes panel when nothing has been opened yet would
+		// otherwise leave the app running with no visible UI (the Dock icon
+		// stays, but there's no window to bring back). Treat that case as
+		// Quit. If a document is already open, closing the panel just hides
+		// it as before.
+		[_volumesPanel setDelegate: self];
+
 		// Volumes table now renders up to three text lines (name, format,
 		// snapshot summary) — the nib's 45pt rowHeight is short by ~15pt.
 		[_volumesTableView setRowHeight: 60];
@@ -190,6 +197,25 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 - (NSWindow*) panel
 {
 	return _volumesPanel;
+}
+
+#pragma mark --------NSWindowDelegate-----------------
+
+// If the user closes the volumes panel before any document has been opened,
+// there is no remaining window to interact with — quit the app instead of
+// leaving a phantom process with only a Dock icon. If a document is open,
+// fall through to the default behavior (hide the panel).
+- (BOOL) windowShouldClose: (NSWindow*) sender
+{
+	if ( sender != _volumesPanel )
+		return YES;
+
+	if ( [[[NSDocumentController sharedDocumentController] documents] count] == 0 )
+	{
+		[NSApp terminate: nil];
+		return NO;
+	}
+	return YES;
 }
 
 #pragma mark --------filter switches (programmatically injected)-----------

@@ -12,6 +12,13 @@ xcuserdata/
 *.xcuserdatad/
 project.xcworkspace/xcshareddata/swiftpm/
 
+# Legacy Xcode 2.x/3.x per-user IDE state (window layouts, perspectives)
+*.mode1
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.perspectivev3
+
 # macOS junk
 .DS_Store
 .AppleDouble
