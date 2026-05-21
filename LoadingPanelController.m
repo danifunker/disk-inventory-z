@@ -16,6 +16,15 @@
 #import "LoadingPanelController.h"
 #import "FSItem.h"
 #import "Timing.h"
+#import <objc/runtime.h>
+
+// Trivial NSButton subclass that returns YES from -acceptsFirstMouse:. Used
+// for the Cancel button so the very first click fires the action even when
+// the loading panel isn't the key window.
+@interface DIXFirstMouseButton : NSButton @end
+@implementation DIXFirstMouseButton
+- (BOOL) acceptsFirstMouse: (NSEvent*) event { return YES; }
+@end
 
 @interface LoadingPanelController (StatusLine)
 - (void) installStatusFieldInPanel;
@@ -50,9 +59,18 @@
 	// periodic -runEventLoop call pumps the runloop and standard App-menu
 	// commands work as expected. The Cancel button still works because
 	// the scan polls -cancelPressed inside the same runloop pump.
+	[_loadingPanel setHidesOnDeactivate: NO];
 	[_loadingPanel setLevel: NSFloatingWindowLevel];
 	[_loadingPanel makeKeyAndOrderFront: nil];
 	[_loadingPanel display];
+
+	// Make the Cancel button respond to the FIRST mouse click even when
+	// the panel is not the key window. Without this, stock NSPanel
+	// behaviour eats the first click for "make this panel key" and the
+	// user has to click twice -- which feels broken because the panel
+	// usually IS key already (this is just defensive). We do this by
+	// swapping in a subclass that overrides -acceptsFirstMouse: to YES.
+	object_setClass( _loadingCancelButton, [DIXFirstMouseButton class] );
 
 	_loadingPanelModalSession = 0;
 	_lastEventLoopRun = 0;
@@ -208,7 +226,7 @@
 	if ( runEventLoop )
 	{
 		_lastEventLoopRun = currentTime;
-		
+
 		//give progress dialog some processor cycles
 		if ( _loadingPanelModalSession != 0 )
 		{
@@ -220,7 +238,22 @@
 		}
 		else
 		{
-			[[NSRunLoop currentRunLoop] runUntilDate: [NSDate date]];
+			// Drain every event currently queued, dispatching each one via
+			// -sendEvent: so mouse-down/-up pairs on the Cancel button both
+			// land in the same yield (otherwise the action wouldn't fire
+			// until two pumps later, and on a non-key panel mouse-down can
+			// be consumed by activation while mouse-up sits in the queue).
+			NSEvent *ev;
+			while ( (ev = [NSApp nextEventMatchingMask: NSEventMaskAny
+											untilDate: [NSDate distantPast]
+											   inMode: NSDefaultRunLoopMode
+											  dequeue: YES]) != nil )
+			{
+				[NSApp sendEvent: ev];
+			}
+			// Also let timers / blocks scheduled with the runloop fire
+			// (this is what advances the elapsed-time counter, for one).
+			CFRunLoopRunInMode( kCFRunLoopDefaultMode, 0, false );
 		}
 	}
 }
