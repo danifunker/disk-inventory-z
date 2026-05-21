@@ -84,6 +84,10 @@
 // cache a list of resources
 - (void) cacheResourcesInArray: (NSArray<NSURLResourceKey>*_Nonnull) keys;
 
+// Drop the per-URL resource cache dictionary once the FSItem has extracted
+// everything it needs. Saves ~300-500 bytes per scanned file at peak.
+- (void) purgeResourceValueCache;
+
 - (NSMutableDictionary*_Nonnull) resourceValueCache;
 
 // get individual cached values (if not already cached they are load from NSURL)

@@ -83,6 +83,11 @@ typedef enum
 - (void) recalculateSize: (BOOL) usePhysicalSize updateParent: (BOOL) updateParent;
 	//just recalculates size (no file system access)
 
+// Walk this subtree and drop the NSURL resource-value cache from each item.
+// Called once after a scan completes; all data we ever need has been stamped
+// onto the FSItem (size, kind name) by that point.
+- (void) purgeResourceCachesRecursive;
+
 - (void) setKindString; //will ask delegate whether to ignore creator codes
 - (void) setKindStringIncludingChildren: (BOOL) includingChildren;
 

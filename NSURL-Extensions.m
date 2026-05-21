@@ -357,7 +357,7 @@ void LoadFirmlinks()
 - (void) cacheResourcesInArray: (NSArray<NSURLResourceKey>*) resourceKeys
 {
     NSMutableDictionary *cache = [self resourceValueCache];
-    
+
     for (NSString *key in resourceKeys)
     {
         id val = nil;
@@ -365,9 +365,20 @@ void LoadFirmlinks()
 
         if ( val == nil )
             val = (id)[NSNull null]; // mark as "resource not present"
-        
+
         [cache setValue: val forKey: key];
     }
+}
+
+// Drop the per-URL NSMutableDictionary that holds cached resource values.
+// Once an FSItem has stamped size + kind name onto itself, the cache is dead
+// weight retained for the lifetime of the URL (which we keep retained on the
+// FSItem). On a 1M-file scan this dictionary chain accounts for the bulk of
+// the post-scan resident memory.
+- (void) purgeResourceValueCache
+{
+    static NSString* cacheKey = @"io.github.danifunker.disk-inventory-y.URLResourceValueCacheKey";
+    [self setTemporaryResourceValue: nil forKey: cacheKey];
 }
 
 #pragma mark ----------------- helper functions -----------------------

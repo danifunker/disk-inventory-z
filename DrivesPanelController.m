@@ -18,6 +18,7 @@
 #import "DIXSnapshotInfo.h"
 #import "DIXVolumeKind.h"
 #import "FileSizeFormatter.h"
+#import "Preferences.h"
 
 @interface DrivesPanelController (FilterSwitches)
 - (void) installFilterSwitchesInWindow: (NSWindow*) window;
@@ -258,11 +259,13 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		NSLocalizedString(@"Show Network Drives",   @""),
 		NSLocalizedString(@"Show External Devices", @""),
 		NSLocalizedString(@"Show Mounted Images",   @""),
+		NSLocalizedString(@"Show Package Contents", @""),
 	];
 	NSArray<NSString*> *keys = @[
 		DIXShowNetworkDrivesKey,
 		DIXShowExternalDevicesKey,
 		DIXShowMountedImagesKey,
+		ShowPackageContents,
 	];
 	for ( NSUInteger i = 0; i < [titles count]; i++ )
 		[strip addArrangedSubview: [self labeledSwitchWithTitle: titles[i]
@@ -302,6 +305,13 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		return;
 	[[NSUserDefaults standardUserDefaults] setBool: ([sender state] == NSControlStateValueOn)
 											forKey: key];
+
+	// Only the volume-kind switches affect which volumes are in the list.
+	// ShowPackageContents is consumed by FileSystemDoc at scan time for
+	// newly-opened documents, so no rebuild needed here.
+	if ( [key isEqualToString: ShowPackageContents] )
+		return;
+
 	[self rebuildVolumesArray];
 }
 

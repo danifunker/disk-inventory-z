@@ -405,6 +405,17 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 	return _sizeValue;
 }
 
+- (void) purgeResourceCachesRecursive
+{
+    [_fileURL purgeResourceValueCache];
+
+    if ( _childs == nil )
+        return;
+    NSUInteger n = [_childs count];
+    for ( NSUInteger i = 0; i < n; i++ )
+        [[_childs objectAtIndex: i] purgeResourceCachesRecursive];
+}
+
 - (void) recalculateSize: (BOOL) usePhysicalSize updateParent: (BOOL) updateParent
 {
 	unsigned long long oldSize = [self sizeValue];
@@ -415,13 +426,21 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 		case FileFolderItem:
 			if ( [self isFolder] )
 			{
-				unsigned i = [_childs count];
+				NSUInteger childCount = [_childs count];
+				if ( childCount == 0 && _sizeValue > 0 )
+				{
+					// An opaque package whose total size was pre-stamped by
+					// the enumeration loop's skip-descendants path. Keep it.
+					size = _sizeValue;
+					break;
+				}
+				unsigned i = (unsigned) childCount;
 				while ( i-- )
 				{
 					FSItem *child = [_childs objectAtIndex: i];
-					
+
 					[child recalculateSize: usePhysicalSize updateParent: NO];
-						 
+
 					size += [child sizeValue];
 				}
 				[_childs sortUsingSelector: @selector(compareSizeDescendingly:)];
@@ -1069,7 +1088,35 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
             // although this should not be the case according to the docs
             [dirEnum skipDescendants];
         }
-        
+        else if ( [currentUrl isPackage]
+                  && ( ![delegate respondsToSelector: @selector(fsItemShouldLookIntoPackages:)]
+                       || ![delegate fsItemShouldLookIntoPackages: currentItem] ) )
+        {
+            // Package (.app, .photoslibrary, .keynote, etc.). Treat as opaque
+            // -- don't allocate FSItems for the package's contents, but DO
+            // walk it in a tight loop just to compute the package's total
+            // size so the tree map shows accurate space usage.
+            [dirEnum skipDescendants];
+
+            unsigned long long packageSize = 0;
+            NSDirectoryEnumerator *pkgEnum =
+                [[NSFileManager defaultManager] enumeratorAtURL: currentUrl
+                                     includingPropertiesForKeys: @[ NSURLTotalFileAllocatedSizeKey,
+                                                                    NSURLFileAllocatedSizeKey ]
+                                                        options: 0
+                                                   errorHandler: nil];
+            for ( NSURL *u in pkgEnum ) @autoreleasepool
+            {
+                NSNumber *sz = nil;
+                NSURLResourceKey key = usePhysicalSize ? NSURLTotalFileAllocatedSizeKey
+                                                       : NSURLFileAllocatedSizeKey;
+                [u getResourceValue: &sz forKey: key error: nil];
+                if ( sz != nil )
+                    packageSize += [sz unsignedLongLongValue];
+            }
+            [currentItem setSizeValue: packageSize];
+        }
+
         lastItemWasDir = [currentUrl isDirectory];
         
         lastDirItem = lastItemWasDir ? currentItem : nil;
@@ -1091,8 +1138,15 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
      }
     
     [itemStack release];
-    
+
 	[self recalculateSize:YES updateParent:NO];
+
+	// Drop the per-URL resource caches now that every FSItem has size + kind
+	// stamped onto itself. On a 1M-file scan this releases a few hundred MB
+	// of dictionary chains that would otherwise stay resident until the
+	// document closes.
+	if ( [self isRoot] )
+		[self purgeResourceCachesRecursive];
 }
 
 //compare the size of 2 FSItems
