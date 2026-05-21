@@ -1,35 +1,127 @@
 # Plan: Resolve Deprecated APIs in Disk Inventory Z
 
-## PROGRESS (updated 2026-05-21)
-Worked autonomously through the safe/verifiable stages; stopped before the one
-stage that needs Interface Builder + visual testing.
+## PROGRESS (updated for v1.6.0 release)
+Stages 1–7 are landed and shipped in **v1.6.0**. A pile of fix-forward work
+landed alongside Stages 5–7 when the modernization surfaced latent bugs; the
+table below records that too so the next session has the full picture.
 
-| Stage | Status | Commit |
+| Stage | Status | Key commits |
 |---|---|---|
 | 1 Dead code (NTID3Helper) | ✅ done | 464a17c |
 | 2 Enum/constant renames | ✅ done | cda96ca |
-| 3 Drawing/nib/geometry/progress | ✅ done | 6d0417c |
+| 3 Drawing/nib/geometry/progress | ✅ done | 6d0417c, b432619 (icon y-centering follow-up) |
 | 4 Legacy CocoaTech internals | ✅ done | 931ffc4 |
 | 5 UTType + pasteboard | ✅ done | aff87e9 |
-| 6 NSWorkspace + document open | ✅ done | 38cf23a |
-| 7 Alert/sheet modernization | ✅ done | dbe1978 |
+| 6 NSWorkspace + document open | ✅ done | 38cf23a, 47a142a (+walker fix), 7a0d95b (bypass NSDocumentController) |
+| 7 Alert / sheet modernization | ✅ done | dbe1978 |
+| 7.5 Bug fixes uncovered by the modernization | ✅ done | 47a142a, 1085503, a41ed6e |
+| 7.6 Stale-identifier cleanup | ✅ done | b9f4c4e, 01f69f4, f3442c4 |
+| 7.7 UI polish before release | ✅ done | 94d1513, f258870 |
+| 7.8 v1.6.0 release | ✅ tagged | 5126ad6 |
 | 8 NSDrawer → NSSplitViewController | ⏸ NOT STARTED | — |
+| **8.5 Async filesystem scan** (NEW — see below) | ⏸ NOT STARTED | — |
 | 9 Hardening | ⏸ NOT STARTED | — |
 
-Deprecation warnings: **~100 → 36**. All 36 remaining are `NSDrawer`/`NSDrawer*`
-(Stage 8). Every stage builds cleanly (`BUILD SUCCEEDED`).
+### Deprecation warning count
+**~100 → 36.** All 36 remaining are `NSDrawer`/`NSDrawer*` (Stage 8).
+Build is clean against the macOS 26.5 SDK at deployment target 13.0.
 
-**Needs manual verification when awake** (behavior changed, could not test
-headless): Stage 5 drag-to-Finder/Trash + ⌘C/paste (RTF/HTML/PDF/image) +
-Services; Stage 6 "Open With <app>" + File>Open… of a folder; Stage 7 the
-network-volume delete confirmation (Yes/No), a failed delete, and refreshing a
-deleted folder.
+### Why Stages 8 / 8.5 / 9 were deferred
+- **Stage 8** needs Interface Builder. The two drawers (`_kindsDrawer`,
+  `_selectionListDrawer`) live in the binary `MainMenu.nib`; converting to
+  `NSSplitViewController` requires nib edits and visual confirmation of
+  toggle / resize / width-persistence behaviour. Code touch points are
+  listed in Stage 8 below.
+- **Stage 8.5** is an architectural refactor (the directory scan currently
+  runs synchronously on the main thread and pumps the runloop). The right
+  time to do it is after the `NSDrawer` migration, but before turning on
+  warnings-as-errors so any new background-thread work doesn't get
+  compounded with deprecation tightening.
+- **Stage 9** is the final lock-in — only worth doing when the warning
+  count truly hits zero (which means Stage 8 is done).
 
-**Why Stage 8 was left:** the two drawers (`_kindsDrawer`, `_selectionListDrawer`)
-live in `en.lproj`/`English.lproj` **`MainMenu.nib`** — compiled binary nibs, not
-editable `.xib`. Converting to `NSSplitViewController` requires Interface Builder
-and visual confirmation of toggle/resize/width-persistence, so it was not safe to
-attempt headless. Code touch points are listed in Stage 8 below.
+### Bug fixes uncovered while doing the modernization
+These were latent bugs in the existing codebase that the Stage 5–7 work made
+visible (because `NSParameterAssert` started firing in Debug, or because the
+new APIs route through different framework code paths).
+
+- **`FSItem.m` scan-walker stack corruption** (47a142a). The periodic
+  runloop-pump every 64 files re-invoked `-fsItemEnteringFolder:` with the
+  current folder, which has push semantics and asserts
+  `lastObject == [item parent]`. In Release the assert was compiled out but
+  the stack still accumulated duplicates, silently skewing the progress-panel
+  folder-name display. Latent since the 2019 Catalina-support commit. Fixed by
+  adding a dedicated `-fsItemShouldContinueLoading` delegate method with no
+  stack semantics for the pump.
+- **`LoadingPanelController` double-release** (1085503). Stage 3 migrated to
+  `-loadNibNamed:owner:topLevelObjects:` and added a retaining
+  `nibTopLevelObjects` array. But the nib still had "release when closed" on
+  the panel, so closing the panel post-scan freed it while
+  `nibTopLevelObjects` still held a reference → `EXC_BAD_ACCESS` during a
+  later runloop autorelease-pool pop. Fixed by `setReleasedWhenClosed:NO` on
+  both `init` and `initAsSheetForWindow:` paths.
+- **`NSDocumentController` URL-open coordination crash** (7a0d95b). The
+  Stage 6 switch from `openDocumentWithContentsOfFile:display:` to the
+  URL-based async API routed reads through `NSFileCoordinator`, whose
+  continuation block fires on the main thread *while* our synchronous scan
+  was still pumping the runloop. The block's autorelease pool would pop
+  mid-scan and over-release. Worked around by overriding
+  `openDocumentWithContentsOfURL:display:completionHandler:` to bypass
+  `NSDocumentController` entirely and own the document lifecycle directly
+  (`alloc/init` `FileSystemDoc`, set URL/type, call `-scanFolderAtURL:error:`,
+  `addDocument:`/`makeWindowControllers`/`showWindows`). This is **the
+  motivation for Stage 8.5** — see below; making the scan asynchronous will
+  let us drop the bypass and play nice with the framework.
+- **First-launch filter switches inconsistent** (a41ed6e). `DrivesPanelController`
+  was registering its `DIXShow*` defaults *after* `-rebuildVolumesArray` had
+  already consumed them on first build. Moved registration to `+initialize`.
+
+### Other UI / polish work landed in v1.6.0
+Not strictly deprecation work, but tracked here because it shared files
+with the modernization and ended up in the same release:
+
+- **Stale-identifier purge.** `NTID3Helper` (dead), `DIXLegacyOmniHelpers`
+  (replaced 7 call sites with `[x length] == 0/!= 0`), `OB*` macros
+  (`OBPRECONDITION` → `NSParameterAssert`, others were unused),
+  `NSApplication(Omni)` category (restored shift-to-slow-zoom with modern
+  `NSApp.currentEvent.modifierFlags`), `OmniAppKitExtensions` project group
+  → `AppKitExtensions`, misleading `Preferences.strings` comments, the
+  `DiskInventoryXBoolHelpers` category rename, stray `Re: DiskInventory X is
+  not compatible…` comment text.
+- **Column sizing.** New `DIXTableView+Sizing` category centralises rules for
+  all four tables (outline / kinds drawer / selection list / drives panel):
+  column min-widths ≥ header text, numeric columns clamped to "1234.5 GB"
+  width, the named flex column absorbs extra width, **every** non-numeric
+  text column tail-truncates with `…` via a `DIXTruncatingTextFieldCell`
+  subclass that draws via `NSAttributedString -drawWithRect:options:` so
+  truncation works even when bindings supply attributed strings. Custom
+  cells (`ImageAndTextCell`) are excluded from the swap so the name+icon
+  pairing on the outline view and selection list survives.
+- **Dark-mode color fix.** `DIXTruncatingTextFieldCell` now injects
+  `textColor` (defaults to `controlTextColor`, which is appearance-aware)
+  into any character range of the attributed-string value that lacks a
+  foreground colour. Fixes the drives panel's volume-name transformer,
+  which doesn't set a colour, appearing in black on dark mode.
+- **Window layout.** `constrainWindowToScreen` clamps the document window
+  to `visibleFrame - 280pt below - 560pt right - 20pt margin`, with
+  400pt/700pt safety floors. Called inline in `-awakeFromNib` and again
+  deferred via `dispatch_async` to override frame-autosave restoration.
+  Kinds drawer widened to 420pt at install time; both drawers pinned to
+  `NSMaxXEdge`. The status-bar install also walks descendant
+  `NSScrollView`s and re-tiles them (since `setFrame:` with same size only
+  changes origin and `NSScrollView` doesn't auto-re-tile then). The main
+  outline / file-kinds / selection-list headers got an opaque
+  `DIXOpaqueTableHeaderView` to stop rows scrolling under them from
+  visually bleeding through.
+- **Right-click "Show Files in Selection List".** Notification-based wiring
+  (`DIXShowKindInSelectionListNotification`) so the outline view's context
+  menu and the file-kinds drawer's new context menu both route through
+  `FileKindsTableController`'s existing
+  `-showFilesInSelectionList:` action.
+- **Drives panel: first disk auto-selected** on initial build; subsequent
+  rebuilds preserve manual selection.
+- **`NSDrawerOpaqueTableHeaderView`-related accumulation:** see `Stage 8`
+  for the only remaining warning class.
 
 ---
 
@@ -290,8 +382,118 @@ animate/collapse, width persistence). **Commit.**
 
 ---
 
+## Stage 8.5 — Asynchronous filesystem scan (NEW)
+**Why this stage exists.** During Stage 6, switching from the deprecated
+`openDocumentWithContentsOfFile:display:` to
+`openDocumentWithContentsOfURL:display:completionHandler:` exposed an
+architectural mismatch: the URL-based open API routes through
+`NSFileCoordinator`, which dispatches a continuation block back to the main
+thread *while the read is in progress*. Our scan runs **synchronously on the
+main thread** and pumps the runloop via `_progressController runEventLoop`,
+so the coordinator's continuation block fires mid-scan, its per-callout
+autorelease pool pops, and an over-release crashes with `EXC_BAD_ACCESS` in
+`__RELEASE_OBJECTS_IN_THE_ARRAY__`. The v1.6.0 release works around this by
+overriding `openDocumentWithContentsOfURL:` to bypass `NSDocumentController`'s
+URL-based open entirely (see 7a0d95b). That works, but it's a band-aid: the
+underlying problem is that the scan blocks the main thread.
+
+Making the scan asynchronous fixes the root cause, removes the bypass, and
+unlocks a number of secondary improvements. **Do this before Stage 9** so the
+hardening pass locks in the post-refactor state.
+
+### What needs to change
+
+1. **`FSItem.loadChildren` / `loadChildrenAndSetKindStrings:usePhysicalSize:`**
+   The directory walker (currently in `FSItem.m` around lines 936–1220) runs
+   `NSDirectoryEnumerator` + `FSItem` allocations + delegate calls on the
+   calling thread. Move the entire walk onto a background `dispatch_queue_t`
+   (or `NSOperationQueue` if cancellation needs to be more structured) and
+   keep `FSItem`'s internal `_childs`, hardlink-dedup set, and per-item
+   resource caches local to that queue until the walk finishes.
+
+2. **Progress / cancel signalling**
+   `fsItemEnteringFolder:`, `fsItemExittingFolder:`, and (added in 47a142a)
+   `fsItemShouldContinueLoading` are the only points where the walker talks
+   to the UI. Route them to the main thread via `dispatch_async` with
+   batched updates (e.g. coalesce progress text updates so we don't post
+   10k notifications per second on large scans). `cancelPressed` is read on
+   the walker thread → make it atomic (`_Atomic BOOL` or
+   `OSAtomicCompareAndSwap`) so a main-thread Cancel click is visible
+   without locks.
+
+3. **Completion handling on the main thread**
+   When the walker finishes (success or cancel), hop back to main and:
+   - Set `_rootItem` on `FileSystemDoc`.
+   - Call `refreshFileKindStatistics`.
+   - Close the progress panel.
+   - Invoke the completion block originally passed into
+     `openDocumentWithContentsOfURL:display:completionHandler:`.
+
+4. **Remove the `NSDocumentController` bypass**
+   Once the scan is non-blocking, the `NSFileCoordinator` continuation no
+   longer interleaves with our work. Delete the override of
+   `openDocumentWithContentsOfURL:display:completionHandler:` in
+   `MyDocumentController.m`, restore `readFromURL:ofType:error:` as a proper
+   `NSDocument` override on `FileSystemDoc`, and let the framework handle
+   document lifecycle (addDocument, makeWindowControllers, showWindows).
+
+5. **Cancel + close interaction**
+   Today closing the document during a scan is impossible because the main
+   thread is blocked. After async, the user could close the window mid-scan:
+   the document's `dealloc` (or `close` override) must cancel the walker
+   and wait for it to acknowledge before tearing down `_rootItem`. The
+   `cancelPressed` flag + a completion-on-cancel callback are sufficient.
+
+6. **Drives panel mount/unmount during scan**
+   `DrivesPanelController` observes `NSWorkspace` mount notifications and
+   triggers `rebuildVolumesArray`. Today these can't race with a scan
+   (main-thread blocked). After async, ensure the volumes table updates
+   freely while a scan runs — should already work since the rebuild is
+   main-thread.
+
+### Why now is the right time
+- The Stage-8 work (NSDrawer → NSSplitViewController) doesn't touch the
+  scan at all, so it can land independently of this.
+- Doing this *after* Stage 8 means the NSDrawer migration is done with
+  the existing synchronous scan as a known constant; one architectural
+  axis at a time.
+- Doing this *before* Stage 9 (warnings-as-errors) means any new
+  deprecation introduced by switching to `NSOperationQueue` / dispatch /
+  whatever modern async primitive is chosen will surface during the
+  refactor, not as a CI failure after lock-in.
+
+### Test surface this stage needs
+- Cancel a long scan via the panel's Cancel button → walker terminates,
+  progress panel closes, no leaked window/document.
+- Close the document mid-scan → walker terminates, no over-release on
+  `_rootItem` access from the still-running walker.
+- Quit the app mid-scan → `applicationShouldTerminate:` must wait for or
+  cancel in-flight walkers.
+- Volume mount / unmount during scan → drives panel updates without
+  affecting the scan.
+- Open multiple documents concurrently → each runs its own walker; no
+  shared mutable state collisions (`g_seenHardlinkInodes` is currently
+  a global — needs to become per-walk).
+
+### Exit criteria
+- Document open uses the framework's `NSDocumentController` URL-based open
+  again (the v1.6.0 bypass is deleted).
+- Scans run off the main thread; UI stays responsive through long walks
+  (no beach-ball, menu items work, About panel opens during a scan).
+- Cancel + close + quit interactions all clean up the walker correctly.
+- No deprecation regressions introduced. **Commit.**
+
+---
+
 ## Stage 9 — Hardening & guard against regressions
 **Why:** lock in the result so new deprecations fail the build.
+
+**Prerequisites:** Stages 8 and 8.5 must be complete first. Stage 8 takes the
+last 36 warnings (`NSDrawer*`) to zero; Stage 8.5 reverts the
+`NSDocumentController` bypass so the document-open path uses non-deprecated
+framework APIs end-to-end. Doing this stage before either of those would
+either fail the zero-warning check or lock in a workaround we intend to
+remove.
 
 Tasks:
 1. Confirm the warning count command reports **0**.
@@ -299,7 +501,9 @@ Tasks:
    `-Werror=deprecated-declarations` (or `GCC_TREAT_WARNINGS_AS_ERRORS` scoped to this
    warning) to the Release configuration so future deprecations break CI.
 3. Full regression pass: scan a volume, treemap render, file selection, info panel,
-   drag/drop, copy/paste, open-with, all alerts, side panel, preferences.
+   drag/drop, copy/paste, open-with, all alerts, side panel, preferences. Add
+   cancel-mid-scan and close-mid-scan to the regression set now that the scan
+   is asynchronous (Stage 8.5).
 4. Update `README` / changelog noting the minimum-OS-relevant API modernization.
 
 Exit criteria: 0 deprecation warnings; warnings-as-errors active; full app smoke test
@@ -310,19 +514,24 @@ green. **Commit.**
 ## Stage → file touch map (verify no file is reworked on the same lines)
 | File | Stages that touch it | Overlap risk |
 |---|---|---|
-| `FSItem.m` | 5 | single stage ✓ |
+| `FSItem.m` | 5 (done), **8.5 (walker thread)** | different concerns ✓ |
 | `NTFilePasteboardSource.m` | 5 | single ✓ |
 | `MainWindowController.{h,m}` | 3 (geom), 7 (alerts), 8 (drawer) | different lines ✓ |
-| `FileSystemDoc.m` | 2 (`NSOnState`), 7 (alerts) | different lines ✓ |
-| `LoadingPanelController.m` | 3 (nib), 7 (sheet/return code) | different lines ✓ |
+| `FileSystemDoc.m` | 2 (`NSOnState`), 7 (alerts), 6 (URL scan rename, done), **8.5 (async hop + lifecycle)** | different lines ✓ |
+| `LoadingPanelController.m` | 3 (nib), 7 (sheet/return code), **8.5 (atomic cancel)** | different lines ✓ |
+| `MyDocumentController.m` | 6 (done), **8.5 (delete URL-open bypass)** | the bypass added in 7a0d95b is deliberately removed in 8.5 |
 | `SelectionListTableController.m` | 2 (markers), 8 (drawer) | different lines ✓ |
 | `FileKindsTableController.m` | 2 (markers), 8 (drawer) | different lines ✓ |
 | `GenericArrayController.m` | 2 (markers) | single ✓ |
 | `NTInfoView.m` | 2 (control size), 4 (Carbon/clip) | different lines ✓ |
 | `NTTitledInfoView.m` | 2 (text align), 4 (flush window) | different lines ✓ |
 | `TreeMapView/*`, `ImageAndTextCell.m` | 2/3 (composite, color) | composite-in-method deferred to 3 ✓ |
-| `AppsForItem.m`, `MyDocumentController.m` | 6 | single ✓ |
+| `AppsForItem.m` | 6 | single ✓ |
 
 The only files entered in more than one stage are touched on disjoint lines by design;
 the composite/marker constants embedded in deprecated method calls are deliberately
 deferred to the stage that rewrites the surrounding call so no line is edited twice.
+Stage 8.5 explicitly *deletes* lines added in commit 7a0d95b (the
+`NSDocumentController` URL-open bypass) — that's the only intentional
+re-touch in the plan and is documented in Stage 8.5's "Remove the
+`NSDocumentController` bypass" step.
