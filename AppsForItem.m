@@ -1,6 +1,6 @@
 //
 //  AppsForItem.m
-//  Disk Inventory X new
+//  Disk Inventory Y new
 //
 //  Created by Tjark Derlien on 20.01.06.
 //
@@ -121,7 +121,7 @@
 	if ( checkDefApp && [appURL isEqualToURL: [self defaultAppURL]] )
 		return NO;
 	
-	BOOL isDIX = [[appURL name] isEqualToString: @"Disk Inventory X.app"];
+	BOOL isDIX = [[appURL name] isEqualToString: @"Disk Inventory Y.app"];
 	BOOL isFinder = [[appURL name] isEqualToString: @"Finder.app"];
 	
 	//filter out the Finder (for simple folders, the Finder is returned by "LSGetApplicationForItem" and "LSCopyApplicationURLsForURL")

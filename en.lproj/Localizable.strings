@@ -51,18 +51,18 @@
 "Yes" = "Yes";
 
 /*the "move to trash" command failed (the selected file/folder name will be placed in front of this text)*/
-"\"%@\" cannot be moved to the trash by Disk Inventory X." = "\"%@\" cannot be moved to the trash by Disk Inventory X.";
+"\"%@\" cannot be moved to the trash by Disk Inventory Y." = "\"%@\" cannot be moved to the trash by Disk Inventory Y.";
 "OK" = "OK";
 
 /*refreshing failed because the loaded folder doesn't exist anymore*/
 "\"%@\" does not exist any more." = "\"%@\" does not exist any more.";
-"The folder will remain visible in Disk Inventory X, but the files cannot be accessed (e.g. shown in the Finder)." = "The folder will remain visible in Disk Inventory X, but the files cannot be accessed (e.g. shown in the Finder).";
+"The folder will remain visible in Disk Inventory Y, but the files cannot be accessed (e.g. shown in the Finder)." = "The folder will remain visible in Disk Inventory Y, but the files cannot be accessed (e.g. shown in the Finder).";
 
 /*"all files" item in kinds popup button*/
 "(all kinds)" = "(all kinds)";
 
 /* warning before accessing private files */
-"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected." = "Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected.";
+"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Y access to these folders and files.\n\nDisk Inventory Y does not read any data - just information like file sizes and types are collected." = "Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Y access to these folders and files.\n\nDisk Inventory Y does not read any data - just information like file sizes and types are collected.";
 
 "You can change the access settings in the System Preferences (Security/Privacy)."="You can change the access settings in the System Prefences (Security/Privacy).";
 

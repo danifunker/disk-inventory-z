@@ -45,7 +45,7 @@
 "Free" = "Libre";
 
 /*the "move to trash" command failed (the selected file/folder name will be placed in front of this text)*/
-"\"%@\" cannot be moved to the trash by Disk Inventory X." = "\"%@\" ne peut pas être déplacé dans la corbeille par Disk Inventory X.";
+"\"%@\" cannot be moved to the trash by Disk Inventory Y." = "\"%@\" ne peut pas être déplacé dans la corbeille par Disk Inventory Y.";
 "Maybe you do not have sufficient access privileges." = "Vous n'avez peut-être pas des droits suffisants.";
 "OK" = "OK";
 
@@ -57,7 +57,7 @@
 
 /*refreshing failed because the loaded folder doesn't exist anymore*/
 "\"%@\" does not exist any more." = "\"%@\" n'existe plus.";
-"The folder will remain visible in Disk Inventory X, but the files cannot be accessed (e.g. shown in the Finder)." = "Le dossier va rester visible dans Disk Inventory X, mais les fichiers ne seront pas accessibles (i.e.  visible dans le Finder).";
+"The folder will remain visible in Disk Inventory Y, but the files cannot be accessed (e.g. shown in the Finder)." = "Le dossier va rester visible dans Disk Inventory Y, mais les fichiers ne seront pas accessibles (i.e.  visible dans le Finder).";
 
 /*"all files" item in kinds popup button*/
 "(all kinds)" = "(tous types)";
@@ -72,8 +72,8 @@
 "Install" = "Installer";
 
 /* warning before accessing private files */
-"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory X access to these folders and files.\n\nDisk Inventory X does not read any data - just information like file sizes and types are collected." =
-"Certains dossiers qui seront analysés contiennent des fichiers privés. L'accès est protégé par la protection de la confidentialité de macOS.\n\nLors du premier accès, macOS vous demandera si vous autorisez l'accès à Disk Inventory X à ces dossiers et fichiers.\n\nDisk Inventory X ne lit aucune donnée - seules des informations telles que la taille et le type des fichiers sont collectées.";
+"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Y access to these folders and files.\n\nDisk Inventory Y does not read any data - just information like file sizes and types are collected." =
+"Certains dossiers qui seront analysés contiennent des fichiers privés. L'accès est protégé par la protection de la confidentialité de macOS.\n\nLors du premier accès, macOS vous demandera si vous autorisez l'accès à Disk Inventory Y à ces dossiers et fichiers.\n\nDisk Inventory Y ne lit aucune donnée - seules des informations telles que la taille et le type des fichiers sont collectées.";
 
 "You can change the access settings in the System Preferences (Security/Privacy)." = "Vous pouvez modifier les paramètres d'accès dans les Préférences Système (Sécurité/Confidentialité).";
 
