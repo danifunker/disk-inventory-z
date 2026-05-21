@@ -52,6 +52,14 @@
 		NSAssert( NO, @"couldn't load LoadingPanel.nib" );
 	self.nibTopLevelObjects = topLevelObjects;
 
+	// The nib has the legacy "release when closed" style on the panel (a
+	// convention from when +loadNibNamed:owner: leaked top-level objects
+	// and panels self-released on close to balance that). With the modern
+	// -loadNibNamed:owner:topLevelObjects: we own the panel through the
+	// nibTopLevelObjects array, so any self-release on close causes a
+	// double-release later when the array is dealloc'd. Turn it off.
+	[_loadingPanel setReleasedWhenClosed: NO];
+
 	[_loadingProgressIndicator setUsesThreadedAnimation: NO];
     [_loadingProgressIndicator startAnimation: self];
 
@@ -99,6 +107,10 @@
 		NSAssert( NO, @"couldn't load LoadingPanel.nib" );
 	self.nibTopLevelObjects = topLevelObjects;
 
+	// See -init: nibTopLevelObjects now owns the panel, so disable the
+	// legacy "release when closed" self-release.
+	[_loadingPanel setReleasedWhenClosed: NO];
+
 	[window beginSheet: _loadingPanel completionHandler: nil];
 	
 	[_loadingPanel setWorksWhenModal: YES];
@@ -141,7 +153,7 @@
 	if ( [_loadingPanel isSheet] )
 	{
 		[NSApp endSheet: _loadingPanel];
-		[_loadingPanel close]; //will be released (panel has style "release when close")
+		[_loadingPanel close]; //panel stays alive until nibTopLevelObjects is released
 
 		_loadingPanel = nil;
 		_loadingProgressIndicator = nil;
@@ -173,8 +185,8 @@
 	//the sender asked us not to end the modal session (maybe because sender has run into an exception)
 	_loadingPanelModalSession = 0;
 	
-	[_loadingPanel close]; //will be released (panel has style "release when close")
-	
+	[_loadingPanel close]; //panel stays alive until nibTopLevelObjects is released
+
 	_loadingPanel = nil;
     _loadingProgressIndicator = nil;
 	_loadingTextField = nil;
