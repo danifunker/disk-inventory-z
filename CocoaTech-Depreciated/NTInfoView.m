@@ -111,8 +111,7 @@
     [scrollView setBorderType:NSNoBorder];
     [scrollView setScrollsDynamically:YES];
     [scrollView setDrawsBackground:YES];
-    [[scrollView contentView] setCopiesOnScroll:YES];
-    
+
     // set small scrollbars
     if ([scrollView verticalScroller])
         [[scrollView verticalScroller] setControlSize:NSControlSizeSmall];
@@ -405,19 +404,15 @@
     NSString* perm = @"";
 
     // get mode bits
-    // [NSFileManager attributesOfItemAtPath:error:] provides the permission bits ([NSFileAttributes filePosixPermissions]),
-    // but not the complete mode bits; so use the carbon functions instead ...
-    
-    FSRef ref;
-    if ( FSPathMakeRef((const UInt8*)[URL fileSystemRepresentation], &ref, nil) != noErr )
+    // [NSFileManager attributesOfItemAtPath:error:] only exposes the permission
+    // bits (filePosixPermissions), not the file-type bits the S_IS* macros need,
+    // so lstat() the file directly (lstat preserves the symlink case below).
+    struct stat fileStat;
+    if ( lstat([URL fileSystemRepresentation], &fileStat) != 0 )
         return perm;
-    
-    FSCatalogInfo catalogInfo;
-    if ( FSGetCatalogInfo(&ref, kFSCatInfoPermissions, &catalogInfo, NULL, NULL, NULL) != noErr )
-        return perm;
-    
-    UInt16 modeBits = catalogInfo.permissions.mode;
-    UInt16 permBits = (modeBits & ACCESSPERMS);
+
+    mode_t modeBits = fileStat.st_mode;
+    mode_t permBits = (modeBits & ACCESSPERMS);
     
     if (S_ISDIR(modeBits))
         perm = [perm stringByAppendingString:@"d"];
