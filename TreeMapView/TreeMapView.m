@@ -165,7 +165,7 @@ NSString *TMVTouchedItem = @"TreeMapViewTouchedItem"; //key for touched item in 
             // draw image slightly dimmed
             [image drawInRect: [self bounds]
                      fromRect: NSMakeRect( 0, 0, imageSize.width, imageSize.height )
-                    operation: NSCompositeCopy
+                    operation: NSCompositingOperationCopy
                      fraction: 0.6/*requestedAlpha*/
                respectFlipped: YES
                         hints: nil];
@@ -202,7 +202,7 @@ NSString *TMVTouchedItem = @"TreeMapViewTouchedItem"; //key for touched item in 
         
         [image drawInRect: rect
                  fromRect: rect
-                operation: NSCompositeCopy
+                operation: NSCompositingOperationCopy
                  fraction: 1/*requestedAlpha*/
            respectFlipped: YES
                     hints: nil];

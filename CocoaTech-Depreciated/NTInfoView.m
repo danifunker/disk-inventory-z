@@ -115,9 +115,9 @@
     
     // set small scrollbars
     if ([scrollView verticalScroller])
-        [[scrollView verticalScroller] setControlSize:NSSmallControlSize];
+        [[scrollView verticalScroller] setControlSize:NSControlSizeSmall];
     if ([scrollView horizontalScroller])
-        [[scrollView horizontalScroller] setControlSize:NSSmallControlSize];
+        [[scrollView horizontalScroller] setControlSize:NSControlSizeSmall];
     
     contentRect = [scrollView bounds];
     contentRect.size = [scrollView contentSize];

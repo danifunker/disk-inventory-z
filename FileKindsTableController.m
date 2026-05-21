@@ -213,7 +213,7 @@
 	FileKindStatistic *stat = [doc itemIsNode: item] ? nil : [doc kindStatisticForItem: item];
 	
 	id tableViewSelection = [_kindsTableArrayController selection];
-	if ( tableViewSelection == NSNoSelectionMarker )
+	if ( tableViewSelection == NSBindingSelectionMarker.noSelectionMarker )
 		tableViewSelection = nil;
 	
 	if ( stat != tableViewSelection )

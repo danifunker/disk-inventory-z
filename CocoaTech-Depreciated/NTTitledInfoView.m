@@ -461,7 +461,7 @@
         
         NSMutableParagraphStyle *paragraphStyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
         
-        [paragraphStyle setAlignment:NSRightTextAlignment];
+        [paragraphStyle setAlignment:NSTextAlignmentRight];
         [paragraphStyle setLineBreakMode:NSLineBreakByWordWrapping];
         
         [attributes setObject:paragraphStyle forKey:NSParagraphStyleAttributeName];
@@ -483,7 +483,7 @@
                 
         NSMutableParagraphStyle *paragraphStyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
         
-        [paragraphStyle setAlignment:NSLeftTextAlignment];
+        [paragraphStyle setAlignment:NSTextAlignmentLeft];
         [paragraphStyle setLineBreakMode:NSLineBreakByWordWrapping];
         
         [attributes setObject:paragraphStyle forKey:NSParagraphStyleAttributeName];

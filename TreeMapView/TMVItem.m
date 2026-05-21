@@ -141,7 +141,7 @@ static NSMutableDictionary *_cushionTextAttributes;
         
         [_leafGridColor set];
 
-        NSFrameRectWithWidthUsingOperation(rectPoints, 1, NSCompositeCopy );
+        NSFrameRectWithWidthUsingOperation(rectPoints, 1, NSCompositingOperationCopy );
 
 /*        if ( NSWidth(_rect) > 60 && NSHeight(_rect) > 20 )
         {

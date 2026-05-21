@@ -196,7 +196,7 @@
 
 - (void) treeMapView: (TreeMapView*) view willShowMenuForEvent: (NSEvent*) event
 {
-    if ( [event type] == NSRightMouseDown )
+    if ( [event type] == NSEventTypeRightMouseDown )
     {
         //right mouse click -> context menu
         //select the item hit by the click,

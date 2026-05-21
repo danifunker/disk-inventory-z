@@ -199,7 +199,7 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
     FSItem *item = [[self document] selectedItem];
 
 	id selectionListSelection = [_selectionListArrayController selection];
-	if ( selectionListSelection == NSNoSelectionMarker )
+	if ( selectionListSelection == NSBindingSelectionMarker.noSelectionMarker )
 		selectionListSelection = nil;
 	
 	//NSNotApplicableMarker or NSMultipleValuesMarker?
@@ -237,7 +237,7 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 	FileSystemDoc *doc = [self document];
 	
 	id selectionListSelection = [_selectionListArrayController selection];
-	if ( selectionListSelection == NSNoSelectionMarker )
+	if ( selectionListSelection == NSBindingSelectionMarker.noSelectionMarker )
 		selectionListSelection = nil;
 	
 	//NSNotApplicableMarker or NSMultipleValuesMarker?
