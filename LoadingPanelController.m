@@ -99,11 +99,7 @@
 		NSAssert( NO, @"couldn't load LoadingPanel.nib" );
 	self.nibTopLevelObjects = topLevelObjects;
 
-	[NSApp beginSheet: _loadingPanel
-	   modalForWindow: window
-		modalDelegate: self
-	   didEndSelector: nil
-		  contextInfo: NULL];
+	[window beginSheet: _loadingPanel completionHandler: nil];
 	
 	[_loadingPanel setWorksWhenModal: YES];
 	
@@ -243,7 +239,7 @@
 		if ( _loadingPanelModalSession != 0 )
 		{
 			if ( [[NSApplication sharedApplication] runModalSession: _loadingPanelModalSession]
-																			!= NSRunContinuesResponse )
+																			!= NSModalResponseContinue )
 			{
 				NSAssert( NO, @"run loop stopped by unknown party" );
 			}

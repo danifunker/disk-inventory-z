@@ -28,7 +28,7 @@
 #import "NSURL-Extensions.h"
 
 @interface MainWindowController(Private)
-- (void) moveToTrashSheetDidDismiss: (NSWindow*) sheet returnCode: (int) returnCode contextInfo: (void*) contextInfo;
+- (void) performMoveToTrashForItem: (FSItem*) selectedItem;
 @end
 
 @implementation MainWindowController
@@ -319,22 +319,20 @@
 		NSString *msg = [NSString stringWithFormat: NSLocalizedString(@"The item \"%@\" could not be moved to the trash.",@""),
 													[selectedItem displayName]];
 
-		NSBeginAlertSheet( msg,
-                          NSLocalizedString(@"No",@""),
-                          NSLocalizedString(@"Yes",@""),
-						  nil,
-						  [self window],
-						  self,
-						  nil,
-						  @selector(moveToTrashSheetDidDismiss: returnCode: contextInfo:),
-						  selectedItem,
-						  @"%@", NSLocalizedString(@"Would you like to delete it immediately?",@""));
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		alert.messageText = msg;
+		alert.informativeText = NSLocalizedString(@"Would you like to delete it immediately?",@"");
+		[alert addButtonWithTitle: NSLocalizedString(@"No",@"")];  //first button is default (Return key)
+		[alert addButtonWithTitle: NSLocalizedString(@"Yes",@"")];
+		[alert beginSheetModalForWindow: [self window] completionHandler: ^(NSModalResponse returnCode)
+		{
+			if ( returnCode == NSAlertSecondButtonReturn ) //"Yes"
+				[self performMoveToTrashForItem: selectedItem];
+		}];
 	}
 	else
 	{
-		[self moveToTrashSheetDidDismiss: nil
-							  returnCode: NSAlertAlternateReturn
-							 contextInfo: selectedItem];
+		[self performMoveToTrashForItem: selectedItem];
 	}
 }
 
@@ -419,7 +417,10 @@
 	uint64_t doneTime = getTime();
 	
 	NSString *msg = [NSString stringWithFormat: @"rendering %u times took %.2f seconds", count, subtractTime(doneTime, startTime)];
-	NSBeginInformationalAlertSheet( msg, nil, nil, nil, [_splitter window], nil, nil, nil, nil, @"" );
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	alert.alertStyle = NSAlertStyleInformational;
+	alert.messageText = msg;
+	[alert beginSheetModalForWindow: [_splitter window] completionHandler: nil];
 }
 
 - (IBAction) performLayoutBenchmark:(id)sender
@@ -433,7 +434,10 @@
 	uint64_t doneTime = getTime();
 	
 	NSString *msg = [NSString stringWithFormat: @"layout calculation %u times took %.2f seconds", count, subtractTime(doneTime, startTime)];
-	NSBeginInformationalAlertSheet( msg, nil, nil, nil, [_splitter window], nil, nil, nil, nil, @"" );
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	alert.alertStyle = NSAlertStyleInformational;
+	alert.messageText = msg;
+	[alert beginSheetModalForWindow: [_splitter window] completionHandler: nil];
 }
 
 #pragma mark -----------------UI elment validation-----------------------
@@ -680,16 +684,10 @@
 
 @implementation MainWindowController(Private)
 
-- (void) moveToTrashSheetDidDismiss: (NSWindow *) sheet
-						 returnCode: (int) returnCode
-						contextInfo: (void*) contextInfo
+- (void) performMoveToTrashForItem: (FSItem*) selectedItem
 {
-	if ( returnCode != NSAlertAlternateReturn )
-		return;
-	
 	FileSystemDoc *doc = [self document];
-	FSItem *selectedItem = (FSItem*) contextInfo;
-	
+
 	NSParameterAssert(	selectedItem != nil
 						&& selectedItem != [doc zoomedItem] 
 						&& ![selectedItem isSpecialItem] );
@@ -721,14 +719,13 @@
 		//failed
         NSString *msg = [NSString stringWithFormat: NSLocalizedString(@"\"%@\" cannot be moved to the trash by Disk Inventory Z.",@""), [selectedItem displayName] ];
         NSString *subMsg = error.localizedFailureReason; //NSLocalizedString( @"Maybe you do not have sufficient access privileges.", @"" );
-        
-        NSBeginInformationalAlertSheet( msg,
-                                       NSLocalizedString(@"OK",@""),
-                                       nil, nil,
-                                       [self window],
-                                       nil, NULL, NULL, nil,
-                                       @"%@",
-                                       subMsg );
+
+        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+        alert.alertStyle = NSAlertStyleInformational;
+        alert.messageText = msg;
+        if ( subMsg != nil )
+            alert.informativeText = subMsg;
+        [alert beginSheetModalForWindow: [self window] completionHandler: nil];
  	}
 }
 

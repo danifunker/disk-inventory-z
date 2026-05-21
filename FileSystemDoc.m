@@ -572,13 +572,11 @@ NSString *OldItem = @"OldItem";
         NSString *msg = [NSString stringWithFormat: @"\"%@\" does not exist any more.", [[self rootItem] displayPath]];
         NSString *subMsg = NSLocalizedString( @"The folder will remain visible in Disk Inventory Z, but the files cannot be accessed (e.g. shown in the Finder).",@"");
         
-        NSBeginInformationalAlertSheet( msg,
-                                       NSLocalizedString(@"OK",@""),
-                                       nil, nil,
-                                       [[[self windowControllers] objectAtIndex: 0] window],
-                                       nil, NULL, NULL, nil,
-                                       @"%@",
-                                       subMsg );
+        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+        alert.alertStyle = NSAlertStyleInformational;
+        alert.messageText = msg;
+        alert.informativeText = subMsg;
+        [alert beginSheetModalForWindow: [[[self windowControllers] objectAtIndex: 0] window] completionHandler: nil];
 
 		return;
 	}
@@ -619,13 +617,11 @@ NSString *OldItem = @"OldItem";
 		else
 		{
 			//error
-            NSBeginInformationalAlertSheet( NSLocalizedString( @"The folder's content could not be loaded.", @""),
-                                           NSLocalizedString(@"OK",@""),
-                                           nil, nil,
-                                           [[[self windowControllers] objectAtIndex: 0] window],
-                                           nil, NULL, NULL, nil,
-                                           @"%@",
-                                           [localException reason] );
+            NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+            alert.alertStyle = NSAlertStyleInformational;
+            alert.messageText = NSLocalizedString( @"The folder's content could not be loaded.", @"");
+            alert.informativeText = [localException reason];
+            [alert beginSheetModalForWindow: [[[self windowControllers] objectAtIndex: 0] window] completionHandler: nil];
 
 		}
 		NS_VOIDRETURN;
