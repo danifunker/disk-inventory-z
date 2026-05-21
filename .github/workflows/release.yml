@@ -91,21 +91,17 @@ jobs:
         if: steps.signing.outputs.have_cert == 'true'
         run: |
           set -euo pipefail
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>developer-id</string>
-            <key>teamID</key><string>$TEAM_ID</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>signingCertificate</key><string>Developer ID Application</string>
-          </dict></plist>
-          EOF
+          # The archive step already produced a Developer-ID-signed, hardened-runtime
+          # .app inside the xcarchive. xcodebuild -exportArchive on recent Xcode
+          # segfaults in the IDEDistribution path for non-store Developer ID
+          # distribution, so we just copy the signed bundle out directly.
+          ARCHIVED_APP="$RUNNER_TEMP/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          mkdir -p "$RUNNER_TEMP/export"
+          cp -R "$ARCHIVED_APP" "$RUNNER_TEMP/export/"
 
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
-            -exportPath  "$RUNNER_TEMP/export" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+          # Verify the signature so a downstream failure surfaces here, not at notary.
+          codesign --verify --deep --strict --verbose=2 "$RUNNER_TEMP/export/$APP_NAME.app"
+          codesign -dvv "$RUNNER_TEMP/export/$APP_NAME.app" 2>&1 | grep -E "Authority|TeamIdentifier|Identifier|Signature|Runtime"
 
       # ---------- Unsigned path ----------
       - name: Build (unsigned, ad-hoc)
