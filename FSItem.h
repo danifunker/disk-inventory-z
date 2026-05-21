@@ -39,6 +39,7 @@ typedef enum
     //unsigned _hash;
     NSMutableArray<FSItem*> *_childs;
 	id _delegate;
+	BOOL _hardlinkDuplicate; //YES: this item is a second-or-later hardlink to an inode already counted in this scan, so its size should be charged as 0 to avoid double-counting
 }
 
 - (id) initWithPath: (NSString *) path;

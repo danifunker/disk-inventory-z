@@ -252,6 +252,7 @@ NSString *OldItem = @"OldItem";
 		{
 			[_rootItem release];
 			_rootItem = nil;
+			[_progressController close];
 			[_progressController release];
 			_progressController = nil;
 			LOG( @"readFromFile: path '%@' doesn't exits", folder );
@@ -278,18 +279,23 @@ NSString *OldItem = @"OldItem";
 		
 		uint64_t doneFileKindStatsTime = getTime();
 		LOG (@"file kind statistics time:  %.2f seconds", subtractTime(doneFileKindStatsTime, doneLoadingTime));
-		
+
+		// Remember total scan duration so we can show it in the window title.
+		_lastScanDurationSeconds = subtractTime(doneFileKindStatsTime, startTime);
+
 		//the modal session must be ended in the same NS_DURING section (if no exception occured)
+		[_progressController close];
 		[_progressController release];
 		_progressController = nil;
     }
     @catch(NSException *localException)
     {
         LOG( @"exception '%@' occured during directory traversal: %@", [localException name], [localException reason] );
-		
+
 		// according to the docu, we should not end a modal session explicitly in the case of an exception
         // but this seems to be no longer true at least on Mac OS 10.13 (even not when using NS_DURING, NS_HANDLER, ..)
 		//[_progressController closeNoModalEnd];
+		[_progressController close];
 		[_progressController release];
 		_progressController = nil;
 		
@@ -596,7 +602,8 @@ NSString *OldItem = @"OldItem";
 		[refreshedItem setDelegate: self];
 		if ( [refreshedItem isFolder] )
 			 [refreshedItem loadChildren];
-		
+
+		[_progressController close];
 		[_progressController release];
 		_progressController = nil;
 	NS_HANDLER
@@ -807,12 +814,28 @@ NSString *OldItem = @"OldItem";
 - (NSString *)displayName
 {
     NSString *displayName = [[self zoomedItem] displayName];
-	
+
 	FileSizeFormatter *sizeFormatter = [[[FileSizeFormatter alloc] init] autorelease];
 
     displayName = [displayName stringByAppendingFormat: @" (%@)", [sizeFormatter stringForObjectValue: [[self zoomedItem] size]]];
 
+    // Append the duration of the most recent scan so it's persistently
+    // visible in the window's title bar after the loading panel closes.
+    if ( _lastScanDurationSeconds > 0 )
+    {
+        unsigned long total = (unsigned long) _lastScanDurationSeconds;
+        unsigned mm = (unsigned)(total / 60);
+        unsigned ss = (unsigned)(total % 60);
+        displayName = [displayName stringByAppendingFormat:
+            @" — scanned in %02u:%02u", mm, ss];
+    }
+
     return displayName;
+}
+
+- (double) lastScanDurationSeconds
+{
+    return _lastScanDurationSeconds;
 }
 
 - (NSDictionary*) kindStatistics

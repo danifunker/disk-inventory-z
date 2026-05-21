@@ -60,7 +60,14 @@
 	//these variables are used during the initial directory scan
 	LoadingPanelController *_progressController;
 	NSMutableArray *_directoryStack;
+
+	//how long the last scan took, in seconds. Shown in the window title
+	//so the user knows what the cost was after the fact.
+	double _lastScanDurationSeconds;
 }
+
+// Total scan duration of the last completed scan, in seconds.
+- (double) lastScanDurationSeconds;
 
 - (BOOL) showPhysicalFileSize;
 - (void) setShowPhysicalFileSize: (BOOL) show;

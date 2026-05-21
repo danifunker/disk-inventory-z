@@ -26,6 +26,11 @@
     IBOutlet NSPanel* _loadingPanel;
     IBOutlet NSProgressIndicator* _loadingProgressIndicator;
     IBOutlet NSButton* _loadingCancelButton;
+
+    // Programmatically-injected "Elapsed · files · rate" status line.
+    NSTextField *_statusField;
+    NSTimer     *_statusTimer;
+    uint64_t     _scanStartTime;
 }
 
 - (id) init; //will start modal session immediately

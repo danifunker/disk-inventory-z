@@ -22,6 +22,15 @@
 //for debugging and logging purposes
 unsigned g_fileCount;
 unsigned g_folderCount;
+
+// Per-scan set of NSURLFileResourceIdentifierKey values for files we've
+// already charged the full size of. When a subsequent hardlink to the same
+// inode appears, its FSItem gets _hardlinkDuplicate=YES and counts as zero
+// bytes. Matches `du -sh` semantics: total disk used = sum of unique inodes,
+// not sum of all directory entries. Cleared at the start of every root scan.
+// Single-threaded by construction (scanning is not concurrent today); if
+// concurrency is ever added, this needs to move to per-document state.
+static NSMutableSet *g_seenHardlinkInodes = nil;
 static unsigned g_packageCheckCount = 0;
 
 //global cache for kind names
@@ -447,8 +456,11 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 			}
 			else
 			{
-				//File
-				if ( usePhysicalSize )
+				//File. Second-or-later hardlink to an already-counted inode
+				//contributes zero (du -sh semantics).
+				if ( _hardlinkDuplicate )
+					size = 0;
+				else if ( usePhysicalSize )
 					size = [[[self fileURL] cachedPhysicalSize] unsignedLongLongValue];
 				else
 					size = [[[self fileURL] cachedLogicalSize] unsignedLongLongValue];
@@ -964,7 +976,19 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
                                         NSURLTotalFileAllocatedSizeKey,
                                         NSURLFileSizeKey,
                                         NSURLTotalFileAllocatedSizeKey,
+                                        NSURLLinkCountKey,                 // for hardlink dedup
+                                        NSURLFileResourceIdentifierKey,    // unique-per-volume inode id
                                         nil];
+
+    // Reset the seen-inode set at the start of every root scan so a fresh
+    // scan never inherits stale entries from a previous one.
+    if ( [self isRoot] )
+    {
+        if ( g_seenHardlinkInodes == nil )
+            g_seenHardlinkInodes = [[NSMutableSet alloc] init];
+        else
+            [g_seenHardlinkInodes removeAllObjects];
+    }
 
     // stack of directories (Path to directory currently beeing canned)
     NSMutableArray<FSItem*> *itemStack = [[NSMutableArray alloc] init];
@@ -996,7 +1020,19 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
         // on large scans — NSURL/getResourceValue produces many transient
         // autoreleased objects per item and without this pool they all sit
         // on the outer pool until the entire enumeration finishes.
-        //
+
+        // Always exclude /Volumes from any scan. On modern macOS it cross-
+        // mounts back to the system volume root (/Volumes/Macintosh HD) and
+        // also holds every external / network / disk-image mount, so walking
+        // it from a scan of / either double-counts the boot volume or fans
+        // out across unrelated disks. Skipping early avoids the cache fill
+        // and the FSItem allocation entirely.
+        if ( [[currentUrl path] isEqualToString: @"/Volumes"] )
+        {
+            [dirEnum skipDescendants];
+            continue;
+        }
+
         // cache all needed properties (NSURL purges all values upon next pass through the run loop)
         [currentUrl cacheResourcesInArray: urlProperties];
         
@@ -1073,7 +1109,29 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
                                                    parent: [itemStack lastObject]
                                             setKindString: setKindStrings
                                           usePhysicalSize: usePhysicalSize];
-        
+
+        // Hardlink dedup. Only test files (folders can't be hardlinked on
+        // macOS) and only when link count > 1 (the vast majority of files
+        // are single-link, so this avoids inflating the seen-set with junk).
+        if ( ![currentUrl isDirectory] )
+        {
+            NSNumber *linkCount = [currentUrl getCachedNumberValue: NSURLLinkCountKey];
+            if ( linkCount != nil && [linkCount intValue] > 1 )
+            {
+                id fileID = nil;
+                [currentUrl getCachedResourceValue: &fileID
+                                            forKey: NSURLFileResourceIdentifierKey
+                                             error: nil];
+                if ( fileID != nil )
+                {
+                    if ( [g_seenHardlinkInodes containsObject: fileID] )
+                        currentItem->_hardlinkDuplicate = YES;
+                    else
+                        [g_seenHardlinkInodes addObject: fileID];
+                }
+            }
+        }
+
         if ( [currentUrl isFirmlink] )
         {
             // tests show that firmlinks are not followed by NSDirectoryEnumerator, but
