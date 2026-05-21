@@ -48,8 +48,17 @@ static NSUInteger DIXCountSnapshotsAtPath(NSString *volumePath)
         return 0;
     }
 
+    // readDataToEndOfFile blocks the calling thread on read(2) until the
+    // child closes its stdout — it does NOT pump the runloop. By the time
+    // EOF arrives, tmutil is about to exit. Explicitly do NOT call
+    // -[NSTask waitUntilExit] here: on the main thread it pumps the runloop
+    // via _CFRunLoopRunSpecificWithOptions, which can deliver queued
+    // notifications and reenter -rebuildVolumesArray mid-flight, corrupting
+    // _volumes / _progressIndicators and crashing the next draw cycle in
+    // tableView:willDisplayCell:forTableColumn:row:.
+    // NSTask reaps the child via its internal SIGCHLD handler when the
+    // task object is released; no zombie.
     NSData *data = [out readDataToEndOfFile];
-    [task waitUntilExit];
 
     NSString *output = [[[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding] autorelease];
     [out release];

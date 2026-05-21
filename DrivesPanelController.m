@@ -338,8 +338,26 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 //fill array "_volumes" with mounted volumes and their images
 - (void) rebuildVolumesArray
 {
+    // Re-entry guard. -[NSTask waitUntilExit] (and other paths that pump
+    // CFRunLoopRunSpecific from inside this method) can deliver another
+    // NSWorkspace volume-mount notification synchronously, which would
+    // re-enter this method while we are mid-mutation on _volumes and
+    // _progressIndicators. The result is a torn state where the table
+    // view's row count and _progressIndicators count disagree, and the
+    // next draw cycle crashes with NSRangeException inside
+    // -tableView:willDisplayCell:forTableColumn:row:.
+    // If a reentrant call lands, queue a follow-up rebuild on the main
+    // runloop and bail so the outer call can complete cleanly.
+    static BOOL inRebuild = NO;
+    if ( inRebuild )
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self rebuildVolumesArray]; });
+        return;
+    }
+    inRebuild = YES;
+
     _maxVolumeSize = 0;
-    
+
     NSArray *volProps = [NSArray arrayWithObjects:NSURLLocalizedNameKey
                                                 , NSURLVolumeTotalCapacityKey
                                                 , NSURLVolumeAvailableCapacityKey
@@ -388,8 +406,10 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
     NS_ENDHANDLER
     
     [self rebuildProgressIndicatorArray];
-    
+
     [self didChangeValueForKey: @"volumes"];
+
+    inRebuild = NO;
 }
 
 //keeps array of progress indicators (for graphical usage display) in sync with volumes array
