@@ -18,6 +18,7 @@
 #import "MainWindowController.h"
 #import "DIXLegacyOmniHelpers.h"
 #import "DIXAboutButton.h"
+#import "FSItem.h"
 #import "InfoPanelController.h"
 #import "Timing.h"
 #import <TreeMapView/TreeMapView.h>
@@ -116,6 +117,79 @@
 
 	// Top-right ⓘ button on the main document window for the About panel.
 	DIXInstallAboutButtonInWindow( [self window] );
+
+	// Status bar at the bottom of the window with persistent scan totals.
+	[self installStatusBar];
+	[[NSNotificationCenter defaultCenter] addObserver: self
+											 selector: @selector(updateStatusBar)
+												 name: FSItemsChangedNotification
+											   object: [self document]];
+	[self updateStatusBar];
+}
+
+#pragma mark ----------------- bottom status bar -----------------
+
+// Inject a small text field along the bottom of the window's content view.
+// Shows the original scan root, total size and file count -- stable through
+// zooming, unlike the window title (which reflects the zoomed item).
+- (void) installStatusBar
+{
+	NSView *content = [[self window] contentView];
+	const CGFloat barHeight = 22;
+
+	// Grow window upward so existing controls don't have to move down.
+	NSRect wf = [[self window] frame];
+	wf.origin.y    -= barHeight;
+	wf.size.height += barHeight;
+	[[self window] setFrame: wf display: NO];
+
+	// Shift existing subviews up by barHeight so the bottom strip is free.
+	for ( NSView *v in [content subviews] )
+	{
+		NSRect r = [v frame];
+		r.origin.y += barHeight;
+		[v setFrame: r];
+	}
+
+	NSTextField *f = [[NSTextField alloc] initWithFrame:
+		NSMakeRect( 12, 3, [content bounds].size.width - 24, barHeight - 6 )];
+	[f setEditable: NO];
+	[f setSelectable: YES];
+	[f setBezeled: NO];
+	[f setBordered: NO];
+	[f setDrawsBackground: NO];
+	[f setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+	[f setTextColor: [NSColor secondaryLabelColor]];
+	[f setLineBreakMode: NSLineBreakByTruncatingMiddle];
+	[f setStringValue: @""];
+	[f setAutoresizingMask: NSViewWidthSizable | NSViewMaxYMargin];
+	[content addSubview: f];
+	_statusBar = f;
+	[f release];
+}
+
+- (void) updateStatusBar
+{
+	if ( _statusBar == nil ) return;
+	FileSystemDoc *doc = [self document];
+	FSItem *root = [doc rootItem];
+	if ( root == nil )
+	{
+		[_statusBar setStringValue: @""];
+		return;
+	}
+
+	FileSizeFormatter *sizeFmt = [[[FileSizeFormatter alloc] init] autorelease];
+	NSString *sizeStr = [sizeFmt stringForObjectValue: [root size]];
+
+	NSNumberFormatter *numFmt = [[[NSNumberFormatter alloc] init] autorelease];
+	[numFmt setNumberStyle: NSNumberFormatterDecimalStyle];
+	[numFmt setUsesGroupingSeparator: YES];
+	[numFmt setGroupingSeparator: @","];
+	NSString *filesStr = [numFmt stringFromNumber: @((unsigned long) g_fileCount + (unsigned long) g_folderCount)];
+
+	[_statusBar setStringValue: [NSString stringWithFormat: @"%@   ·   %@   ·   %@ files",
+		[root path], sizeStr, filesStr]];
 }
 
 - (NSDrawer*) kindStatisticsDrawer

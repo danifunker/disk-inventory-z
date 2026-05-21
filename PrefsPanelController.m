@@ -94,7 +94,12 @@
 											backing: NSBackingStoreBuffered
 											  defer: YES];
 	[_window setReleasedWhenClosed: NO];
-	[_window setFrameAutosaveName: @"PreferencesWindow"];
+	// Deliberately NOT setting a frame autosave name: each pane has a
+	// different content size, and a stale autosaved frame from one pane
+	// would override the -setContentSize: call when a different pane is
+	// selected, clipping its controls. Also clear any frame autosaved by
+	// an earlier build that did set the name.
+	[NSWindow removeFrameUsingName: @"PreferencesWindow"];
 
 	NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier: @"PreferencesToolbar"] autorelease];
 	[toolbar setDelegate: self];

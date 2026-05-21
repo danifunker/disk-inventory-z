@@ -75,8 +75,47 @@
 	
 	//set small font for all for all columns if needed
 	[self setOutlineViewFont];
-     
+
     [self reloadData];
+
+    // Install a right-click context menu on the outline view with the most
+    // useful actions. AppKit handles "click-row-first then show menu" via
+    // -menuForEvent:; we set up a menu delegate that selects the clicked
+    // row before the menu pops up.
+    NSMenu *menu = [[[NSMenu alloc] initWithTitle: @""] autorelease];
+    NSMenuItem *refreshItem = [menu addItemWithTitle: NSLocalizedString(@"Refresh", @"")
+                                              action: @selector(refresh:)
+                                       keyEquivalent: @""];
+    [refreshItem setTarget: nil]; // first responder chain
+    NSMenuItem *refreshAllItem = [menu addItemWithTitle: NSLocalizedString(@"Refresh All", @"")
+                                                 action: @selector(refreshAll:)
+                                          keyEquivalent: @""];
+    [refreshAllItem setTarget: nil];
+    [menu addItem: [NSMenuItem separatorItem]];
+    NSMenuItem *revealItem = [menu addItemWithTitle: NSLocalizedString(@"Reveal in Finder", @"")
+                                             action: @selector(showInFinder:)
+                                      keyEquivalent: @""];
+    [revealItem setTarget: nil];
+    NSMenuItem *trashItem = [menu addItemWithTitle: NSLocalizedString(@"Move To Trash", @"")
+                                            action: @selector(moveToTrash:)
+                                     keyEquivalent: @""];
+    [trashItem setTarget: nil];
+    [menu setDelegate: self];
+    [_outlineView setMenu: menu];
+}
+
+// NSMenuDelegate: select the row under the right-click before the menu shows,
+// so Refresh / Reveal / Trash operate on what the user actually clicked.
+- (void) menuNeedsUpdate: (NSMenu*) menu
+{
+    NSEvent *event = [NSApp currentEvent];
+    NSPoint pt = [_outlineView convertPoint: [event locationInWindow] fromView: nil];
+    NSInteger row = [_outlineView rowAtPoint: pt];
+    if ( row != -1 )
+    {
+        [_outlineView selectRowIndexes: [NSIndexSet indexSetWithIndex: row]
+                  byExtendingSelection: NO];
+    }
 }
 
 - (void) dealloc

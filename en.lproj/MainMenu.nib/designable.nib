@@ -17,7 +17,7 @@
                 <menuItem title="NewApplication" id="56">
                     <menu key="submenu" title="NewApplication" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="About Disk Inventory X" id="58">
+                            <menuItem title="About Disk Inventory Y" id="58">
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
                                 </connections>
@@ -58,7 +58,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Quit Disk Inventory X" keyEquivalent="q" id="136">
+                            <menuItem title="Quit Disk Inventory Y" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="139"/>
                                 </connections>
@@ -156,50 +156,10 @@ CA
                                     <action selector="paste:" target="-1" id="176"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Delete" id="164">
-                                <connections>
-                                    <action selector="delete:" target="-1" id="201"/>
-                                </connections>
-                            </menuItem>
                             <menuItem title="Select All" keyEquivalent="a" id="172">
                                 <connections>
                                     <action selector="selectAll:" target="-1" id="179"/>
                                 </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="174">
-                                <modifierMask key="keyEquivalentModifierMask" command="YES"/>
-                            </menuItem>
-                            <menuItem title="Find" id="168">
-                                <menu key="submenu" title="Find" id="159">
-                                    <items>
-                                        <menuItem title="Find..." keyEquivalent="f" id="154"/>
-                                        <menuItem title="Find Next" keyEquivalent="g" id="167"/>
-                                        <menuItem title="Find Previous" keyEquivalent="d" id="162"/>
-                                        <menuItem title="Use Selection for Find" keyEquivalent="e" id="161"/>
-                                        <menuItem title="Scroll to Selection" keyEquivalent="j" id="155"/>
-                                    </items>
-                                </menu>
-                            </menuItem>
-                            <menuItem title="Spelling" id="184">
-                                <menu key="submenu" title="Spelling" id="185">
-                                    <items>
-                                        <menuItem title="Spelling..." keyEquivalent=":" id="187">
-                                            <connections>
-                                                <action selector="showGuessPanel:" target="-1" id="188"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Check Spelling" keyEquivalent=";" id="189">
-                                            <connections>
-                                                <action selector="checkSpelling:" target="-1" id="190"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Check Spelling as You Type" id="191">
-                                            <connections>
-                                                <action selector="toggleContinuousSpellChecking:" target="-1" id="192"/>
-                                            </connections>
-                                        </menuItem>
-                                    </items>
-                                </menu>
                             </menuItem>
                         </items>
                     </menu>
@@ -327,12 +287,12 @@ CA
                 <menuItem title="Help" id="103">
                     <menu key="submenu" title="Help" id="106">
                         <items>
-                            <menuItem title="Disk Inventory X Help" keyEquivalent="?" id="316">
+                            <menuItem title="Disk Inventory Y Help" keyEquivalent="?" id="316">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="317"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Visit Disk Inventory X Website" id="111">
+                            <menuItem title="Visit Disk Inventory Y Website" id="111">
                                 <connections>
                                     <action selector="gotoHomepage:" target="208" id="315"/>
                                 </connections>

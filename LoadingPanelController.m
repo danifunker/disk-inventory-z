@@ -41,10 +41,20 @@
 	_scanStartTime = getTime();
 	[self startStatusTimer];
 
+	// Show the panel as a non-modal floating window. We used to call
+	// -beginModalSessionForWindow: which kept the panel app-modal --
+	// that blocked NSApp.terminate: (Cmd-Q) and -orderFrontStandardAboutPanel:
+	// from reaching their targets, so the user had no way to quit or to
+	// open the About panel while a long scan was running. With a normal
+	// floating window, the scan still blocks the main thread but the
+	// periodic -runEventLoop call pumps the runloop and standard App-menu
+	// commands work as expected. The Cancel button still works because
+	// the scan polls -cancelPressed inside the same runloop pump.
+	[_loadingPanel setLevel: NSFloatingWindowLevel];
+	[_loadingPanel makeKeyAndOrderFront: nil];
 	[_loadingPanel display];
 
-	//start modal session for the progress window
-	_loadingPanelModalSession = [[NSApplication sharedApplication] beginModalSessionForWindow: _loadingPanel];
+	_loadingPanelModalSession = 0;
 	_lastEventLoopRun = 0;
 
 	_cancelPressed = NO;

@@ -14,6 +14,9 @@
 	IBOutlet NSOutlineView *_filesOutlineView;
 	IBOutlet TreeMapView *_treeMapView;
 	IBOutlet NSMenu *_openWithSubMenu;
+
+	// Programmatically-injected status bar at the bottom of the window.
+	NSTextField *_statusBar;
 }
 
 + (FileSystemDoc*) documentForView: (NSView*) view;
