@@ -16,7 +16,6 @@
 //
 
 #import "MainWindowController.h"
-#import "DIXLegacyOmniHelpers.h"
 #import "DIXAboutButton.h"
 #import "FSItem.h"
 #import "InfoPanelController.h"
@@ -656,7 +655,7 @@
 	
     if ( selectedItem != nil
 		 && ![selectedItem isSpecialItem]
-		 && [NSString isEmptyString: returnType] //we don't accept any input, so returnType must be emty
+		 && [returnType length] == 0 //we don't accept any input, so returnType must be emty
 		 && [selectedItem exists]
 		 && [selectedItem supportsPasteboardType: sendType] )
 	{

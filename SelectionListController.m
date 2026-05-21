@@ -15,7 +15,6 @@
 //
 
 #import "SelectionListController.h"
-#import "DIXLegacyOmniHelpers.h"
 #import "FileSystemDoc.h"
 #import "FileKindsPopupController.h"
 #import "Timing.h"
@@ -70,7 +69,7 @@
 
 - (NSArray*) arrangeObjects: (NSArray*) objects
 {
-	if ( ![NSString isEmptyString: [self searchString]] )
+	if ( [[self searchString] length] != 0 )
 		objects = [self filterItems: objects];
 
 	return [super arrangeObjects: objects];
@@ -154,28 +153,28 @@
 - (IBAction) searchInAll: (id) sender
 {
 	_indexToSearch = FSItemIndexAll;
-	if ( ![NSString isEmptyString: [self searchString]] )
+	if ( [[self searchString] length] != 0 )
 		[self rearrangeObjects];
 }
 
 - (IBAction) searchInNames: (id) sender
 {
 	_indexToSearch = FSItemIndexName;
-	if ( ![NSString isEmptyString: [self searchString]] )
+	if ( [[self searchString] length] != 0 )
 		[self rearrangeObjects];
 }
 
 - (IBAction) searchInKindNames: (id) sender
 {
 	_indexToSearch = FSItemIndexKind;
-	if ( ![NSString isEmptyString: [self searchString]] )
+	if ( [[self searchString] length] != 0 )
 		[self rearrangeObjects];
 }
 
 - (IBAction) searchInPaths: (id) sender
 {
 	_indexToSearch = FSItemIndexPath;
-	if ( ![NSString isEmptyString: [self searchString]] )
+	if ( [[self searchString] length] != 0 )
 		[self rearrangeObjects];
 }
 
