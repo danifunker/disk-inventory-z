@@ -4,6 +4,7 @@
 //
 
 #import "DIXTableView+Sizing.h"
+#import "ImageAndTextCell.h"
 
 // NSTableHeaderView's default rendering uses a translucent material so the
 // window's vibrancy bleeds through. In the main outline view that produces
@@ -61,14 +62,81 @@
     }
     return self;
 }
-// Reinforce the settings on every draw -- the binding machinery occasionally
-// flips them back between row updates.
+// Draw the string ourselves so truncation is GUARANTEED, regardless of how
+// the underlying value was set on the cell. NSTextFieldCell's own drawing
+// uses NSStringDrawing internally but its respect for lineBreakMode varies
+// depending on whether the bound value is a plain NSString (honoured) or an
+// NSAttributedString lacking a paragraph style (ignored). By forming our
+// own attributed string with NSParagraphStyle.lineBreakMode = .byTruncating
+// Tail and drawing it with NSStringDrawingTruncatesLastVisibleLine, we get
+// the ellipsis irrespective of what the binding feeds in.
 - (void) drawInteriorWithFrame: (NSRect) cellFrame inView: (NSView*) controlView
 {
     [self setLineBreakMode: NSLineBreakByTruncatingTail];
     [self setUsesSingleLineMode: YES];
     [self setWraps: NO];
-    [super drawInteriorWithFrame: cellFrame inView: controlView];
+
+    NSAttributedString *attr = [self attributedStringValue];
+    if ( [attr length] == 0 )
+    {
+        [super drawInteriorWithFrame: cellFrame inView: controlView];
+        return;
+    }
+
+    NSRect titleRect = [self titleRectForBounds: cellFrame];
+    // NSTextFieldCell's title rect already includes the standard insets but
+    // some cells return the bare bounds; clamp to cellFrame just in case.
+    if ( NSIsEmptyRect(titleRect) )
+        titleRect = NSInsetRect(cellFrame, 2, 0);
+
+    // Vertical centering for the single line: measure once and place it.
+    CGFloat lineHeight = [attr size].height;
+    CGFloat yOffset = floor((NSHeight(titleRect) - lineHeight) / 2);
+    titleRect.origin.y += yOffset;
+    titleRect.size.height = lineHeight;
+
+    [attr drawWithRect: titleRect
+               options: NSStringDrawingUsesLineFragmentOrigin
+                      | NSStringDrawingTruncatesLastVisibleLine];
+}
+
+// Cocoa Bindings can feed an attributed string into the cell (via
+// -setObjectValue: with an NSAttributedString, or via the value transformer).
+// When that happens, NSAttributedString -drawWithRect:options: -- which our
+// -drawInteriorWithFrame: below uses -- only respects the attributes embedded
+// in the string, with no fallback to the cell's font / textColor. We inject:
+//   * a paragraph style with NSLineBreakByTruncatingTail (so the ellipsis
+//     actually renders), and
+//   * a foreground colour anywhere the string is missing one (so that an
+//     appearance-aware system colour like controlTextColor is honoured;
+//     without this, dark-mode windows show the volume-name transformer's
+//     attributed strings in black because the transformer never sets a
+//     colour).
+- (NSAttributedString*) attributedStringValue
+{
+    NSAttributedString *base = [super attributedStringValue];
+    if ( [base length] == 0 )
+        return base;
+
+    NSMutableParagraphStyle *style = [[[NSMutableParagraphStyle alloc] init] autorelease];
+    [style setLineBreakMode: NSLineBreakByTruncatingTail];
+
+    NSMutableAttributedString *result = [[base mutableCopy] autorelease];
+    NSRange fullRange = NSMakeRange(0, [result length]);
+    [result addAttribute: NSParagraphStyleAttributeName value: style range: fullRange];
+
+    NSColor *fallbackColor = [self textColor] ?: [NSColor controlTextColor];
+    [result enumerateAttribute: NSForegroundColorAttributeName
+                       inRange: fullRange
+                       options: 0
+                    usingBlock: ^(id existing, NSRange range, BOOL *stop)
+    {
+        if ( existing == nil )
+            [result addAttribute: NSForegroundColorAttributeName
+                           value: fallbackColor
+                           range: range];
+    }];
+    return result;
 }
 @end
 
@@ -99,13 +167,16 @@
         if ( [col minWidth] < headerNatural )
             [col setMinWidth: headerNatural];
 
-        if ( [numericIdentifiers containsObject: [col identifier]] )
+        BOOL isNumeric  = [numericIdentifiers containsObject: [col identifier]];
+        BOOL isFlexible = ( col == flexibleColumn );
+
+        if ( isNumeric )
         {
-            // 2) Numeric (size / count) columns: clamp width to a tight range
-            //    around the "1234.5 GB" natural width. min == max would forbid
-            //    user resize, so leave a small band; max == natural+60 means
-            //    AppKit's column autoresize never silently steals space here
-            //    no matter how wide the table grows.
+            // Numeric (size / count) columns: clamp width to a tight range
+            // around the "1234.5 GB" natural width. min == max would forbid
+            // user resize, so leave a small band; max == natural+60 means
+            // AppKit's column autoresize never silently steals space here
+            // no matter how wide the table grows.
             CGFloat natural = MAX([col minWidth], numericContentWidth);
             CGFloat width   = MAX(natural, [col width]);  // honour wider user-saved widths
             [col setWidth: width];
@@ -113,27 +184,27 @@
             [col setMaxWidth: natural + 60];
             [col setResizingMask: NSTableColumnUserResizingMask];
         }
-        else if ( col == flexibleColumn )
+        else
         {
-            // 3) Name / outline / kind column: truncate with ellipsis and
-            //    absorb extra width. If the column's data cell is exactly
-            //    NSTextFieldCell (the IB default), swap it for our subclass
-            //    that bakes in tail-truncation -- relying on lineBreakMode
-            //    being set on the existing cell isn't reliable when bindings
-            //    are in play (e.g. the file-kinds drawer's Kind column).
+            // Any non-numeric text column: tail-truncate with an ellipsis. If
+            // the column's data cell is some kind of NSTextFieldCell that
+            // ISN'T one of the app's custom cells whose -drawWithFrame:
+            // behaviour we must preserve (ImageAndTextCell draws name+icon
+            // side-by-side on the outline view's first column and on the
+            // selection list's Name column; replacing it would lose both),
+            // swap it for DIXTruncatingTextFieldCell which draws the title
+            // manually with NSStringDrawingTruncatesLastVisibleLine. For
+            // custom cells we set lineBreakMode/usesSingleLineMode instead.
             //
-            //    Custom data cells (ImageAndTextCell on the outline view's
-            //    first column, and on the SelectionListTableController's
-            //    displayName column where it draws name+icon side-by-side)
-            //    must be preserved -- swapping them would lose the icon and
-            //    the cell's custom -drawWithFrame: behaviour. For those we
-            //    just nudge lineBreakMode/singleLineMode on the existing
-            //    cell; truncation works there because those columns aren't
-            //    bindings-managed.
+            // The flex column additionally gets the autoresizing mask so it
+            // absorbs extra width from the enclosing scroll view.
             id dataCell = [col dataCell];
-            BOOL isPlainTextCell = ( [dataCell class] == [NSTextFieldCell class] );
+            BOOL isReplaceableTextCell =
+                [dataCell isKindOfClass: [NSTextFieldCell class]]
+                && ![dataCell isKindOfClass: [ImageAndTextCell class]]
+                && ![dataCell isKindOfClass: [DIXTruncatingTextFieldCell class]];
 
-            if ( isPlainTextCell )
+            if ( isReplaceableTextCell )
             {
                 DIXTruncatingTextFieldCell *truncCell =
                     [[[DIXTruncatingTextFieldCell alloc] initTextCell: @""] autorelease];
@@ -151,7 +222,9 @@
                 if ( [dataCell respondsToSelector: @selector(setUsesSingleLineMode:)] )
                     [dataCell setUsesSingleLineMode: YES];
             }
-            [col setResizingMask: NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask];
+
+            if ( isFlexible )
+                [col setResizingMask: NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask];
         }
     }
 

@@ -77,10 +77,11 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 	[_kindsTableArrayController setSortDescriptors: initialSortDescriptors];
 
 	//columns fill the drawer width; numeric columns fixed-width, kind name flexible.
-	// "kind" is the flexible column. The first table column ("color") is just
-	// a tiny swatch, so we don't want it absorbing extra width.
+	// "kindName" is the flexible column (the nib uses "kindName" as the
+	// column identifier, not "kind"). The first table column ("color") is
+	// just a tiny swatch, so we don't want it absorbing extra width.
 	[_tableView dixConfigureColumnsWithNumericIdentifiers: @[ @"size", @"fileCount" ]
-	                                   flexibleIdentifier: @"kind"];
+	                                   flexibleIdentifier: @"kindName"];
 
 	// Right-click menu on the kinds table: a single "Show Files in Selection
 	// List" item that reuses our existing IBAction.

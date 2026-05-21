@@ -80,8 +80,12 @@
 	[self setTableViewFont];
 
 	//columns fill the drawer width; size column fixed, displayName flexible.
+	// Path (identifier "displayPath" in the nib) is the flex column so it
+	// stretches toward the window edge. Name stays a fixed-ish width; the
+	// helper still tail-truncates it so long names get an ellipsis just
+	// like Path. Size is clamped.
 	[_tableView dixConfigureColumnsWithNumericIdentifiers: @[ @"size" ]
-	                                   flexibleIdentifier: @"displayName"];
+	                                   flexibleIdentifier: @"displayPath"];
 }
 
 #pragma mark --------NSTableView delegate-----------------
