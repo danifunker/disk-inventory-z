@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19529" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19529"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24765"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -10,7 +10,7 @@
             <connections>
                 <outlet property="_filesOutlineView" destination="65" id="124"/>
                 <outlet property="_kindsDrawer" destination="21" id="102"/>
-                <outlet property="_openWithSubMenu" destination="uNZ-XD-ZCi" id="9fn-Gu-sOD"/>
+                <outlet property="_openWithSubMenu" destination="9KX-oS-W0b" id="Z24-Or-mWK"/>
                 <outlet property="_selectionListDrawer" destination="137" id="149"/>
                 <outlet property="_splitter" destination="95" id="116"/>
                 <outlet property="_treeMapView" destination="30" id="125"/>
@@ -28,31 +28,32 @@
                 <outlet property="parentWindow" destination="22" id="25"/>
             </connections>
         </drawer>
-        <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="MainWindow" animationBehavior="default" id="22" userLabel="Parent Window">
+        <window title="Ventana" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="MainWindow" animationBehavior="default" id="22" userLabel="Parent Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="240" y="289" width="572" height="521"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1175"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1512" height="949"/>
+            <value key="minSize" type="size" width="213" height="107"/>
             <view key="contentView" id="23">
                 <rect key="frame" x="0.0" y="0.0" width="572" height="521"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="33">
+                    <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="33">
                         <rect key="frame" x="17" y="42" width="538" height="17"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="nom du fichier" id="340">
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="file name" id="340">
                             <font key="font" metaFont="system"/>
-                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="45">
+                    <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="45">
                         <rect key="frame" x="17" y="20" width="538" height="14"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="taille du fichier" id="341">
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="file size" id="341">
                             <font key="font" metaFont="smallSystem"/>
-                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
                     <splitView fixedFrame="YES" vertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="95" customClass="OASplitView">
@@ -62,19 +63,19 @@
                             <scrollView fixedFrame="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="63">
                                 <rect key="frame" x="0.0" y="0.0" width="261" height="436"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
-                                <clipView key="contentView" id="8nY-7J-7MB">
-                                    <rect key="frame" x="1" y="1" width="244" height="419"/>
+                                <clipView key="contentView" id="kVR-Nt-2Uc">
+                                    <rect key="frame" x="1" y="1" width="259" height="434"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="firstColumnOnly" multipleSelection="NO" autosaveName="FilesView" headerView="354" indentationPerLevel="16" autoresizesOutlineColumn="YES" outlineTableColumn="64" id="65" customClass="DIXOutlineView">
-                                            <rect key="frame" x="0.0" y="0.0" width="244" height="394"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="259" height="409"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
-                                                <tableColumn identifier="displayName" editable="NO" width="172" minWidth="16" maxWidth="1000" id="64">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Nom">
+                                                <tableColumn identifier="displayName" editable="NO" width="187" minWidth="16" maxWidth="1000" id="64">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Nombre">
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                                     </tableHeaderCell>
@@ -85,8 +86,8 @@
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                 </tableColumn>
-                                                <tableColumn identifier="size" editable="NO" width="57.19775390625" minWidth="29.5380859375" maxWidth="1000" id="62">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Taille">
+                                                <tableColumn identifier="size" editable="NO" width="57" minWidth="29.538000106811523" maxWidth="1000" id="62">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Tamaño">
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                                     </tableHeaderCell>
@@ -105,16 +106,16 @@
                                         </outlineView>
                                     </subviews>
                                 </clipView>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="353">
-                                    <rect key="frame" x="1" y="420" width="244" height="15"/>
+                                <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="353">
+                                    <rect key="frame" x="1" y="418" width="259" height="17"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="355">
-                                    <rect key="frame" x="245" y="26" width="15" height="394"/>
+                                <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="355">
+                                    <rect key="frame" x="243" y="26" width="17" height="409"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <tableHeaderView key="headerView" wantsLayer="YES" id="354">
-                                    <rect key="frame" x="0.0" y="0.0" width="244" height="25"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="259" height="25"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableHeaderView>
                                 <connections>
@@ -142,7 +143,7 @@
                 <outlet property="delegate" destination="-2" id="103"/>
                 <outlet property="initialFirstResponder" destination="30" id="126"/>
             </connections>
-            <point key="canvasLocation" x="436" y="72"/>
+            <point key="canvasLocation" x="133" y="147"/>
         </window>
         <customView id="24" userLabel="DrawContentView">
             <rect key="frame" x="0.0" y="0.0" width="305" height="318"/>
@@ -151,19 +152,19 @@
                 <scrollView fixedFrame="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="50">
                     <rect key="frame" x="8" y="0.0" width="297" height="318"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                    <clipView key="contentView" id="UdI-kc-Mjt">
-                        <rect key="frame" x="1" y="1" width="284" height="305"/>
+                    <clipView key="contentView" id="OyL-9D-U6X">
+                        <rect key="frame" x="1" y="1" width="295" height="316"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveName="KindStatisticView" headerView="357" id="48" customClass="DIXTableView">
-                                <rect key="frame" x="0.0" y="0.0" width="284" height="280"/>
+                                <rect key="frame" x="0.0" y="0.0" width="295" height="291"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
-                                    <tableColumn identifier="color" editable="NO" width="43" minWidth="20" maxWidth="1000" id="49">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Couleur">
+                                    <tableColumn identifier="color" editable="NO" width="35" minWidth="20" maxWidth="1000" id="49">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Color">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                         </tableHeaderCell>
@@ -171,7 +172,7 @@
                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                     </tableColumn>
                                     <tableColumn identifier="kindName" editable="NO" width="135" minWidth="51.370998382568359" maxWidth="1000" id="47">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Type">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Tipo">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                         </tableHeaderCell>
@@ -186,8 +187,8 @@
                                             <binding destination="296" name="value" keyPath="arrangedObjects.kindName" id="311"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn identifier="size" editable="NO" width="55.221000671386719" minWidth="25.221000671386719" maxWidth="1000" id="61">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Taille">
+                                    <tableColumn identifier="size" editable="NO" width="55" minWidth="25.221000671386719" maxWidth="1000" id="61">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Tamaño">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                         </tableHeaderCell>
@@ -206,8 +207,8 @@
                                             </binding>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn identifier="fileCount" editable="NO" width="27.99267578125" minWidth="27.99267578125" maxWidth="1000" id="60">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Fichiers">
+                                    <tableColumn identifier="fileCount" editable="NO" width="49" minWidth="27.992000579833984" maxWidth="1000" id="60">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="right" title="Archivos">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                         </tableHeaderCell>
@@ -230,21 +231,21 @@
                             </tableView>
                         </subviews>
                     </clipView>
-                    <scroller key="horizontalScroller" verticalHuggingPriority="750" controlSize="small" horizontal="YES" id="356">
-                        <rect key="frame" x="1" y="306" width="284" height="11"/>
+                    <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" controlSize="small" horizontal="YES" id="356">
+                        <rect key="frame" x="1" y="302" width="295" height="15"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <scroller key="verticalScroller" verticalHuggingPriority="750" controlSize="small" horizontal="NO" id="358">
-                        <rect key="frame" x="285" y="26" width="11" height="280"/>
+                    <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" controlSize="small" horizontal="NO" id="358">
+                        <rect key="frame" x="281" y="26" width="15" height="291"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                     <tableHeaderView key="headerView" id="357">
-                        <rect key="frame" x="0.0" y="0.0" width="284" height="25"/>
+                        <rect key="frame" x="0.0" y="0.0" width="295" height="25"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
             </subviews>
-            <point key="canvasLocation" x="-61" y="21"/>
+            <point key="canvasLocation" x="-412" y="404"/>
         </customView>
         <customObject id="31" userLabel="TreeMapViewController" customClass="TreeMapViewController">
             <connections>
@@ -267,39 +268,39 @@
                 <outlet property="_outlineView" destination="65" id="73"/>
             </connections>
         </customObject>
-        <menu title="Menu" id="80">
+        <menu title="Menú" id="80">
             <items>
-                <menuItem title="Ouvrir" id="U3H-eD-9Za">
+                <menuItem title="Abrir" id="adO-i5-870">
                     <connections>
-                        <action selector="openFile:" target="-2" id="LJz-0z-vvW"/>
+                        <action selector="openFile:" target="-2" id="q4c-Dc-hMD"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Ouvrir avec" id="EzB-5h-5FR">
-                    <menu key="submenu" title="Ouvrir avec" id="uNZ-XD-ZCi">
+                <menuItem title="Abrir con" id="CnL-5i-qa7">
+                    <menu key="submenu" title="Abrir con" id="9KX-oS-W0b">
                         <items>
-                            <menuItem title="default app" id="gWg-Um-aAM">
+                            <menuItem title="default app" id="oyk-UL-ZG2">
                                 <connections>
-                                    <action selector="openFile:" target="-1" id="UW0-UF-fjN"/>
+                                    <action selector="openFile:" target="-1" id="meX-qe-RLy"/>
                                 </connections>
                             </menuItem>
-                            <menuItem isSeparatorItem="YES" id="u6T-Uj-TcT">
+                            <menuItem isSeparatorItem="YES" id="QBd-Y8-k1k">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
                         </items>
                         <connections>
-                            <outlet property="delegate" destination="-2" id="GTS-0u-oGm"/>
+                            <outlet property="delegate" destination="-2" id="6Qd-B7-1nC"/>
                         </connections>
                     </menu>
                 </menuItem>
-                <menuItem isSeparatorItem="YES" id="NZL-cc-bwc">
+                <menuItem isSeparatorItem="YES" id="epb-gC-7bH">
                     <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                 </menuItem>
-                <menuItem title="Afficher dans le Finder" id="81">
+                <menuItem title="Mostrar en el Finder" id="81">
                     <connections>
                         <action selector="showInFinder:" target="-2" id="108"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Actualiser" toolTip="Synchroniser le fichier ou dossier avec le Finder" id="127">
+                <menuItem title="Volver a cargar" toolTip="Sincronizar archivos y carpetas con el Finder" id="127">
                     <connections>
                         <action selector="refresh:" target="-2" id="128"/>
                     </connections>
@@ -307,7 +308,7 @@
                 <menuItem isSeparatorItem="YES" id="99">
                     <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                 </menuItem>
-                <menuItem title="Déplacer dans la corbeille" id="119">
+                <menuItem title="Trasladar a la Papelera" id="119">
                     <connections>
                         <action selector="moveToTrash:" target="-2" id="120"/>
                     </connections>
@@ -315,18 +316,18 @@
                 <menuItem isSeparatorItem="YES" id="117">
                     <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                 </menuItem>
-                <menuItem title="Zoom entrant" id="82">
+                <menuItem title="Ampliar Vista" id="82">
                     <connections>
                         <action selector="zoomIn:" target="-2" id="106"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Zoom sortant" id="98">
+                <menuItem title="Reducir Vista" id="98">
                     <connections>
                         <action selector="zoomOut:" target="-2" id="107"/>
                     </connections>
                 </menuItem>
             </items>
-            <point key="canvasLocation" x="69" y="-211"/>
+            <point key="canvasLocation" x="-48" y="-79"/>
         </menu>
         <drawer preferredEdge="minY" trailingOffset="15" id="137" userLabel="SelectionListDrawer">
             <size key="contentSize" width="541" height="200"/>
@@ -345,10 +346,10 @@
                     <rect key="frame" x="330" y="146" width="16" height="16"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
                 </progressIndicator>
-                <searchField verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="312">
+                <searchField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="312">
                     <rect key="frame" x="349" y="143" width="107" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" alignment="left" placeholderString="Rechercher" bezelStyle="round" id="344">
+                    <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" alignment="left" placeholderString="búsqueda" bezelStyle="round" id="344">
                         <font key="font" metaFont="cellTitle"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -359,17 +360,17 @@
                         <outlet property="searchMenuTemplate" destination="321" id="326"/>
                     </connections>
                 </searchField>
-                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="205">
-                    <rect key="frame" x="8" y="146" width="157" height="14"/>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="205">
+                    <rect key="frame" x="8" y="146" width="135" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" controlSize="small" sendsActionOnEndEditing="YES" alignment="left" title="Afficher les fichiers du type:" id="343">
+                    <textFieldCell key="cell" controlSize="small" sendsActionOnEndEditing="YES" alignment="left" title="Mostrar todos los archivos de tipo:" id="343">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" imageHugsTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="147">
-                    <rect key="frame" x="167" y="141" width="163" height="22"/>
+                <popUpButton imageHugsTitle="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="147">
+                    <rect key="frame" x="145" y="141" width="185" height="22"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <popUpButtonCell key="cell" type="push" title="Item1" bezelStyle="rounded" controlSize="small" lineBreakMode="clipping" state="on" borderStyle="borderAndBezel" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" selectedItem="144" id="342">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -393,19 +394,19 @@
                 <scrollView fixedFrame="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="140">
                     <rect key="frame" x="0.0" y="0.0" width="456" height="137"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                    <clipView key="contentView" id="GkU-p4-AQh">
-                        <rect key="frame" x="1" y="1" width="443" height="124"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                    <clipView key="contentView" id="9hE-3p-nsx">
+                        <rect key="frame" x="1" y="1" width="454" height="135"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveName="SelectionList" headerView="360" id="142" customClass="DIXTableView">
-                                <rect key="frame" x="0.0" y="0.0" width="443" height="99"/>
+                                <rect key="frame" x="0.0" y="0.0" width="454" height="110"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
                                     <tableColumn identifier="displayName" editable="NO" width="168" minWidth="40" maxWidth="1000" id="141">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Nom">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Nombre">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                         </tableHeaderCell>
@@ -421,7 +422,7 @@
                                         </connections>
                                     </tableColumn>
                                     <tableColumn identifier="size" editable="NO" width="59" minWidth="10" maxWidth="1000" id="185">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Taille">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Tamaño">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                         </tableHeaderCell>
@@ -440,8 +441,8 @@
                                             </binding>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn identifier="displayPath" editable="NO" width="197.841796875" minWidth="31.095703125" maxWidth="1000" id="143">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Chemin">
+                                    <tableColumn identifier="displayPath" editable="NO" width="150" minWidth="31.094999313354492" maxWidth="1000" id="143">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Ruta">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
                                         </tableHeaderCell>
@@ -464,21 +465,21 @@
                             </tableView>
                         </subviews>
                     </clipView>
-                    <scroller key="horizontalScroller" verticalHuggingPriority="750" controlSize="small" horizontal="YES" id="359">
-                        <rect key="frame" x="1" y="125" width="443" height="11"/>
+                    <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" controlSize="small" horizontal="YES" id="359">
+                        <rect key="frame" x="1" y="121" width="454" height="15"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <scroller key="verticalScroller" verticalHuggingPriority="750" controlSize="small" horizontal="NO" id="361">
-                        <rect key="frame" x="444" y="26" width="11" height="99"/>
+                    <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" controlSize="small" horizontal="NO" id="361">
+                        <rect key="frame" x="440" y="26" width="15" height="110"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <tableHeaderView key="headerView" wantsLayer="YES" id="360">
-                        <rect key="frame" x="0.0" y="0.0" width="443" height="25"/>
+                    <tableHeaderView key="headerView" id="360">
+                        <rect key="frame" x="0.0" y="0.0" width="454" height="25"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
             </subviews>
-            <point key="canvasLocation" x="462" y="487"/>
+            <point key="canvasLocation" x="92" y="834"/>
         </customView>
         <arrayController editable="NO" clearsFilterPredicateOnInsertion="NO" id="156" userLabel="FileKindsPopupController" customClass="FileKindsPopupController">
             <declaredKeys>
@@ -514,14 +515,15 @@
                 <outlet property="_windowController" destination="-2" id="209"/>
             </connections>
         </customObject>
-        <menu title="Menu" id="291" userLabel="FileKindsTableViewContextMenu">
+        <menu title="Menú" id="291" userLabel="FileKindsTableViewContextMenu">
             <items>
-                <menuItem title="Afficher les fichiers dans la liste de sélection" id="290">
+                <menuItem title="Mostrar archivos en la lista de selección" id="290">
                     <connections>
                         <action selector="showFilesInSelectionList:" target="51" id="294"/>
                     </connections>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="-413" y="689"/>
         </menu>
         <arrayController clearsFilterPredicateOnInsertion="NO" id="296" userLabel="FileKindsTableController2" customClass="GenericArrayController">
             <declaredKeys>
@@ -533,24 +535,24 @@
                 <binding destination="-2" name="contentArray" keyPath="document.kindStatistics" id="300"/>
             </connections>
         </arrayController>
-        <menu title="Menu" id="321" userLabel="SearchFieldMenu">
+        <menu title="Menú" id="321" userLabel="SearchFieldMenu">
             <items>
-                <menuItem title="Tous" id="328">
+                <menuItem title="Todo" id="328">
                     <connections>
                         <action selector="searchInAll:" target="174" id="329"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Nom" id="323">
+                <menuItem title="Nombre" id="323">
                     <connections>
                         <action selector="searchInNames:" target="174" id="333"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Type" id="324">
+                <menuItem title="Tipo" id="324">
                     <connections>
                         <action selector="searchInKindNames:" target="174" id="331"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Chemin" id="325">
+                <menuItem title="Ruta" id="325">
                     <connections>
                         <action selector="searchInPaths:" target="174" id="330"/>
                     </connections>

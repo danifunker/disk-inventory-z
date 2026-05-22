@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24765"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -12,12 +12,12 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <menu title="Menú Principal" systemMenu="main" id="29" userLabel="MainMenu">
+        <menu title="MainMenu" systemMenu="main" id="29" userLabel="MainMenu">
             <items>
-                <menuItem title="NuevaAplicación" id="56">
-                    <menu key="submenu" title="NuevaAplicación" systemMenu="apple" id="57">
+                <menuItem title="NewApplication" id="56">
+                    <menu key="submenu" title="NewApplication" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="Acerca de Disk Inventory Z" id="58">
+                            <menuItem title="Über Disk Inventory Z" id="58">
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
                                 </connections>
@@ -25,7 +25,7 @@
                             <menuItem isSeparatorItem="YES" id="202">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Preferencias..." keyEquivalent="," id="129">
+                            <menuItem title="Einstellungen..." keyEquivalent="," id="129">
                                 <connections>
                                     <action selector="showPreferencesPanel:" target="208" id="267"/>
                                 </connections>
@@ -33,24 +33,24 @@
                             <menuItem isSeparatorItem="YES" id="143">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Servicios" id="131">
-                                <menu key="submenu" title="Servicios" systemMenu="services" id="130"/>
+                            <menuItem title="Dienste" id="131">
+                                <menu key="submenu" title="Dienste" systemMenu="services" id="130"/>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="144">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Ocultar Disk Inventory Z" keyEquivalent="h" id="134">
+                            <menuItem title="Disk Inventory Z ausblenden" keyEquivalent="h" id="134">
                                 <connections>
                                     <action selector="hide:" target="-2" id="152"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Ocultar otros" keyEquivalent="h" id="145">
+                            <menuItem title="Andere Ausblenden" keyEquivalent="h" id="145">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
                                     <action selector="hideOtherApplications:" target="-2" id="146"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Mostrar todo" id="150">
+                            <menuItem title="Alles anzeigen" id="150">
                                 <connections>
                                     <action selector="unhideAllApplications:" target="-2" id="153"/>
                                 </connections>
@@ -58,7 +58,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Salir de Disk Inventory Z" keyEquivalent="q" id="136">
+                            <menuItem title="Disk Inventory Z beenden" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="139"/>
                                 </connections>
@@ -66,18 +66,18 @@
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Archivo" id="83">
-                    <menu key="submenu" title="Archivo" id="81">
+                <menuItem title="Ablage" id="83">
+                    <menu key="submenu" title="Ablage" id="81">
                         <items>
-                            <menuItem title="Abrir Carpeta..." keyEquivalent="o" id="203">
+                            <menuItem title="Ordner öffnen..." keyEquivalent="o" id="203">
                                 <connections>
                                     <action selector="openDocument:" target="-1" id="204"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Abrir recientes" id="124">
-                                <menu key="submenu" title="Abrir recientes" systemMenu="recentDocuments" id="125">
+                            <menuItem title="Benutzte Ordner" id="124">
+                                <menu key="submenu" title="Benutzte Ordner" systemMenu="recentDocuments" id="125">
                                     <items>
-                                        <menuItem title="Limpiar Menú" id="126">
+                                        <menuItem title="Menü löschen" id="126">
                                             <connections>
                                                 <action selector="clearRecentDocuments:" target="-1" id="127"/>
                                             </connections>
@@ -88,7 +88,7 @@
                             <menuItem isSeparatorItem="YES" id="79">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Cerrar" keyEquivalent="w" id="73">
+                            <menuItem title="Schließen" keyEquivalent="w" id="73">
                                 <connections>
                                     <action selector="performClose:" target="-1" id="193"/>
                                 </connections>
@@ -96,17 +96,17 @@
                             <menuItem isSeparatorItem="YES" id="217">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Mostrar en el Finder" keyEquivalent="F" toolTip="Mostrar archivo o carpeta  seleccionados en el Finder" id="216">
+                            <menuItem title="Im Finder anzeigen" keyEquivalent="F" toolTip="Zeigt die/den selektierte/n Datei oder Ordner im Finder an." id="216">
                                 <connections>
                                     <action selector="showInFinder:" target="-1" id="221"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Volver a cargar selección" toolTip="Sincronizar archivos o carpetas seleccionadas con el Finder" id="261">
+                            <menuItem title="Selektion aktualisieren" toolTip="Synchronisiert die/den selektierte/n Datei oder Ordner mit der Anischt im Finder" id="261">
                                 <connections>
                                     <action selector="refresh:" target="-1" id="265"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Volver a cargar todo" toolTip="Sincronizar ventana con el Finder" id="262">
+                            <menuItem title="Alles aktualisieren" toolTip="Synchronisiert das Fenster mit der Ansicht im Finder" id="262">
                                 <connections>
                                     <action selector="refreshAll:" target="-1" id="266"/>
                                 </connections>
@@ -114,7 +114,7 @@
                             <menuItem isSeparatorItem="YES" id="260">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Trasladar a la Papelera" toolTip="Trasladar el archivo o carpeta a la Papelera" id="232">
+                            <menuItem title="In den Papierkorb legen" toolTip="Verschiebt die/den selektierte/n Datei oder Ordner in den Papierkorb." id="232">
                                 <string key="keyEquivalent" base64-UTF8="YES">
 CA
 </string>
@@ -125,15 +125,15 @@ CA
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Edición" id="163">
-                    <menu key="submenu" title="Edición" id="169">
+                <menuItem title="Bearbeiten" id="163">
+                    <menu key="submenu" title="Bearbeiten" id="169">
                         <items>
-                            <menuItem title="Deshacer" keyEquivalent="z" id="158">
+                            <menuItem title="Rückgängig" keyEquivalent="z" id="158">
                                 <connections>
                                     <action selector="undo:" target="-1" id="180"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Rehacer" keyEquivalent="Z" id="173">
+                            <menuItem title="Wiederholen" keyEquivalent="Z" id="173">
                                 <connections>
                                     <action selector="redo:" target="-1" id="178"/>
                                 </connections>
@@ -141,27 +141,27 @@ CA
                             <menuItem isSeparatorItem="YES" id="156">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Cortar" keyEquivalent="x" id="160">
+                            <menuItem title="Ausschneiden" keyEquivalent="x" id="160">
                                 <connections>
                                     <action selector="cut:" target="-1" id="175"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Copiar" keyEquivalent="c" id="157">
+                            <menuItem title="Kopieren" keyEquivalent="c" id="157">
                                 <connections>
                                     <action selector="copy:" target="-1" id="181"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Pegar" keyEquivalent="v" id="171">
+                            <menuItem title="Einfügen" keyEquivalent="v" id="171">
                                 <connections>
                                     <action selector="paste:" target="-1" id="176"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Eliminar" id="164">
+                            <menuItem title="Löschen" id="164">
                                 <connections>
                                     <action selector="delete:" target="-1" id="201"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Seleccionar Todo" keyEquivalent="a" id="172">
+                            <menuItem title="Alles auswählen" keyEquivalent="a" id="172">
                                 <connections>
                                     <action selector="selectAll:" target="-1" id="179"/>
                                 </connections>
@@ -169,31 +169,31 @@ CA
                             <menuItem isSeparatorItem="YES" id="174">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Buscar" id="168">
-                                <menu key="submenu" title="Buscar" id="159">
+                            <menuItem title="Finden" id="168">
+                                <menu key="submenu" title="Finden" id="159">
                                     <items>
-                                        <menuItem title="Buscar..." keyEquivalent="f" id="154"/>
-                                        <menuItem title="Buscar siguiente" keyEquivalent="g" id="167"/>
-                                        <menuItem title="Buscar anterior" keyEquivalent="d" id="162"/>
-                                        <menuItem title="Utilizar selección para búsqueda" keyEquivalent="e" id="161"/>
-                                        <menuItem title="Desplazarse hasta selección" keyEquivalent="j" id="155"/>
+                                        <menuItem title="Finden..." keyEquivalent="f" id="154"/>
+                                        <menuItem title="Weitersuchen (vorwärts)" keyEquivalent="g" id="167"/>
+                                        <menuItem title="Weitersuchen (rückwärts)" keyEquivalent="d" id="162"/>
+                                        <menuItem title="Auswahl suchen" keyEquivalent="e" id="161"/>
+                                        <menuItem title="Auswahl anzeigen" keyEquivalent="j" id="155"/>
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Ortografía" id="184">
-                                <menu key="submenu" title="Ortografía" id="185">
+                            <menuItem title="Rechtschreibung" id="184">
+                                <menu key="submenu" title="Rechtschreibung" id="185">
                                     <items>
-                                        <menuItem title="Ortografía..." keyEquivalent=":" id="187">
+                                        <menuItem title="Rechtschreibung..." keyEquivalent=":" id="187">
                                             <connections>
                                                 <action selector="showGuessPanel:" target="-1" id="188"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Comprobar ortografía" keyEquivalent=";" id="189">
+                                        <menuItem title="Rechtschreibprüfung" keyEquivalent=";" id="189">
                                             <connections>
                                                 <action selector="checkSpelling:" target="-1" id="190"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Comprobar ortografía al escribir" id="191">
+                                        <menuItem title="Während der Texteingabe prüfen" id="191">
                                             <connections>
                                                 <action selector="toggleContinuousSpellChecking:" target="-1" id="192"/>
                                             </connections>
@@ -204,21 +204,21 @@ CA
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Visualización" id="210">
-                    <menu key="submenu" title="Visualización" id="211">
+                <menuItem title="Ansicht" id="210">
+                    <menu key="submenu" title="Ansicht" id="211">
                         <items>
-                            <menuItem title="Ampliar" tag="3" keyEquivalent="+" toolTip="Ampliar vista en carpeta seleccionada" id="212">
+                            <menuItem title="Hineinzoomen" tag="3" keyEquivalent="+" toolTip="In selektierten Ordner zoomen." id="212">
                                 <connections>
                                     <action selector="zoomIn:" target="-1" id="219"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Reducir" keyEquivalent="-" toolTip="Reducir vista a carpeta anterior" id="213">
+                            <menuItem title="Herauszoomen" keyEquivalent="-" toolTip="Herauszoomen zum vorherigen Ordner" id="213">
                                 <connections>
                                     <action selector="zoomOut:" target="-1" id="220"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Reducir a" id="295">
-                                <menu key="submenu" title="Reducir a" id="296">
+                            <menuItem title="Herauszoomen zu" id="295">
+                                <menu key="submenu" title="Herauszoomen zu" id="296">
                                     <connections>
                                         <outlet property="delegate" destination="208" id="299"/>
                                     </connections>
@@ -227,7 +227,7 @@ CA
                             <menuItem isSeparatorItem="YES" id="225">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Seleccionar carpeta padre" keyEquivalent="u" id="226">
+                            <menuItem title="Übergeordneten Ordner auswählen" keyEquivalent="u" id="226">
                                 <connections>
                                     <action selector="selectParentItem:" target="-1" id="227"/>
                                 </connections>
@@ -235,12 +235,12 @@ CA
                             <menuItem isSeparatorItem="YES" id="240">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Mostrar espacio libre" toolTip="Mostrar espacio libre en el disco en el treemap" id="241">
+                            <menuItem title="Freien Speicherplatz anzeigen" toolTip="Zeigt den freien Speicherplatz in der Treemap an" id="241">
                                 <connections>
                                     <action selector="showFreeSpace:" target="-1" id="247"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Mostrar otro espacio" toolTip="Mostrar espacio ocupado por archivos o carpetas ocultas en el treemap" id="242">
+                            <menuItem title="Übrigen belegten Speicherplatz anzeigen" toolTip="Zeigt den belegten Speicherplatz von nicht angezeigten Dateien/Ordnern in der Treemap an" id="242">
                                 <connections>
                                     <action selector="showOtherSpace:" target="-1" id="248"/>
                                 </connections>
@@ -248,17 +248,17 @@ CA
                             <menuItem isSeparatorItem="YES" id="272">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Mostrar contenido del paquete" toolTip="Mostrar paquetes como carpetas o archivos" id="214">
+                            <menuItem title="Paketinhalt zeigen" toolTip="Zeigt Pakete wie Ordner oder Dateien an" id="214">
                                 <connections>
                                     <action selector="showPackageContents:" target="-1" id="222"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Mostrar tamaño físico del archivo" toolTip="Mostrar tamaño físico o lógico del archivo" id="268">
+                            <menuItem title="Physikalische Dateigröße anzeigen" toolTip="Zeigt physikalische oder logische Dateigrößen an" id="268">
                                 <connections>
                                     <action selector="showPhysicalSizes:" target="-1" id="270"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Ignorar Código de Creación" id="271">
+                            <menuItem title="Creator Code ignorieren" id="271">
                                 <connections>
                                     <action selector="ignoreCreatorCode:" target="-1" id="273"/>
                                 </connections>
@@ -266,7 +266,7 @@ CA
                             <menuItem isSeparatorItem="YES" id="215">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Dividir horizontalmente" toolTip="Cambiar entre división de ventanas horizontal y vertical" id="229">
+                            <menuItem title="Horizontal teilen" toolTip="Wechseln zwischen horizontaler und vertikaler Aufteilung" id="229">
                                 <connections>
                                     <action selector="changeSplitting:" target="-1" id="231"/>
                                 </connections>
@@ -274,12 +274,12 @@ CA
                             <menuItem isSeparatorItem="YES" id="276">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Ocultar barra de herramientas" id="277">
+                            <menuItem title="Hide Toolbar" id="277">
                                 <connections>
                                     <action selector="toggleToolbarShown:" target="-1" id="279"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Personalizar barra de herramientas..." id="278">
+                            <menuItem title="Symbolleiste anpassen..." id="278">
                                 <connections>
                                     <action selector="runToolbarCustomizationPalette:" target="-1" id="280"/>
                                 </connections>
@@ -287,15 +287,15 @@ CA
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Ventana" id="19">
-                    <menu key="submenu" title="Ventana" systemMenu="window" id="24">
+                <menuItem title="Fenster" id="19">
+                    <menu key="submenu" title="Fenster" systemMenu="window" id="24">
                         <items>
-                            <menuItem title="Estadísticas por tipo de archivo" toolTip="Mostrar/ocultar panel de estadísticas de tipo de archivos" id="223">
+                            <menuItem title="Dateiart-Statistik" toolTip="Dateiart-Statistik anzeigen/ausblenden" id="223">
                                 <connections>
                                     <action selector="toggleFileKindsDrawer:" target="-1" id="224"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Listado de selecciones" id="318">
+                            <menuItem title="Auswahlliste" id="318">
                                 <connections>
                                     <action selector="toggleSelectionListDrawer:" target="-1" id="319"/>
                                 </connections>
@@ -303,7 +303,7 @@ CA
                             <menuItem isSeparatorItem="YES" id="92">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Información" keyEquivalent="i" toolTip="Mostrar/ocultar ventana de información" id="250">
+                            <menuItem title="Information" keyEquivalent="i" toolTip="Informationsfenster anzeigen/ausblenden" id="250">
                                 <connections>
                                     <action selector="showInformationPanel:" target="-1" id="254"/>
                                 </connections>
@@ -311,12 +311,12 @@ CA
                             <menuItem isSeparatorItem="YES" id="249">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Minimizar" keyEquivalent="m" id="23">
+                            <menuItem title="Im Dock ablegen" keyEquivalent="m" id="23">
                                 <connections>
                                     <action selector="performMiniaturize:" target="-1" id="37"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Traer todo al frente" id="5">
+                            <menuItem title="Alle nach vorne bringen" id="5">
                                 <connections>
                                     <action selector="arrangeInFront:" target="-1" id="39"/>
                                 </connections>
@@ -324,15 +324,15 @@ CA
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Ayuda" id="103">
-                    <menu key="submenu" title="Ayuda" id="106">
+                <menuItem title="Hilfe" id="103">
+                    <menu key="submenu" title="Hilfe" id="106">
                         <items>
-                            <menuItem title="Ayuda Disk Inventory Z" keyEquivalent="?" id="316">
+                            <menuItem title="Disk Inventory Z Hilfe" keyEquivalent="?" id="316">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="317"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Visitar sitio web de Disk Inventory Z" id="111">
+                            <menuItem title="Website von Disk Inventory Z besuchen" id="111">
                                 <connections>
                                     <action selector="gotoHomepage:" target="208" id="315"/>
                                 </connections>
@@ -341,6 +341,7 @@ CA
                     </menu>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="140" y="116"/>
         </menu>
         <customObject id="208" userLabel="MyDocumentController" customClass="MyDocumentController">
             <connections>
