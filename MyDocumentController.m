@@ -87,6 +87,23 @@ BOOL g_EnableLogging;
     return NO;
 }
 
+// Quit when the user closes the last visible window. Without this the app
+// stays running headless after the doc window is closed, which is confusing
+// — the drives panel is hidden after a successful scan, so there's nothing
+// to bring back.
+- (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication*) sender
+{
+    return YES;
+}
+
+// Bound to the "Choose Another Disk..." menu item in the File menu.
+// Brings the drives panel back to the front so the user can scan a
+// different volume without quitting and reopening the app.
+- (IBAction) chooseAnotherDisk: (id) sender
+{
+    [[DrivesPanelController sharedController] showPanel];
+}
+
 - (void) openDocumentWithContentsOfURL: (NSURL*) url
                                display: (BOOL) displayDocument
                      completionHandler: (void (^)(NSDocument*, BOOL, NSError*)) completionHandler
@@ -142,7 +159,14 @@ BOOL g_EnableLogging;
 	[self addDocument: doc];
 	[doc makeWindowControllers];
 	if ( displayDocument )
+	{
 		[doc showWindows];
+
+		// Scan succeeded and a doc window is now front: hide the drives
+		// panel if it was the launch landing page. Cancelled scans leave
+		// the panel visible so the user has somewhere to go back to.
+		[[[DrivesPanelController sharedController] panel] orderOut: nil];
+	}
 
 	if ( completionHandler != nil )
 		completionHandler( doc, NO, nil );

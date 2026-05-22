@@ -6,6 +6,7 @@
 	<array>
 		<string>ShowInfo</string>
 		<string>ShowPreferences</string>
+		<string>ChooseAnotherDisk</string>
 		<string>ToggleKindsStatisticDrawer</string>
 		<string>ShowPackageContents</string>
 		<string>ZoomIn</string>
@@ -21,6 +22,7 @@
 	</array>
 	<key>defaultItemIdentifiers</key>
 	<array>
+		<string>ChooseAnotherDisk</string>
 		<string>ZoomIn</string>
 		<string>ZoomOut</string>
 		<string>NSToolbarFlexibleSpaceItem</string>
@@ -28,33 +30,46 @@
 	</array>
 	<key>itemInfoByIdentifier</key>
 	<dict>
+		<key>ChooseAnotherDisk</key>
+		<dict>
+			<key>label</key>
+			<string>Choose Disk</string>
+			<key>toolTip</key>
+			<string>Show the drives panel to pick another disk</string>
+			<key>action</key>
+			<string>chooseAnotherDisk:</string>
+			<key>imageName</key>
+			<string>internaldrive</string>
+			<key>target</key>
+			<string>documentController</string>
+		</dict>
 		<key>MoveToTrash</key>
 		<dict>
 			<key>action</key>
 			<string>moveToTrash:</string>
 			<key>imageName</key>
-			<string>MoveToTrash</string>
+			<string>trash</string>
 		</dict>
 		<key>RefreshAll</key>
 		<dict>
 			<key>action</key>
 			<string>refreshAll:</string>
 			<key>imageName</key>
-			<string>RefreshAll</string>
+			<string>arrow.clockwise.circle</string>
 		</dict>
 		<key>RefreshSelection</key>
 		<dict>
 			<key>action</key>
 			<string>refresh:</string>
 			<key>imageName</key>
-			<string>RefreshSelection</string>
+			<string>arrow.clockwise</string>
 		</dict>
 		<key>RevealInFinder</key>
 		<dict>
 			<key>action</key>
 			<string>showInFinder:</string>
 			<key>imageName</key>
-			<string>RevealInFinder</string>
+			<string>arrow.up.forward.app</string>
 		</dict>
 		<key>ShowInfo</key>
 		<dict>
@@ -63,7 +78,7 @@
 			<key>action</key>
 			<string>showInformationPanel:</string>
 			<key>imageName</key>
-			<string>Inspector</string>
+			<string>info.circle</string>
 		</dict>
 		<key>ShowPackageContents</key>
 		<dict>
@@ -72,16 +87,16 @@
 			<key>action</key>
 			<string>showPackageContents:</string>
 			<key>imageName</key>
-			<string>ShowPackageContentsOpen</string>
+			<string>shippingbox</string>
 			<key>imageNameOffState</key>
-			<string>ShowPackageContentsClosed</string>
+			<string>shippingbox.fill</string>
 		</dict>
 		<key>ShowPreferences</key>
 		<dict>
 			<key>action</key>
 			<string>showPreferencesPanel:</string>
 			<key>imageName</key>
-			<string>Preferences</string>
+			<string>gearshape</string>
 			<key>target</key>
 			<string>documentController</string>
 		</dict>
@@ -92,21 +107,21 @@
 			<key>action</key>
 			<string>toggleFileKindsDrawer:</string>
 			<key>imageName</key>
-			<string>KindsStatisticDrawer</string>
+			<string>chart.pie</string>
 		</dict>
 		<key>ZoomIn</key>
 		<dict>
 			<key>action</key>
 			<string>zoomIn:</string>
 			<key>imageName</key>
-			<string>ZoomIn</string>
+			<string>plus.magnifyingglass</string>
 		</dict>
 		<key>ZoomOut</key>
 		<dict>
 			<key>action</key>
 			<string>zoomOut:</string>
 			<key>imageName</key>
-			<string>ZoomOut</string>
+			<string>minus.magnifyingglass</string>
 		</dict>
 	</dict>
 </dict>

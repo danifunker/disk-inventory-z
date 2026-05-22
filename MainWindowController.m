@@ -19,6 +19,7 @@
 #import "DIXAboutButton.h"
 #import "FSItem.h"
 #import "InfoPanelController.h"
+#import "SelectionListPanelController.h"
 #import "Timing.h"
 #import <TreeMapView/TreeMapView.h>
 #import "FSItem-Utilities.h"
@@ -103,37 +104,31 @@
 
 - (void) awakeFromNib
 {
-	//split window horizontally?
+	// SplitWindowHorizontally controls the OUTER split orientation:
+	// default (vertical=NO) → (files+kinds) on top, treemap on bottom.
+	// If the user toggled "Split Vertically" historically, flip to L/R.
 	if ( [[NSUserDefaults standardUserDefaults] boolForKey: SplitWindowHorizontally] )
 	{
 		[_splitter setVertical: NO];
 	}
 
-	[_splitter setPositionAutosaveName: @"MainWindowSplitter"];
+	// Use new autosave names: the old "MainWindowSplitter" key was written
+	// by the previous files↔treemap OASplitView (vertical=YES, ~700pt wide)
+	// and would now restore a geometrically meaningless divider position
+	// into the new top/bottom outer split.
+	//
+	// setAutosaveName: is the modern API. The previous code called
+	// setPositionAutosaveName:, which only existed on the OASplitView
+	// wrapper class; the new splits are plain NSSplitView and would throw
+	// "unrecognized selector".
+	[_splitter setAutosaveName: @"DIXMainSplit_TopBottom"];
+	[_kindsTopSplit setAutosaveName: @"DIXMainSplit_FilesKinds"];
 
-    // Widen the kinds drawer before opening it so all four columns
-    // (Color, Kind, Size, Files) fit at default sizes. The nib was set up
-    // for a narrower drawer where the right-most Files column got clipped.
-    {
-        NSSize current = [_kindsDrawer contentSize];
-        const CGFloat desiredWidth = 420;
-        if ( current.width < desiredWidth )
-        {
-            [_kindsDrawer setContentSize: NSMakeSize( desiredWidth, current.height )];
-            NSSize minSize = [_kindsDrawer minContentSize];
-            if ( minSize.width < desiredWidth )
-                [_kindsDrawer setMinContentSize: NSMakeSize( desiredWidth, minSize.height )];
-        }
-    }
-    // Force the drawer to always open on the right (NSMaxXEdge). NSDrawer's
-    // default is "wherever has more free space", which means if the window
-    // happens to be parked far enough right that there's more room on the
-    // left, the drawer pops on the left -- visually backwards from the
-    // intended design. Pinning the edge avoids that.
-    [_kindsDrawer setPreferredEdge: NSMaxXEdge];
-    [_selectionListDrawer setPreferredEdge: NSMaxXEdge];
-    [_kindsDrawer toggle: self];
-	//[_selectionListDrawer toggle: self];
+	// Retain the loose selection-list view so it survives any future
+	// re-parenting by the panel controller. The xib loader hands us a
+	// top-level customView that no parent retains; without this it would
+	// be released when first removed from a superview.
+	[_selectionListPaneView retain];
 
 	// Top-right ⓘ button on the main document window for the About panel.
 	DIXInstallAboutButtonInWindow( [self window] );
@@ -159,6 +154,27 @@
 	[self constrainWindowToScreen];
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[self constrainWindowToScreen];
+
+		// Replicate the layout cascade a manual window resize triggers —
+		// the symptom we're fixing is that the table scrollViews start with
+		// the document view positioned BEHIND the header, drawing row 0 at
+		// the same Y as the column titles. AppKit's automatic re-tile only
+		// fires when a scrollView's frame actually CHANGES, so an
+		// unchanged-size relayout does nothing. Nudging the window's width
+		// by 1pt and back forces the cascade.
+		NSWindow *window = [self window];
+		NSRect wf = [window frame];
+		NSRect nudge = wf;
+		nudge.size.width += 1;
+		[window setFrame: nudge display: NO];
+		[window setFrame: wf    display: YES];
+
+		[self dixTileAllScrollViewsUnder: [[self window] contentView]];
+
+		// The nudge can leave each scrollView's clipView with a non-zero
+		// bounds origin, hiding row 0 above the visible area. Force-scroll
+		// every NSTableView/NSOutlineView under contentView to row 0.
+		[self dixScrollAllTableViewsToTopUnder: [[self window] contentView]];
 	});
 }
 
@@ -170,34 +186,21 @@
 		return;
 
 	const CGFloat margin = 20;
-	// Reserve vertical space for a bottom-edge drawer (file kinds / selection
-	// list) plus its search field, and horizontal space for the right-edge
-	// kinds drawer that extends past the window when opened. We don't know
-	// the actual drawer edge at constrain time, so budget for a typical
-	// drawer size + padding.
-	const CGFloat reservedBelowForDrawer = 260;
-	// Reserve a generous margin on the right so the kinds drawer (420pt) +
-	// its window-edge insets fit, and so a user-resized drawer up to ~500pt
-	// still has elbow room. Without enough headroom NSDrawer will pop on
-	// the wrong edge of the window.
-	const CGFloat reservedRightForDrawer = 560;
+	// Drawers are gone: the window no longer extends past its frame, so
+	// the only constraint is "fit on the screen's visible area".
 	NSRect visible = [screen visibleFrame];
 	NSRect wf      = [window frame];
 
 	BOOL changed = NO;
 
-	CGFloat maxHeight = NSHeight(visible) - reservedBelowForDrawer - margin;
-	if ( maxHeight < 400 )  // safety floor on small displays
-		maxHeight = NSHeight(visible) - margin;
+	CGFloat maxHeight = NSHeight(visible) - margin;
 	if ( NSHeight(wf) > maxHeight )
 	{
 		wf.size.height = maxHeight;
 		changed = YES;
 	}
 
-	CGFloat maxWidth = NSWidth(visible) - reservedRightForDrawer - margin;
-	if ( maxWidth < 700 )  // safety floor on narrow displays
-		maxWidth = NSWidth(visible) - margin;
+	CGFloat maxWidth = NSWidth(visible) - margin;
 	if ( NSWidth(wf) > maxWidth )
 	{
 		wf.size.width = maxWidth;
@@ -245,6 +248,21 @@
 		[(NSScrollView*)root tile];
 	for ( NSView *child in [root subviews] )
 		[self dixTileAllScrollViewsUnder: child];
+}
+
+// Walk the view tree and scroll any NSTableView/NSOutlineView to its
+// first row. Used after the initial layout nudge so users don't open a
+// document with the file list pre-scrolled past the top.
+- (void) dixScrollAllTableViewsToTopUnder: (NSView*) root
+{
+	if ( [root isKindOfClass: [NSTableView class]] )
+	{
+		NSTableView *tv = (NSTableView*) root;
+		if ( [tv numberOfRows] > 0 )
+			[tv scrollRowToVisible: 0];
+	}
+	for ( NSView *child in [root subviews] )
+		[self dixScrollAllTableViewsToTopUnder: child];
 }
 
 - (void) installStatusBar
@@ -314,26 +332,59 @@
 		[root path], sizeStr, filesStr]];
 }
 
-- (NSDrawer*) kindStatisticsDrawer
+- (void) showSelectionListPanel
 {
-	return _kindsDrawer;
-}
-
-- (NSDrawer*) selectionListDrawer
-{
-	return _selectionListDrawer;
+	if ( _selectionListPanel == nil )
+	{
+		_selectionListPanel = [[SelectionListPanelController alloc]
+			initWithContentView: _selectionListPaneView
+			       parentWindow: [self window]];
+	}
+	[_selectionListPanel showPanel];
 }
 
 #pragma mark -----------------menu and toolbar actions-----------------------
 
+// Name kept (toggleFileKindsDrawer:) so existing menu/toolbar bindings work.
+// Action now collapses/expands the kinds-table pane within the top split.
 - (IBAction)toggleFileKindsDrawer:(id)sender
 {
-    [_kindsDrawer toggle: self];
+	if ( _kindsTopSplit == nil || _kindsPaneView == nil )
+		return;
+
+	NSRect splitBounds = [_kindsTopSplit bounds];
+	CGFloat extent = [_kindsTopSplit isVertical] ? NSWidth(splitBounds) : NSHeight(splitBounds);
+
+	// Check by actual pane width — more reliable than isSubviewCollapsed:
+	// which can lie if we collapsed by pushing the divider rather than
+	// using NSSplitView's first-class collapse API.
+	NSRect kindsBounds = [_kindsPaneView frame];
+	CGFloat kindsExtent = [_kindsTopSplit isVertical] ? NSWidth(kindsBounds) : NSHeight(kindsBounds);
+	BOOL collapsed = ( kindsExtent < 2 );
+
+	if ( collapsed )
+	{
+		// Expand: park the divider so the files pane occupies 67% of the
+		// split, leaving 33% for the kinds pane (the designed default).
+		[_kindsTopSplit setPosition: floor(extent * 0.67) ofDividerAtIndex: 0];
+	}
+	else
+	{
+		// Collapse: push the divider all the way to the trailing edge.
+		[_kindsTopSplit setPosition: extent ofDividerAtIndex: 0];
+	}
+	[_kindsTopSplit adjustSubviews];
 }
 
+// Name kept; now toggles the floating selection-list panel.
 - (IBAction) toggleSelectionListDrawer:(id)sender
 {
-	[_selectionListDrawer toggle: self];
+	if ( _selectionListPanel == nil )
+	{
+		[self showSelectionListPanel];
+		return;
+	}
+	[_selectionListPanel togglePanel: sender];
 }
 
 - (IBAction) openFile:(id)sender
@@ -641,12 +692,17 @@
     }
     else if ( menuAction == @selector(toggleFileKindsDrawer:) )
     {
-        SET_TITLE_AND_IMAGE( [_kindsDrawer state] == NSDrawerClosedState,
+        BOOL kindsHidden = ( _kindsTopSplit == nil )
+                        || ( _kindsPaneView == nil )
+                        || [_kindsTopSplit isSubviewCollapsed: _kindsPaneView];
+        SET_TITLE_AND_IMAGE( kindsHidden,
 							 @"Show File Kind Statistics", @"Hide File Kind Statistics" );
     }
     else if ( menuAction == @selector(toggleSelectionListDrawer:) )
     {
-        SET_TITLE( [_selectionListDrawer state] == NSDrawerClosedState,
+        BOOL panelHidden = ( _selectionListPanel == nil )
+                        || ![[_selectionListPanel window] isVisible];
+        SET_TITLE( panelHidden,
 							 @"Show Selection List", @"Hide Selection List" );
     }
     else if ( menuAction == @selector(selectParentItem:) )

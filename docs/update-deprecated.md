@@ -18,13 +18,30 @@ table below records that too so the next session has the full picture.
 | 7.6 Stale-identifier cleanup | ✅ done | b9f4c4e, 01f69f4, f3442c4 |
 | 7.7 UI polish before release | ✅ done | 94d1513, f258870 |
 | 7.8 v1.6.0 release | ✅ tagged | 5126ad6 |
-| 8 NSDrawer → NSSplitViewController | ⏸ NOT STARTED | — |
+| 7.9 nib→xib conversion (MainMenu, TreeMap, LoadingPanel) | ✅ done | 0d25a91 + v1.7.0 |
+| 8 NSDrawer → NSSplitView + selection-list panel | ✅ done | v1.7.0 |
 | **8.5 Async filesystem scan** (NEW — see below) | ⏸ NOT STARTED | — |
 | 9 Hardening | ⏸ NOT STARTED | — |
 
 ### Deprecation warning count
-**~100 → 36.** All 36 remaining are `NSDrawer`/`NSDrawer*` (Stage 8).
+**~100 → 0.** Stage 8 removed the last 36 (`NSDrawer`/`NSDrawer*`).
 Build is clean against the macOS 26.5 SDK at deployment target 13.0.
+
+### Stage 8 — what actually shipped (v1.7.0)
+Rather than `NSSplitViewController`, the drawers were replaced with a nested
+plain `NSSplitView` layout (lower-risk drop-in that kept `MainWindowController`
+intact). Both `MainMenu.nib` and the document window's `TreeMap.nib` were
+converted to editable `.xib` first (Stage 7.9); the structural reshape is
+scripted in `scripts/stage8_reshape_treemap_xib.py` so all four locales stay
+in sync. Layout: files-outline | file-kinds across the top (60/40), treemap
+full-width on the bottom, paneSplitter dividers. The selection-list view moved
+out of its bottom drawer into a floating `NSPanel`
+(`SelectionListPanelController`, shown on demand). Plus a pile of UX work:
+30-colour palette (was 12), `internaldrive`/SF-Symbol toolbar icons + a
+"Choose Another Disk" item, quit-on-last-window-close, a fix for the
+`TMVCushionRenderer` "_rect exceeds bitmap width" assert (fractional column
+width → floor the bitmap size), and the initial-layout nudge that forces the
+table scrollViews to tile so row 0 sits below the header.
 
 ### Why Stages 8 / 8.5 / 9 were deferred
 - **Stage 8** needs Interface Builder. The two drawers (`_kindsDrawer`,

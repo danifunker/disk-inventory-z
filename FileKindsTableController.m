@@ -160,11 +160,8 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 
 - (IBAction) showFilesInSelectionList: (id) sender
 {
-	int selectionListDrawerState = [[_windowController selectionListDrawer] state];
-	
-	if ( selectionListDrawerState == NSDrawerClosingState || selectionListDrawerState == NSDrawerClosedState )
-		[[_windowController selectionListDrawer] toggle: self];
-	
+	[_windowController showSelectionListPanel];
+
 	int selectedRow = [_tableView selectedRow];
 	NSAssert( selectedRow >= 0, @"kinds tableview should have a selection" );
 	
@@ -231,7 +228,12 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 	
 	NSImage *image = [_cushionImages objectForKey: [kindStatistic kindName]];
 	
-	NSSize cellSize = NSMakeSize( [column width], [_tableView rowHeight] );
+	// Floor to integers: the bitmap is allocated with integer pixel dimensions
+	// (NSInteger pixelsWide/pixelsHigh) but the cushion renderer's rect uses
+	// the same NSSize, so a fractional column width (which the kinds table
+	// now gets when auto-sized inside a split view pane) trips the
+	// "_rect exceeds bitmap width" assertion in TMVCushionRenderer.
+	NSSize cellSize = NSMakeSize( floor([column width]), floor([_tableView rowHeight]) );
 	
 	//if we don't have any image for that row yet or the cell size has changed, create a new image
 	if ( image == nil || !NSEqualSizes( [image size], cellSize ) )

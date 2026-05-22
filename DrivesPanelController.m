@@ -212,7 +212,12 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
         }
         
         index = [selectedIndexes indexGreaterThanIndex: index];
-    }	
+    }
+    // Note: we intentionally do NOT hide _volumesPanel here. The scan
+    // may fail or be cancelled; hiding now would leave the user with no
+    // visible window after a cancel. MyDocumentController hides the
+    // panel only after a document is successfully added (which means
+    // the scan completed and a doc window is about to be shown).
 }
 
 - (BOOL) panelIsVisible

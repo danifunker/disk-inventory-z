@@ -74,6 +74,11 @@
                                     <action selector="openDocument:" target="-1" id="204"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Choose Another Disk..." keyEquivalent="D" toolTip="Show the drives panel to pick another disk" id="ST8-mn-1">
+                                <connections>
+                                    <action selector="chooseAnotherDisk:" target="-1" id="ST8-mn-2"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Open Recent" id="124">
                                 <menu key="submenu" title="Open Recent" systemMenu="recentDocuments" id="125">
                                     <items>

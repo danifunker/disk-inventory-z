@@ -243,6 +243,7 @@
             [[[DIXOpaqueTableHeaderView alloc] initWithFrame: [existing frame]] autorelease];
         [self setHeaderView: opaque];
     }
+
 }
 
 @end

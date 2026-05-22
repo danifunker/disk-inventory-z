@@ -199,6 +199,9 @@ static NSMutableDictionary *g_toolbatStateImages = nil;
 		NSAssert1( imageName != nil, @"no image name for item '%@'", [item itemIdentifier] );
 
 		image = [NSImage imageNamed: imageName];
+		if ( image == nil )
+			image = [NSImage imageWithSystemSymbolName: imageName
+							 accessibilityDescription: [item label]];
 		NSAssert1( image != nil, @"couldn't load image '%@'", imageName );
 
 		if ( image != nil )
@@ -317,7 +320,16 @@ static NSMutableDictionary *g_toolbatStateImages = nil;
 
 	NSString *imageName = [itemInfo objectForKey: @"imageName"];
 	if ( imageName != nil )
-		[toolbarItem setImage: [NSImage imageNamed: imageName]];
+	{
+		// Asset-catalog image first; fall back to an SF Symbol of the same
+		// name so toolbar items can reference system symbols (e.g.
+		// "internaldrive") without shipping a bitmap.
+		NSImage *image = [NSImage imageNamed: imageName];
+		if ( image == nil )
+			image = [NSImage imageWithSystemSymbolName: imageName
+							 accessibilityDescription: label];
+		[toolbarItem setImage: image];
+	}
 
 	NSString *actionString = [itemInfo objectForKey: @"action"];
 	if ( !DIXStringIsEmpty( actionString ) )

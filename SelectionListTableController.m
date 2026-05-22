@@ -23,8 +23,6 @@
 - (void) setTableViewFont;
 - (void) onDocumentSelectionChanged;
 - (void) onSelectionListSelectionChanged;
-- (void) onDrawerOpened: (NSNotification*) notification;
-- (void) onDrawerClosed: (NSNotification*) notification;
 
 @end
 
@@ -40,24 +38,15 @@
 	FileSystemDoc *doc = [self document];
 
 	NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-	NSDrawer *drawer = [_windowController selectionListDrawer];
-	
-	[notificationCenter addObserver: self
-						   selector: @selector(onDrawerClosed:)
-							   name: NSDrawerDidCloseNotification
-							 object: drawer];
-	[notificationCenter addObserver: self
-						   selector: @selector(onDrawerOpened:)
-							   name: NSDrawerWillOpenNotification
-							 object: drawer];
-	
+
     [notificationCenter addObserver: self
 						   selector: @selector(windowWillClose:)
 							   name: NSWindowWillCloseNotification
 							 object: [_windowController window]];
-	
-	if ( [drawer state] == NSDrawerClosedState )
-		[_selectionListArrayController suspendArrangedObjectsUpdates];
+
+	// The selection-list lives in a floating panel that the user shows on
+	// demand. Keep arranged-objects updates running so the panel is ready
+	// to display immediately on first show; the cost is small.
 	
 	//set up KVO
 	[[NSUserDefaultsController sharedUserDefaultsController] addObserver: self
@@ -182,8 +171,6 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 	}
 }
 
-#pragma mark --------drawer notifications-----------------
-
 @end
 
 @implementation SelectionListTableController(Privat)
@@ -254,16 +241,6 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 	
 	if ( selectionListSelection != [doc selectedItem] )
 		[doc setSelectedItem: selectionListSelection];
-}
-
-- (void) onDrawerOpened: (NSNotification*) notification
-{
-	[_selectionListArrayController resumeArrangedObjectsUpdates];
-}
-
-- (void) onDrawerClosed: (NSNotification*) notification
-{
-	[_selectionListArrayController suspendArrangedObjectsUpdates];
 }
 
 @end

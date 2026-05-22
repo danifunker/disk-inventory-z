@@ -6,25 +6,32 @@
 #import "OAToolbarWindowControllerEx.h"
 #import "OASplitView.h"
 
+@class SelectionListPanelController;
+
 @interface MainWindowController : OAToolbarWindowControllerEx
 {
-    IBOutlet NSDrawer *_kindsDrawer;
-    IBOutlet NSDrawer *_selectionListDrawer;
-	IBOutlet OASplitView *_splitter;
+    IBOutlet NSSplitView *_kindsTopSplit;       // top half of main split: files outline | kinds table
+    IBOutlet NSView *_kindsPaneView;            // right side of _kindsTopSplit (kinds-table host view)
+    IBOutlet NSView *_selectionListPaneView;    // loose view in TreeMap.xib that becomes the selection-list panel's contentView
+	IBOutlet OASplitView *_splitter;            // outer split: (files+kinds) on top | treemap on bottom. "Split Vertically" flips this to L/R.
 	IBOutlet NSOutlineView *_filesOutlineView;
 	IBOutlet TreeMapView *_treeMapView;
 	IBOutlet NSMenu *_openWithSubMenu;
 
 	// Programmatically-injected status bar at the bottom of the window.
 	NSTextField *_statusBar;
+
+	// Lazily created on first show.
+	SelectionListPanelController *_selectionListPanel;
 }
 
 + (FileSystemDoc*) documentForView: (NSView*) view;
 
 + (void) poofEffectInView: (NSView*)view inRect: (NSRect) rect; //rect in view coords
 
-- (NSDrawer*) kindStatisticsDrawer;
-- (NSDrawer*) selectionListDrawer;
+// Brings up the selection-list floating panel (creating it on first call).
+// Called by FileKindsTableController's "Show Files in Selection List" action.
+- (void) showSelectionListPanel;
 
 - (IBAction) openFile:(id)sender;
 - (IBAction) toggleFileKindsDrawer:(id)sender;

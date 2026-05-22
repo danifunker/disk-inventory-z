@@ -38,18 +38,41 @@
 #define COLOR(r,g,b) [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0]
     
     _predefinedColors = [[NSMutableArray alloc] initWithObjects:
+        // Primary hues (full saturation)
         COLOR(0, 0, 1),
         COLOR(1, 0, 0),
         COLOR(0, 1, 0),
         COLOR(0, 1, 1),
         COLOR(1, 0, 1),
         COLOR(1, 1, 0),
+        // Pastel primary hues
         COLOR(0.58, 0.58, 1),
         COLOR(1, 0.58, 0.58),
         COLOR(0.58, 1, 0.58),
         COLOR(0.58, 1, 1),
         COLOR(1, 0.58, 1),
         COLOR(1, 1, 0.58),
+        // Off-axis hues (orange, purple, teal, pink, lime, brown)
+        COLOR(1, 0.5, 0),
+        COLOR(0.5, 0, 1),
+        COLOR(0, 0.5, 0.5),
+        COLOR(1, 0.4, 0.7),
+        COLOR(0.5, 1, 0),
+        COLOR(0.6, 0.3, 0),
+        // Pastel off-axis
+        COLOR(1, 0.78, 0.55),
+        COLOR(0.78, 0.55, 1),
+        COLOR(0.55, 0.85, 0.85),
+        COLOR(1, 0.75, 0.85),
+        COLOR(0.78, 1, 0.55),
+        COLOR(0.85, 0.7, 0.55),
+        // Mid-tone primary hues (deeper, for contrast against the pastels)
+        COLOR(0, 0, 0.65),
+        COLOR(0.65, 0, 0),
+        COLOR(0, 0.65, 0),
+        COLOR(0, 0.65, 0.65),
+        COLOR(0.65, 0, 0.65),
+        COLOR(0.65, 0.65, 0),
         nil];
 
 #undef COLOR
