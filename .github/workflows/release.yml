@@ -30,7 +30,7 @@ jobs:
         include:
           # Universal (arm64 + x86_64) — tracks current runner default Xcode.
           - variant: universal
-            runner: macos-14
+            runner: macos-26
             archs: ""              # empty = Xcode default = ARCHS_STANDARD
             notarize: true
             dmg_suffix: ""
