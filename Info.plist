@@ -98,6 +98,9 @@ No data will be read.</string>
 	<key>NSDesktopFolderUsageDescription</key>
 	<string>Disk Inventory Z needs to access these files to inspect their sizes and other file attributes.
 No data will be read.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Disk Inventory Z needs to access your music library to inspect its size and other file attributes.
+No data will be read.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>Disk Inventory Z needs to access these files to inspect their sizes and other file attributes.
 No data will be read.</string>

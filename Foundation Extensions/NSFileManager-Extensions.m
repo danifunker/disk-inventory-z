@@ -36,6 +36,8 @@
         NSSearchPathDirectory searchDirs[] = {NSDocumentDirectory,
                                                 NSDesktopDirectory,
                                                 NSDownloadsDirectory,
+                                                NSMusicDirectory,
+                                                NSMoviesDirectory,
                                                 /*NSPicturesDirectory*/};
         
         for (int i = 0; i < sizeof(searchDirs)/sizeof(searchDirs[0]); i++)
@@ -108,6 +110,18 @@
             }
         }
 
+    }
+
+    // App Management (macOS 14+): reading inside /Applications/*.app
+    // triggers the App Management permission category. Add /Applications
+    // so it shows up in System Settings → Privacy & Security → App
+    // Management after the first scan that touches it.
+    {
+        NSOperatingSystemVersion sonoma = {14,0,0};
+        if ( [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion: sonoma] )
+        {
+            [protectedURLs addObject: [NSURL fileURLWithPath: @"/Applications"]];
+        }
     }
 
     // addressbook: ~/Library/Application Support/AddressBook

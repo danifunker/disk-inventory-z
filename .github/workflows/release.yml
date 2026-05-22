@@ -35,14 +35,17 @@ jobs:
             notarize: true
             dmg_suffix: ""
             volume_suffix: ""
-          # Intel-only — pinned to the intel runner so it can keep shipping
-          # while the universal job rolls forward to newer runners.
-          - variant: intel
-            runner: macos-26-intel
-            archs: "x86_64"
-            notarize: true
-            dmg_suffix: "-intel"
-            volume_suffix: " (Intel)"
+          # Intel-only variant — TEMPORARILY DISABLED. The universal DMG
+          # above already contains x86_64, so end users on Intel Macs get
+          # a working build either way. Native-Intel CI is paused while we
+          # investigate the ~40m build times on the macos-26-intel runner.
+          # To re-enable, uncomment the 6 lines below.
+          # - variant: intel
+          #   runner: macos-26-intel
+          #   archs: "x86_64"
+          #   notarize: true
+          #   dmg_suffix: "-intel"
+          #   volume_suffix: " (Intel)"
 
     steps:
       - uses: actions/checkout@v6

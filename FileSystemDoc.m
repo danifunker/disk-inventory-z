@@ -141,7 +141,10 @@ NSString *CollectFileKindStatisticsCanceledException = @"CollectFileKindStatisti
 - (void) addPackagesToFileKindStatistic: (FSItem*) item; 	
 - (void) removeEmptyKindStatistics;
 
-- (void)checkForProtectedFolders:(NSString * _Nonnull)folder;
+// Returns YES if the scan should proceed, NO if the user wants to grant
+// permissions first (chose "Open System Settings" so the scan should NOT
+// start while they're doing that — they'll re-trigger the scan after).
+- (BOOL)checkForProtectedFolders:(NSString * _Nonnull)folder;
 
 - (void) reserveColorsForLargestKinds;
 
@@ -235,7 +238,16 @@ NSString *OldItem = @"OldItem";
 
 - (BOOL) scanFolderAtURL: (NSURL*) url error: (NSError**) outError
 {
-    [self checkForProtectedFolders: [url path]];
+    if ( ![self checkForProtectedFolders: [url path]] )
+    {
+        // User chose to grant permissions first. Treat as a user-cancel so
+        // the document doesn't open and no error sheet appears.
+        if ( outError != nil )
+            *outError = [NSError errorWithDomain: NSCocoaErrorDomain
+                                            code: NSUserCancelledError
+                                        userInfo: nil];
+        return NO;
+    }
 
     //now the real work: loading the folder contents
     @try
@@ -1171,31 +1183,33 @@ NSString *OldItem = @"OldItem";
 	[kinds release]; //mutableCopy returns a retained object (not autoreleased)
 }
 
-- (void)checkForProtectedFolders:(NSString * _Nonnull)folder
+- (BOOL)checkForProtectedFolders:(NSString * _Nonnull)folder
 {
     NSFileManager *fileMgr = [NSFileManager defaultManager];
     NSArray<NSURL*> *protectedFolders = [fileMgr privacyProtectedFoldersInURL:[NSURL fileURLWithPath:folder]];
     if ( [protectedFolders count] == 0 )
-        return;
+        return YES;
 
     // If we already have access to every protected folder in the scan path,
     // there is nothing the user needs to do — skip the warning entirely.
     if ( [fileMgr hasAccessToProtectedFolders: protectedFolders] )
-        return;
+        return YES;
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    BOOL shouldContinue = YES;
+
     if ( ![defaults boolForVersionDependantKey: DontShowPrivacyWarningMessage] )
     {
         NSAlert *alert = [[[NSAlert alloc] init] autorelease];
 
         alert.alertStyle = NSAlertStyleInformational;
 
-        alert.messageText = NSLocalizedString(@"Some folders which will be scanned contain private files. The access is protected by the macOS privacy protection.\n\nUpon first access macOS will ask whether you allow Disk Inventory Z access to these folders and files.\n\nDisk Inventory Z does not read any data - just information like file sizes and types are collected.", @"");
-        alert.informativeText = NSLocalizedString(@"To grant access in one step, open System Settings and enable Disk Inventory Z under Privacy & Security → Full Disk Access. macOS will ask you to relaunch the app after enabling it.", @"");
+        alert.messageText = NSLocalizedString(@"Some folders in this scan are protected by macOS privacy protection.\n\nDisk Inventory Z does not read any file contents — only sizes and metadata.", @"");
+        alert.informativeText = NSLocalizedString(@"Recommended: click “Open System Settings” and enable Disk Inventory Z under Privacy & Security → Full Disk Access. The scan will not start; restart the app after granting permission and then run the scan again for full results.\n\nIf you click “Continue Anyway,” the scan will run now but protected folders may be reported as empty or partial.", @"");
 
         // Primary button: deep-link to the Full Disk Access pane.
         [alert addButtonWithTitle: NSLocalizedString(@"Open System Settings", @"")];
-        [alert addButtonWithTitle: NSLocalizedString(@"OK", @"")];
+        [alert addButtonWithTitle: NSLocalizedString(@"Continue Anyway", @"")];
 
         alert.showsSuppressionButton = YES;
         alert.suppressionButton.title = NSLocalizedString(@"Do not show this information again.", @"");
@@ -1210,18 +1224,28 @@ NSString *OldItem = @"OldItem";
 
         if ( response == NSAlertFirstButtonReturn )
         {
+            // User chose to fix permissions first. Open the System
+            // Settings pane and abort the scan so they can grant access
+            // (and, for Full Disk Access, relaunch) before re-triggering.
             NSURL *fdaPane = [NSURL URLWithString:
                 @"x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"];
             [[NSWorkspace sharedWorkspace] openURL: fdaPane];
+            shouldContinue = NO;
         }
 
-        // let the alert disappear before the consent dialogs pop up
+        // let the alert disappear before any further work
         [[NSRunLoop currentRunLoop] runUntilDate: [NSDate date]];
     }
 
-    // Still fire per-folder consent dialogs (Photos, etc.) for anything not
-    // covered by Full Disk Access.
+    if ( !shouldContinue )
+        return NO;
+
+    // User chose Continue Anyway (or suppressed the alert). Fire per-folder
+    // consent dialogs (Music, Photos, Apps, etc.) so they get prompted and
+    // each category is registered in System Settings → Privacy & Security
+    // before the actual scan starts.
     [fileMgr triggerConsentDialogForPrivacyProtectedFolders:protectedFolders];
+    return YES;
 }
 
 //@@test
