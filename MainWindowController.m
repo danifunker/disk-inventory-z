@@ -20,6 +20,7 @@
 #import "FSItem.h"
 #import "InfoPanelController.h"
 #import "SelectionListPanelController.h"
+#import "DiskUsagePieController.h"
 #import "Timing.h"
 #import <TreeMapView/TreeMapView.h>
 #import "FSItem-Utilities.h"
@@ -175,7 +176,47 @@
 		// bounds origin, hiding row 0 above the visible area. Force-scroll
 		// every NSTableView/NSOutlineView under contentView to row 0.
 		[self dixScrollAllTableViewsToTopUnder: [[self window] contentView]];
+
+		// Disk usage pie panel: auto-show when the scan root is a volume
+		// mount point (i.e. a full-disk scan). Hidden for folder scans.
+		[self showDiskUsagePieIfFullVolumeScan];
 	});
+}
+
+// YES if the doc's fileURL points at a volume mount point (the URL's
+// own URL is its volume URL). NO for folder-only scans.
+- (BOOL) docIsFullVolumeScan
+{
+	NSURL *url = [[self document] fileURL];
+	if ( url == nil ) return NO;
+
+	NSURL *volumeURL = nil;
+	if ( ![url getResourceValue: &volumeURL
+	                     forKey: NSURLVolumeURLKey
+	                      error: nil]
+	     || volumeURL == nil )
+	{
+		return NO;
+	}
+
+	// Compare resolved paths so trailing-slash / symlink differences
+	// don't cause false negatives.
+	NSString *a = [[url URLByStandardizingPath] path];
+	NSString *b = [[volumeURL URLByStandardizingPath] path];
+	return [a isEqualToString: b];
+}
+
+- (void) showDiskUsagePieIfFullVolumeScan
+{
+	if ( _diskUsagePiePanel != nil )
+		return;  // already created/showing
+	if ( ![self docIsFullVolumeScan] )
+		return;
+
+	_diskUsagePiePanel = [[DiskUsagePieController alloc]
+		initWithDocument: (FileSystemDoc*) [self document]
+		    parentWindow: [self window]];
+	[_diskUsagePiePanel showPanel];
 }
 
 - (void) constrainWindowToScreen

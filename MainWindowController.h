@@ -7,6 +7,7 @@
 #import "OASplitView.h"
 
 @class SelectionListPanelController;
+@class DiskUsagePieController;
 
 @interface MainWindowController : OAToolbarWindowControllerEx
 {
@@ -23,6 +24,10 @@
 
 	// Lazily created on first show.
 	SelectionListPanelController *_selectionListPanel;
+
+	// Created in awakeFromNib if the doc's scan root is a full volume.
+	// nil for folder-only scans.
+	DiskUsagePieController *_diskUsagePiePanel;
 }
 
 + (FileSystemDoc*) documentForView: (NSView*) view;

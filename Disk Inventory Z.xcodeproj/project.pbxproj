@@ -18,6 +18,8 @@
 		D6231F9913BFBDCA716FCE1D /* ZoomInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 44A53064AD9343FD0094705B /* ZoomInfo.m */; };
 		D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */; };
 		ST8000000000000000000001 /* SelectionListPanelController.m in Sources */ = {isa = PBXBuildFile; fileRef = ST8000000000000000000003 /* SelectionListPanelController.m */; };
+		ST8000000000000000000010 /* DIXPieChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = ST8000000000000000000012 /* DIXPieChartView.m */; };
+		ST8000000000000000000011 /* DiskUsagePieController.m in Sources */ = {isa = PBXBuildFile; fileRef = ST8000000000000000000014 /* DiskUsagePieController.m */; };
 		DA0000000000000000000001 /* OASplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0000000000000000000003 /* OASplitView.m */; };
 		E7C86F9EB6E86FDD4DC84467 /* DiskArbitration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F0264D19B4168EF4E7790337 /* DiskArbitration.framework */; };
 		D1A2B3C4D5E6F70819203140 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A2B3C4D5E6F70819203141 /* UniformTypeIdentifiers.framework */; };
@@ -128,6 +130,10 @@
 		585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXSnapshotInfo.m; sourceTree = "<group>"; };
 		ST8000000000000000000002 /* SelectionListPanelController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SelectionListPanelController.h; sourceTree = "<group>"; };
 		ST8000000000000000000003 /* SelectionListPanelController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SelectionListPanelController.m; sourceTree = "<group>"; };
+		ST8000000000000000000013 /* DIXPieChartView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXPieChartView.h; sourceTree = "<group>"; };
+		ST8000000000000000000012 /* DIXPieChartView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DIXPieChartView.m; sourceTree = "<group>"; };
+		ST8000000000000000000015 /* DiskUsagePieController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DiskUsagePieController.h; sourceTree = "<group>"; };
+		ST8000000000000000000014 /* DiskUsagePieController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DiskUsagePieController.m; sourceTree = "<group>"; };
 		5CBF95F97779FB2FA900E971 /* NSView-BackingCoordsHelpers.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "NSView-BackingCoordsHelpers.m"; sourceTree = "<group>"; };
 		70EAE5E91B5B02E625227421 /* DIXAboutButton.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = DIXAboutButton.h; sourceTree = "<group>"; };
 		7C96ACE8083885C47567A708 /* TMVItem.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TMVItem.m; sourceTree = "<group>"; };
@@ -379,6 +385,10 @@
 				585CE14DD78919E307AF33D1 /* DIXSnapshotInfo.m */,
 				ST8000000000000000000002 /* SelectionListPanelController.h */,
 				ST8000000000000000000003 /* SelectionListPanelController.m */,
+				ST8000000000000000000013 /* DIXPieChartView.h */,
+				ST8000000000000000000012 /* DIXPieChartView.m */,
+				ST8000000000000000000015 /* DiskUsagePieController.h */,
+				ST8000000000000000000014 /* DiskUsagePieController.m */,
 			);
 			name = "Disk Inventory Z";
 			sourceTree = "<group>";
@@ -849,6 +859,8 @@
 				D17AB1E1C42A6BCD7EF99001 /* DIXTableView+Sizing.m in Sources */,
 				D8E054CE11A9513C94C1804E /* DIXSnapshotInfo.m in Sources */,
 				ST8000000000000000000001 /* SelectionListPanelController.m in Sources */,
+				ST8000000000000000000010 /* DIXPieChartView.m in Sources */,
+				ST8000000000000000000011 /* DiskUsagePieController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
