@@ -18,7 +18,6 @@
 #import "MyDocumentController.h"
 #import "DrivesPanelController.h"
 #import "Preferences.h"
-#import "PrefsPanelController.h"
 #import "FileSystemDoc.h"
 
 //global variable which enables/disables logging
@@ -189,11 +188,6 @@ BOOL g_EnableLogging;
 	return [super typeForContentsOfURL: inAbsoluteURL error: outError];
 }
 
-- (IBAction) showPreferencesPanel: (id) sender
-{
-	[[PrefsPanelController sharedPreferenceController] showPreferencesPanel: self];
-	//[[OAPreferenceController sharedPreferenceController] showPreferencesPanel: self];
-}
 
 - (IBAction) gotoHomepage: (id) sender
 {
@@ -219,10 +213,6 @@ BOOL g_EnableLogging;
 		@"ShowOtherSpace": @NO,
 		@"ShowPackageContents": @NO,
 		@"ShowPhysicalFileSize": @YES,
-		@"SplitWindowHorizontally": @NO,
-		@"UseSmallFontInFilesView": @NO,
-		@"UseSmallFontInKindStatisticView": @NO,
-		@"UseSmallFontInSelectionList": @NO,
 	}];
 
 	g_EnableLogging = [[NSUserDefaults standardUserDefaults] boolForKey: EnableLogging];

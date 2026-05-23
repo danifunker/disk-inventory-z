@@ -28,7 +28,6 @@
 - (void) onDocumentSelectionChanged;
 - (void) reloadPackages: (FSItem*) parent;
 - (void) reloadData;
-- (void) setOutlineViewFont;
 - (void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context;
 
 @end
@@ -73,15 +72,7 @@
 	[_outlineView dixConfigureColumnsWithNumericIdentifiers: @[ @"size" ]
 	                                     flexibleIdentifier: nil  /*outline column*/];
         
-	[[NSUserDefaultsController sharedUserDefaultsController] addObserver: self
-															  forKeyPath: [@"values." stringByAppendingString: UseSmallFontInFilesView]
-																 options: 0
-																 context: UseSmallFontInFilesView];
-	
 	[doc addObserver: self forKeyPath: DocKeySelectedItem options: 0 context: nil];
-	
-	//set small font for all for all columns if needed
-	[self setOutlineViewFont];
 
     [self reloadData];
 
@@ -288,9 +279,7 @@ objectValueForTableColumn: (NSTableColumn *) tableColumn
 - (void) windowWillClose: (NSNotification*) notification
 {
 	[[self document] removeObserver: self forKeyPath: DocKeySelectedItem];
-	
-	[[NSUserDefaultsController sharedUserDefaultsController] removeObserver: self forKeyPath: [@"values." stringByAppendingString: UseSmallFontInFilesView]];
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
 }
 
@@ -303,11 +292,7 @@ objectValueForTableColumn: (NSTableColumn *) tableColumn
 						change:(NSDictionary*)change
 					   context:(void*)context
 {
-	if ( context == UseSmallFontInFilesView )
-	{
-		[self setOutlineViewFont];
-	}
-	else if ( object == [self document] )
+	if ( object == [self document] )
 	{
 		if ( [keyPath isEqualToString: DocKeySelectedItem] )
 			[self onDocumentSelectionChanged];
@@ -361,21 +346,6 @@ objectValueForTableColumn: (NSTableColumn *) tableColumn
             [_outlineView scrollRowToVisible: row];
         }
     }
-}
-
-- (void) setOutlineViewFont
-{
-	CGFloat fontSize = 0;
-	if ( [[NSUserDefaults standardUserDefaults] boolForKey: UseSmallFontInFilesView] )
-		fontSize = [NSFont smallSystemFontSize];
-	else
-		fontSize = [NSFont systemFontSize];
-	
-	NSFont *font = [NSFont systemFontOfSize: fontSize];
-	
-	[_outlineView setFont: font];
-	
-	[_outlineView setRowHeight: fontSize +4];
 }
 
 - (void) reloadData

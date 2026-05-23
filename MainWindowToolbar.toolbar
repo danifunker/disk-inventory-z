@@ -5,7 +5,6 @@
 	<key>allowedItemIdentifiers</key>
 	<array>
 		<string>ShowInfo</string>
-		<string>ShowPreferences</string>
 		<string>ChooseAnotherDisk</string>
 		<string>ToggleKindsStatisticDrawer</string>
 		<string>ShowPackageContents</string>
@@ -92,15 +91,6 @@
 			<string>shippingbox</string>
 			<key>imageNameOffState</key>
 			<string>shippingbox.fill</string>
-		</dict>
-		<key>ShowPreferences</key>
-		<dict>
-			<key>action</key>
-			<string>showPreferencesPanel:</string>
-			<key>imageName</key>
-			<string>gearshape</string>
-			<key>target</key>
-			<string>documentController</string>
 		</dict>
 		<key>ToggleKindsStatisticDrawer</key>
 		<dict>

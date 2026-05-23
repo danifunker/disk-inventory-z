@@ -31,7 +31,6 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 @interface FileKindsTableController(Private)
 
 - (NSImage*) colorImageForRow: (int) row column: (NSTableColumn*) column;
-- (void) setTableViewFont;
 
 @end
 
@@ -58,19 +57,12 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 	//set up KVO
 	NSUserDefaultsController *sharedDefsController = [NSUserDefaultsController sharedUserDefaultsController];
 	[sharedDefsController addObserver: self
-						   forKeyPath: [@"values." stringByAppendingString: UseSmallFontInKindStatistic]
-							  options: 0
-							  context: UseSmallFontInKindStatistic];
-	[sharedDefsController addObserver: self
 						   forKeyPath: [@"values." stringByAppendingString: ShareKindColors]
 							  options: 0
 							  context: ShareKindColors];
-	
+
 	[_kindsTableArrayController addObserver: self forKeyPath: @"arrangedObjects" options: 0 context: nil];
-	
-	//set small font for all for all columns if needed
-	[self setTableViewFont];
-    
+
 	//set initial sorting (descendant size)
 	NSTableColumn *sizeColumn = [_tableView tableColumnWithIdentifier: @"size"];
 	NSArray *initialSortDescriptors = [NSArray arrayWithObject: [[sizeColumn sortDescriptorPrototype] reversedSortDescriptor]];
@@ -175,7 +167,17 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 - (void) tableView: (NSTableView*) tableView willDisplayCell: (id) cell forTableColumn: (NSTableColumn*) tableColumn row: (int) row
 {
 	if ( [[tableColumn identifier] isEqualToString: @"color"] )
+	{
+		// Make the cushion fill the whole cell. Without this the image cell
+		// centers a fixed-size image, so when a split-view collapse/expand
+		// leaves the row height different from the cached bitmap's height the
+		// cushion floats with a gap below it.
+		if ( [cell respondsToSelector: @selector(setImageScaling:)] )
+			[cell setImageScaling: NSImageScaleAxesIndependently];
+		if ( [cell respondsToSelector: @selector(setImageAlignment:)] )
+			[cell setImageAlignment: NSImageAlignCenter];
 		[cell setImage: [self colorImageForRow: row column: tableColumn]];
+	}
 	// Kind column truncation is handled by the DIXTruncatingTextFieldCell
 	// installed as that column's dataCell in -dixConfigureColumns...
 }
@@ -196,9 +198,7 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 {
 	LOG( @"FileKindsTableColumn.observeValueForKeyPath: keyPath: %@, change dict:%@", keyPath, change );
 	
-	if ( context == UseSmallFontInKindStatistic )
-		[self setTableViewFont];
-	else if ( context == ShareKindColors )
+	if ( context == ShareKindColors )
 	{
 		[_cushionImages release];
 		_cushionImages = nil;
@@ -264,21 +264,6 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 	return image;
 }
 
-- (void) setTableViewFont
-{
-	float fontSize = 0;
-	if ( [[NSUserDefaults standardUserDefaults] boolForKey: UseSmallFontInKindStatistic] )
-		fontSize = [NSFont smallSystemFontSize];
-	else
-		fontSize = [NSFont systemFontSize];
-	
-	NSFont *font = [NSFont systemFontOfSize: fontSize];
-
-	[_tableView setFont: font];
-	
-	[_tableView setRowHeight: fontSize +4];
-}
-
 #pragma mark --------document notifications-----------------
 
 - (void) documentSelectionChanged: (NSNotification*) notification
@@ -307,7 +292,6 @@ NSString * const DIXShowKindInSelectionListKindNameKey     = @"kindName";
 - (void) windowWillClose: (NSNotification*) notification
 {
 	NSUserDefaultsController *sharedDefsController = [NSUserDefaultsController sharedUserDefaultsController];
-	[sharedDefsController removeObserver: self forKeyPath: [@"values." stringByAppendingString: UseSmallFontInKindStatistic]];
 	[sharedDefsController removeObserver: self forKeyPath: [@"values." stringByAppendingString: ShareKindColors]];
     
 	[_kindsTableArrayController removeObserver: self forKeyPath: @"arrangedObjects"];

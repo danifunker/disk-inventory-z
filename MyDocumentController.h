@@ -22,7 +22,6 @@
 	IBOutlet NSMenu* _zoomStackMenu;
 }
 
-- (IBAction) showPreferencesPanel: (id) sender;
 - (IBAction) gotoHomepage: (id) sender;
 
 - (void) openDocumentWithContentsOfFile: (NSString*) fileName; //calls "openDocumentWithContentsOfFile: fileName display: [self shouldCreateUI]"

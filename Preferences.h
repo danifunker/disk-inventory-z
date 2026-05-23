@@ -15,10 +15,6 @@ extern NSString *ShowFreeSpace;
 extern NSString *ShowOtherSpace;
 extern NSString *IgnoreCreatorCode;
 extern NSString *ShowPhysicalFileSize; //logical size otherwise (like the Finder)
-extern NSString *UseSmallFontInKindStatistic;
-extern NSString *UseSmallFontInFilesView;
-extern NSString *UseSmallFontInSelectionList;
-extern NSString *SplitWindowHorizontally;
 extern NSString *AnimatedZooming;
 extern NSString *EnableLogging;
 extern NSString *DontShowPrivacyWarningMessage;

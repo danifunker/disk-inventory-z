@@ -26,6 +26,15 @@
 - (NSView*) labeledSwitchWithTitle: (NSString*) title defaultsKey: (NSString*) key;
 - (void) filterSwitchToggled: (NSSwitch*) sender;
 - (BOOL) shouldShowVolumeKind: (DIXVolumeKind) kind;
+- (BOOL) replaceSelectFolderButtonUnderView: (NSView*) view;
+- (void) installScanSettingsButtonInWindow: (NSWindow*) window;
+- (NSButton*) findFolderButtonUnderView: (NSView*) view;
+@end
+
+// Popover content for the Volume Search Settings gear button. Three
+// checkboxes bound to the scan-time defaults keys; a newly opened document
+// copies these in -[NSMutableDictionary(DocumentPreferences) initWithDefaults].
+@interface DIXVolumeSearchSettingsPopoverVC : NSViewController
 @end
 
 // Retains the nib's top-level objects, since the modern instance-method
@@ -58,6 +67,7 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 - (void) rebuildVolumesArray;
 - (void) rebuildProgressIndicatorArray;
 - (void) onVolumesChanged: (NSNotification*) notification;
+- (void) resizePanelToFitVolumeRowsAnimated: (BOOL) animated;
 
 @end
 
@@ -157,6 +167,14 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		// it here so the close affordance matches what ⌘W / ⌘Q already do.
 		[_volumesPanel setStyleMask: [_volumesPanel styleMask] | NSWindowStyleMaskClosable];
 
+		// The panel is a nib top-level object we own via _nibTopLevelObjects.
+		// NSWindow defaults to releasedWhenClosed = YES, so closing the panel
+		// (allowed by windowShouldClose: once a document is open) would free
+		// the window out from under our retained outlet — the next
+		// -showPanel (e.g. "Choose Another Disk") would then message a freed
+		// window and crash. Opt out so close just hides/orders-out.
+		[_volumesPanel setReleasedWhenClosed: NO];
+
 		// Closing the volumes panel when nothing has been opened yet would
 		// otherwise leave the app running with no visible UI (the Dock icon
 		// stays, but there's no window to bring back). Treat that case as
@@ -172,6 +190,17 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		// (local drives only) so the volume list and these switches stay
 		// consistent on first launch.
 		[self installFilterSwitchesInWindow: _volumesPanel];
+
+		// Replace the "Select Folder: [...]" ellipsis button (xib title "...")
+		// with a folder SF Symbol so the affordance reads as a file picker
+		// instead of a generic overflow button. The button isn't a direct
+		// child of contentView, so we recurse.
+		[self replaceSelectFolderButtonUnderView: [_volumesPanel contentView]];
+
+		// "Scan Settings" button in the bottom row, between the folder picker
+		// and the Open Volume button. Opens the scan-options popover (applied
+		// to the next opened volume/folder).
+		[self installScanSettingsButtonInWindow: _volumesPanel];
 
 		// Snapshot the natural frame (nib + installed switches) so we can
 		// restore it every time the panel is re-shown. Without this, AppKit
@@ -192,6 +221,7 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
     [_volumes release];
 	[_progressIndicators release];
 	[_nibTopLevelObjects release];
+	[_searchSettingsPopover release];
 
     [super dealloc];
 }
@@ -250,6 +280,12 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		[_volumesPanel setFrame: tgt display: NO];
 	}
 	[[self panel] orderFront: nil];
+
+	// Fit the panel to the current number of volume rows (the count can
+	// differ from when _naturalFrame was last snapshotted — drives mounted
+	// or unmounted, filter switches toggled). No animation: the window is
+	// appearing, so a resize animation would look like a glitch.
+	[self resizePanelToFitVolumeRowsAnimated: NO];
 }
 
 - (NSWindow*) panel
@@ -283,6 +319,108 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 // and the volumes table. The window is grown to make room and the scroll view
 // (heightSizable) is slid up by the same amount so the new strip lives in the
 // freed space rather than overlapping the original controls.
+- (BOOL) replaceSelectFolderButtonUnderView: (NSView*) view
+{
+	for ( NSView *sub in [view subviews] )
+	{
+		if ( [sub isKindOfClass: [NSButton class]] )
+		{
+			NSButton *btn = (NSButton*)sub;
+			BOOL matchesAction = [btn action] == @selector(openDocument:);
+			BOOL matchesTitle  = [[btn title] isEqualToString: @"..."]
+			                  || [[btn title] isEqualToString: @"…"];
+			if ( matchesAction || matchesTitle )
+			{
+				NSImage *folder = [NSImage imageWithSystemSymbolName: @"folder"
+				                            accessibilityDescription: NSLocalizedString(@"Select Folder", @"")];
+				[btn setImage: folder];
+				[btn setImagePosition: NSImageOnly];
+				[btn setTitle: @""];
+				[btn setToolTip: NSLocalizedString(@"Select a folder to scan", @"")];
+				return YES;
+			}
+		}
+		if ( [self replaceSelectFolderButtonUnderView: sub] )
+			return YES;
+	}
+	return NO;
+}
+
+- (NSButton*) findFolderButtonUnderView: (NSView*) view
+{
+	for ( NSView *sub in [view subviews] )
+	{
+		if ( [sub isKindOfClass: [NSButton class]]
+		     && [(NSButton*)sub action] == @selector(openDocument:) )
+			return (NSButton*)sub;
+		NSButton *found = [self findFolderButtonUnderView: sub];
+		if ( found != nil )
+			return found;
+	}
+	return nil;
+}
+
+- (void) installScanSettingsButtonInWindow: (NSWindow*) window
+{
+	NSView *content = [window contentView];
+	if ( content == nil || _openVolumeButton == nil )
+		return;
+
+	NSButton *folderBtn = [self findFolderButtonUnderView: content];
+	if ( folderBtn == nil )
+		return;
+
+	// Vertically align with the Open Volume button; sit horizontally in the
+	// gap between the folder picker (left) and Open Volume (right).
+	NSRect ovFrame = [content convertRect: [_openVolumeButton bounds] fromView: _openVolumeButton];
+	NSRect folderFrame = [content convertRect: [folderBtn bounds] fromView: folderBtn];
+
+	CGFloat leftEdge  = NSMaxX(folderFrame) + 4;
+	CGFloat rightEdge = NSMinX(ovFrame) - 4;
+	CGFloat gapWidth  = rightEdge - leftEdge;
+	if ( gapWidth < 24 )
+		return;
+
+	NSButton *btn = [[NSButton alloc] initWithFrame: NSZeroRect];
+	[btn setBezelStyle: NSBezelStyleRounded];
+	[btn setControlSize: NSControlSizeRegular];
+	[btn setTitle: NSLocalizedString(@"Scan Settings", @"")];
+	[btn setImage: [NSImage imageWithSystemSymbolName: @"gearshape"
+	                         accessibilityDescription: NSLocalizedString(@"Scan Settings", @"")]];
+	[btn setImagePosition: NSImageLeading];
+	[btn setFont: [NSFont systemFontOfSize: [NSFont systemFontSize]]];
+	[btn setTarget: self];
+	[btn setAction: @selector(showScanSettings:)];
+	[btn setToolTip: NSLocalizedString(@"Settings applied when you open a volume or folder", @"")];
+	[btn sizeToFit];
+
+	CGFloat w = fmin( NSWidth([btn frame]), gapWidth );
+	CGFloat x = leftEdge + (gapWidth - w) / 2;
+	[btn setFrame: NSMakeRect( x, NSMinY(ovFrame), w, NSHeight(ovFrame) )];
+	[btn setAutoresizingMask: NSViewMinXMargin | NSViewMaxXMargin | NSViewMaxYMargin];
+	[content addSubview: btn];
+	[btn release];
+}
+
+- (IBAction) showScanSettings: (id) sender
+{
+	if ( _searchSettingsPopover == nil )
+	{
+		_searchSettingsPopover = [[NSPopover alloc] init];
+		[_searchSettingsPopover setBehavior: NSPopoverBehaviorTransient];
+		[_searchSettingsPopover setContentViewController:
+			[[[DIXVolumeSearchSettingsPopoverVC alloc] init] autorelease]];
+	}
+
+	NSView *anchor = [sender isKindOfClass: [NSView class]] ? (NSView*)sender : nil;
+	if ( anchor == nil )
+		return;
+
+	[_searchSettingsPopover showRelativeToRect: [anchor bounds]
+	                                    ofView: anchor
+	                             preferredEdge: NSRectEdgeMaxY];
+}
+
 - (void) installFilterSwitchesInWindow: (NSWindow*) window
 {
 	NSView *content = [window contentView];
@@ -340,13 +478,11 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	[strip setAutoresizingMask: NSViewWidthSizable | NSViewMaxYMargin];
 
 	NSArray<NSString*> *titles = @[
-		NSLocalizedString(@"Show Package Contents", @""),
 		NSLocalizedString(@"Show External Devices", @""),
 		NSLocalizedString(@"Show Mounted Images",   @""),
 		NSLocalizedString(@"Show Network Drives",   @""),
 	];
 	NSArray<NSString*> *keys = @[
-		ShowPackageContents,
 		DIXShowExternalDevicesKey,
 		DIXShowMountedImagesKey,
 		DIXShowNetworkDrivesKey,
@@ -390,19 +526,13 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	[[NSUserDefaults standardUserDefaults] setBool: ([sender state] == NSControlStateValueOn)
 											forKey: key];
 
-	// Only the volume-kind switches affect which volumes are in the list.
-	// ShowPackageContents is consumed by FileSystemDoc at scan time for
-	// newly-opened documents, so no rebuild needed here.
-	if ( [key isEqualToString: ShowPackageContents] )
-		return;
-
 	[self rebuildVolumesArray];
-	[self resizePanelToFitVolumeRows];
+	[self resizePanelToFitVolumeRowsAnimated: YES];
 }
 
 // Resize the panel so the table shows every volume row without scrolling.
 // Keep the top edge of the panel anchored so the title bar doesn't jump.
-- (void) resizePanelToFitVolumeRows
+- (void) resizePanelToFitVolumeRowsAnimated: (BOOL) animated
 {
 	NSScrollView *scroller = [_volumesTableView enclosingScrollView];
 	if ( scroller == nil || _volumesPanel == nil )
@@ -415,8 +545,11 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	                : 0;
 	CGFloat intra = [_volumesTableView intercellSpacing].height;
 
-	// Desired scroll view content height = all rows + header + spacing.
-	CGFloat desiredContent = (rows * rowH) + (rows > 0 ? (rows - 1) * intra : 0) + hdrH + 2;
+	// Desired scroll view content height = all rows + header + spacing, plus
+	// a few points of slack so the last row never sits flush against the
+	// bottom and triggers a vertical scroller.
+	const CGFloat kBottomPadding = 6;
+	CGFloat desiredContent = (rows * rowH) + (rows > 0 ? (rows - 1) * intra : 0) + hdrH + kBottomPadding;
 	CGFloat currentContent = NSHeight([scroller frame]);
 	CGFloat delta = desiredContent - currentContent;
 	if ( fabs(delta) < 1 )
@@ -440,7 +573,7 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	if ( target.origin.y < NSMinY(vis) )
 		target.origin.y = NSMinY(vis);
 
-	[_volumesPanel setFrame: target display: YES animate: YES];
+	[_volumesPanel setFrame: target display: YES animate: animated];
 
 	// Update the snapshot so a subsequent close → reopen lands at this size.
 	_naturalFrame = target;
@@ -658,5 +791,108 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 }
 
 
+
+@end
+
+#pragma mark -----------------DIXVolumeSearchSettingsPopoverVC-----------------
+
+@implementation DIXVolumeSearchSettingsPopoverVC
+
+- (NSView*) makeRowWithTitle: (NSString*) title
+                 defaultsKey: (NSString*) key
+                 description: (NSString*) desc
+{
+	NSView *row = [[[NSView alloc] initWithFrame: NSZeroRect] autorelease];
+	[row setTranslatesAutoresizingMaskIntoConstraints: NO];
+
+	NSButton *check = [NSButton checkboxWithTitle: title target: nil action: NULL];
+	[check setTranslatesAutoresizingMaskIntoConstraints: NO];
+	[check bind: NSValueBinding
+	   toObject: [NSUserDefaultsController sharedUserDefaultsController]
+	withKeyPath: [@"values." stringByAppendingString: key]
+	    options: nil];
+	[row addSubview: check];
+
+	NSArray *constraints = @[
+		[[check topAnchor] constraintEqualToAnchor: [row topAnchor]],
+		[[check leadingAnchor] constraintEqualToAnchor: [row leadingAnchor]],
+		[[check trailingAnchor] constraintLessThanOrEqualToAnchor: [row trailingAnchor]],
+	];
+
+	if ( [desc length] > 0 )
+	{
+		NSTextField *descLabel = [NSTextField wrappingLabelWithString: desc];
+		[descLabel setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+		[descLabel setTextColor: [NSColor secondaryLabelColor]];
+		[descLabel setTranslatesAutoresizingMaskIntoConstraints: NO];
+		[row addSubview: descLabel];
+
+		constraints = [constraints arrayByAddingObjectsFromArray: @[
+			[[descLabel topAnchor] constraintEqualToAnchor: [check bottomAnchor] constant: 2],
+			[[descLabel leadingAnchor] constraintEqualToAnchor: [check leadingAnchor] constant: 18],
+			[[descLabel trailingAnchor] constraintEqualToAnchor: [row trailingAnchor]],
+			[[descLabel bottomAnchor] constraintEqualToAnchor: [row bottomAnchor]],
+		]];
+	}
+	else
+	{
+		constraints = [constraints arrayByAddingObject:
+			[[check bottomAnchor] constraintEqualToAnchor: [row bottomAnchor]]];
+	}
+
+	[NSLayoutConstraint activateConstraints: constraints];
+	return row;
+}
+
+- (void) loadView
+{
+	NSView *root = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, 380, 240)] autorelease];
+	[self setView: root];
+
+	NSStackView *stack = [[[NSStackView alloc] initWithFrame: NSZeroRect] autorelease];
+	[stack setOrientation: NSUserInterfaceLayoutOrientationVertical];
+	[stack setAlignment: NSLayoutAttributeLeading];
+	[stack setSpacing: 14];
+	[stack setEdgeInsets: NSEdgeInsetsMake(16, 16, 16, 16)];
+	[stack setTranslatesAutoresizingMaskIntoConstraints: NO];
+	[root addSubview: stack];
+
+	[NSLayoutConstraint activateConstraints: @[
+		[[stack topAnchor] constraintEqualToAnchor: [root topAnchor]],
+		[[stack leadingAnchor] constraintEqualToAnchor: [root leadingAnchor]],
+		[[stack trailingAnchor] constraintEqualToAnchor: [root trailingAnchor]],
+		[[stack bottomAnchor] constraintEqualToAnchor: [root bottomAnchor]],
+		[[root widthAnchor] constraintEqualToConstant: 380],
+	]];
+
+	NSView *pkgRow = [self makeRowWithTitle: NSLocalizedString(@"Show Package Contents", @"")
+	                            defaultsKey: ShowPackageContents
+	                            description: NSLocalizedString(@"Treat application and document packages as folders so their contents appear in the scan.", @"")];
+
+	NSView *creatorRow = [self makeRowWithTitle: NSLocalizedString(@"Ignore Creator Code", @"")
+	                                defaultsKey: IgnoreCreatorCode
+	                                description: NSLocalizedString(@"If set, e.g. PDF files opened by the Finder with Acrobat or Preview are regarded to have the same kind.", @"")];
+
+	NSView *physicalRow = [self makeRowWithTitle: NSLocalizedString(@"Show Physical File Size", @"")
+	                                 defaultsKey: ShowPhysicalFileSize
+	                                 description: NSLocalizedString(@"The physical size is the space that a file occupies on a drive. Many applications show the logical size, which is the size of a file's content.", @"")];
+
+	NSTextField *footer = [NSTextField wrappingLabelWithString:
+		NSLocalizedString(@"These settings apply to the next volume or folder you open.", @"")];
+	[footer setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+	[footer setTextColor: [NSColor tertiaryLabelColor]];
+	[footer setTranslatesAutoresizingMaskIntoConstraints: NO];
+
+	[stack addArrangedSubview: pkgRow];
+	[stack addArrangedSubview: creatorRow];
+	[stack addArrangedSubview: physicalRow];
+	[stack addArrangedSubview: footer];
+
+	for ( NSView *row in @[pkgRow, creatorRow, physicalRow, footer] )
+	{
+		[[row widthAnchor] constraintEqualToAnchor: [stack widthAnchor]
+		                                  constant: -32].active = YES;
+	}
+}
 
 @end

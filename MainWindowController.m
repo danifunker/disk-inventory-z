@@ -113,14 +113,6 @@
 
 - (void) awakeFromNib
 {
-	// SplitWindowHorizontally controls the OUTER split orientation:
-	// default (vertical=NO) → (files+kinds) on top, treemap on bottom.
-	// If the user toggled "Split Vertically" historically, flip to L/R.
-	if ( [[NSUserDefaults standardUserDefaults] boolForKey: SplitWindowHorizontally] )
-	{
-		[_splitter setVertical: NO];
-	}
-
 	// Use new autosave names: the old "MainWindowSplitter" key was written
 	// by the previous files↔treemap OASplitView (vertical=YES, ~700pt wide)
 	// and would now restore a geometrically meaningless divider position
@@ -1364,13 +1356,19 @@
 	                                   defaultsKey: AnimatedZooming
 	                                   description: NSLocalizedString(@"Turn this off if the animation is too slow on your machine or if you don't like it.", @"")];
 
+	NSView *shareColorsRow = [self makeRowWithSwatchColor: nil
+	                                                title: NSLocalizedString(@"Match file-kind colors across open windows", @"")
+	                                          defaultsKey: ShareKindColors
+	                                          description: NSLocalizedString(@"Give each file kind the same color in every open window, so a kind looks identical in the treemap and the Kind list across scans. Turn off to let each window color its own largest kinds independently.", @"")];
+
 	[stack addArrangedSubview: freeRow];
 	[stack addArrangedSubview: otherRow];
 	[stack addArrangedSubview: animRow];
+	[stack addArrangedSubview: shareColorsRow];
 
 	// Each row should stretch the full popover width so the wrapping
 	// description labels know how wide they may be.
-	for ( NSView *row in @[freeRow, otherRow, animRow] )
+	for ( NSView *row in @[freeRow, otherRow, animRow, shareColorsRow] )
 	{
 		[[row widthAnchor] constraintEqualToAnchor: [stack widthAnchor]
 		                                  constant: -32].active = YES;

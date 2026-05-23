@@ -20,7 +20,6 @@
 
 @interface SelectionListTableController(Privat)
 
-- (void) setTableViewFont;
 - (void) onDocumentSelectionChanged;
 - (void) onSelectionListSelectionChanged;
 
@@ -49,11 +48,6 @@
 	// to display immediately on first show; the cost is small.
 	
 	//set up KVO
-	[[NSUserDefaultsController sharedUserDefaultsController] addObserver: self
-															  forKeyPath: [@"values." stringByAppendingString: UseSmallFontInSelectionList]
-																 options: 0
-																 context: UseSmallFontInSelectionList];
-
 	[doc addObserver: self forKeyPath: DocKeySelectedItem options: 0 context: nil];
 	[_selectionListArrayController addObserver: self forKeyPath: @"selection" options: 0 context: nil];
 
@@ -64,9 +58,6 @@
 	NSTableColumn *sizeColumn = [_tableView tableColumnWithIdentifier: @"size"];
 	NSArray *initialSortDescriptors = [NSArray arrayWithObject: [[sizeColumn sortDescriptorPrototype] reversedSortDescriptor]];
 	[_selectionListArrayController setSortDescriptors: initialSortDescriptors];
-
-	//set small font for all for all columns if needed
-	[self setTableViewFont];
 
 	//columns fill the drawer width; size column fixed, displayName flexible.
 	// Path (identifier "displayPath" in the nib) is the flex column so it
@@ -138,9 +129,7 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 - (void) windowWillClose: (NSNotification*) notification
 {
 	[[self document] removeObserver: self forKeyPath: DocKeySelectedItem];
-	
-	[[NSUserDefaultsController sharedUserDefaultsController] removeObserver: self forKeyPath: [@"values." stringByAppendingString: UseSmallFontInSelectionList]];
-    
+
 	[_selectionListArrayController removeObserver: self forKeyPath: @"selection"];
 
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
@@ -154,11 +143,7 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 						change:(NSDictionary*)change
 					   context:(void*)context
 {
-	if ( context == UseSmallFontInSelectionList )
-	{
-		[self setTableViewFont];
-	}
-	else if ( object == [self document] )
+	if ( object == [self document] )
 	{
 		if ( [keyPath isEqualToString: DocKeySelectedItem] )
 			[self onDocumentSelectionChanged];
@@ -173,21 +158,6 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 @end
 
 @implementation SelectionListTableController(Privat)
-
-- (void) setTableViewFont
-{
-	float fontSize = 0;
-	if ( [[NSUserDefaults standardUserDefaults] boolForKey: UseSmallFontInSelectionList] )
-		fontSize = [NSFont smallSystemFontSize];
-	else
-		fontSize = [NSFont systemFontSize];
-	
-	NSFont *font = [NSFont systemFontOfSize: fontSize];
-	
-	[_tableView setFont: font];
-	
-	[_tableView setRowHeight: fontSize +4];
-}
 
 - (void) onDocumentSelectionChanged
 {

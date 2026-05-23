@@ -28,6 +28,8 @@
     unsigned long long _maxVolumeSize; // size of largest volumes
     BOOL _didSeedInitialSelection;     // first -rebuildVolumesArray seeded row 0
     NSRect _naturalFrame;              // post-nib size; restored on each -showPanel
+
+    NSPopover *_searchSettingsPopover; // gear-button popover with scan options
 }
 
 + (DrivesPanelController*) sharedController;
@@ -39,5 +41,6 @@
 - (NSArray*) volumes;
 
 - (IBAction) openVolume:(id)sender;
+- (IBAction) showScanSettings:(id)sender;
 
 @end
