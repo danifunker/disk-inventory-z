@@ -1,0 +1,128 @@
+name: Bug Report
+description: Report a crash, error, or something not working correctly.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! The more detail you give
+        below, the faster it can be diagnosed. Fields marked **required**
+        must be filled in.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the problem. What did you do, and what went wrong?
+      placeholder: |
+        I clicked "Choose Another Disk" while a scan was running and the app quit unexpectedly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Step-by-step, so the issue can be reproduced.
+      placeholder: |
+        1. Open Disk Inventory Z
+        2. Scan my Macintosh HD
+        3. While it is still scanning, click the "Choose Another Disk" toolbar button
+        4. App crashes
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Disk Inventory Z version
+      description: >
+        In the menu bar, click **Disk Inventory Z → About Disk Inventory Z**.
+        The version number (e.g. 2.0.0) is shown in that window.
+      placeholder: "2.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: |
+        Two ways to find this:
+        • **Menu:** Apple menu () → **About This Mac** — note the name and number (e.g. "macOS Tahoe 26.1").
+        • **Terminal:** run `sw_vers -productVersion` (prints just the number, e.g. 26.1).
+      placeholder: "macOS Tahoe 26.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Mac processor
+      description: >
+        Apple menu () → About This Mac shows the chip. Or in Terminal run
+        `uname -m` — `arm64` = Apple Silicon, `x86_64` = Intel.
+      options:
+        - Apple Silicon (M1/M2/M3/M4, arm64)
+        - Intel (x86_64)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: scan-target
+    attributes:
+      label: What were you scanning?
+      description: e.g. the internal drive, a specific folder, an external/USB drive, a network share, a mounted disk image.
+      placeholder: "Internal drive (Macintosh HD)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: crash-log
+    attributes:
+      label: Crash report or error output
+      description: |
+        If the app crashed, please paste the crash report. To get it:
+        • When the crash dialog appears, click **Report…** (or **Details**), then select all the text and copy it.
+        • Or open **Console.app** → **Crash Reports** in the left sidebar → find "Disk Inventory Z" → right-click → **Reveal in Finder**, or copy the contents.
+        • Crash logs are also stored at `~/Library/Logs/DiagnosticReports/` (files starting with `Disk Inventory Z`).
+
+        Paste the full report below — it will be formatted automatically.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If it's a visual or layout issue, drag-and-drop screenshots here. (Paste images directly into this box.)
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Anything else?
+      description: Other details that might help — unusual filesystem (APFS/exFAT/NTFS), very large drives, FileVault, external enclosures, etc.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched [existing issues](https://github.com/danifunker/disk-inventory-z/issues) and didn't find a duplicate.
+          required: true
+        - label: I'm using the latest version from the [Releases](https://github.com/danifunker/disk-inventory-z/releases) page.
+          required: true
