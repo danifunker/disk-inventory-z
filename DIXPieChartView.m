@@ -7,12 +7,12 @@
 
 @implementation DIXPieChartView
 
-+ (NSColor*) otherUsedWedgeColor
++ (NSColor*) otherSpaceColor
 {
     return [NSColor systemPurpleColor];
 }
 
-+ (NSColor*) freeWedgeColor
++ (NSColor*) freeSpaceColor
 {
     // Appearance-aware neutral: light gray on Aqua, dark gray on dark
     // mode. Avoids the "this looks like usage too" feel of green/blue
@@ -131,8 +131,8 @@
     // Free wedge gets its own stroked outline so it reads against the
     // panel background despite the low-saturation fill.
     NSColor *cScanned   = [NSColor systemBlueColor];
-    NSColor *cOtherUsed = [[self class] otherUsedWedgeColor];
-    NSColor *cFree      = [[self class] freeWedgeColor];
+    NSColor *cOtherUsed = [[self class] otherSpaceColor];
+    NSColor *cFree      = [[self class] freeSpaceColor];
 
     CGFloat startAngle = 90;
     CGFloat sweepScanned   = (CGFloat)(fScanned   * 360.0);

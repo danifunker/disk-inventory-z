@@ -23,14 +23,14 @@
           otherUsedBytes: (unsigned long long) otherUsed
                freeBytes: (unsigned long long) free;
 
-// Returns a color that adapts to the current appearance: a light, neutral
-// gray in light mode; a dark, neutral gray in dark mode. Used for the
-// "free" wedge so it doesn't read as "this is also usage" the way the
-// system colors do.
-+ (NSColor*) freeWedgeColor;
+// Canonical color for "free space" — used by the pie wedge, the treemap
+// block, and the settings popover swatch. Adapts to the current appearance
+// (light neutral gray in Aqua, dark neutral gray in Dark Mode) so it never
+// reads as "this is also usage" the way a system color would.
++ (NSColor*) freeSpaceColor;
 
-// Color used for the "other used" wedge. Centralized so the controller's
-// legend swatch matches whatever the pie draws.
-+ (NSColor*) otherUsedWedgeColor;
+// Canonical color for "other used" — pie wedge, treemap block, and
+// settings popover swatch all read from here so they stay in sync.
++ (NSColor*) otherSpaceColor;
 
 @end

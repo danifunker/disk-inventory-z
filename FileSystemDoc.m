@@ -203,7 +203,15 @@ NSString *DIXScanItemCount = @"DIXScanItemCount";
 		[sharedDefsController addObserver: self
 							   forKeyPath: [@"values." stringByAppendingString: ShareKindColors]
 								  options: 0
-								  context: ShareKindColors];		
+								  context: ShareKindColors];
+		[sharedDefsController addObserver: self
+							   forKeyPath: [@"values." stringByAppendingString: ShowFreeSpace]
+								  options: 0
+								  context: ShowFreeSpace];
+		[sharedDefsController addObserver: self
+							   forKeyPath: [@"values." stringByAppendingString: ShowOtherSpace]
+								  options: 0
+								  context: ShowOtherSpace];
     }
     return self;
 }
@@ -214,6 +222,8 @@ NSString *DIXScanItemCount = @"DIXScanItemCount";
 	
 	NSUserDefaultsController *sharedDefsController = [NSUserDefaultsController sharedUserDefaultsController];
 	[sharedDefsController removeObserver: self forKeyPath: [@"values." stringByAppendingString: ShareKindColors]];
+	[sharedDefsController removeObserver: self forKeyPath: [@"values." stringByAppendingString: ShowFreeSpace]];
+	[sharedDefsController removeObserver: self forKeyPath: [@"values." stringByAppendingString: ShowOtherSpace]];
 	
 	[_viewOptions release];
     [_fileKindStatistics release];
@@ -1328,8 +1338,20 @@ NSString *DIXScanItemCount = @"DIXScanItemCount";
 		[_kindColors reset];
 		[_kindColors release];
 		_kindColors = nil;
-		
+
 		[self reserveColorsForLargestKinds];
+	}
+	else if ( context == ShowFreeSpace )
+	{
+		BOOL newValue = [[NSUserDefaults standardUserDefaults] boolForKey: ShowFreeSpace];
+		if ( newValue != [self showFreeSpace] )
+			[self setShowFreeSpace: newValue];
+	}
+	else if ( context == ShowOtherSpace )
+	{
+		BOOL newValue = [[NSUserDefaults standardUserDefaults] boolForKey: ShowOtherSpace];
+		if ( newValue != [self showOtherSpace] )
+			[self setShowOtherSpace: newValue];
 	}
 }
 

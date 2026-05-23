@@ -15,6 +15,7 @@
 		<string>RefreshSelection</string>
 		<string>RefreshAll</string>
 		<string>MoveToTrash</string>
+		<string>TreeMapSettings</string>
 		<string>NSToolbarSeparatorItem</string>
 		<string>NSToolbarSpaceItem</string>
 		<string>NSToolbarFlexibleSpaceItem</string>
@@ -22,6 +23,7 @@
 	</array>
 	<key>defaultItemIdentifiers</key>
 	<array>
+		<string>TreeMapSettings</string>
 		<string>ChooseAnotherDisk</string>
 		<string>ZoomIn</string>
 		<string>ZoomOut</string>
@@ -115,6 +117,17 @@
 			<string>zoomIn:</string>
 			<key>imageName</key>
 			<string>plus.magnifyingglass</string>
+		</dict>
+		<key>TreeMapSettings</key>
+		<dict>
+			<key>label</key>
+			<string>Settings</string>
+			<key>toolTip</key>
+			<string>Treemap display options</string>
+			<key>action</key>
+			<string>showTreeMapSettingsPopover:</string>
+			<key>imageName</key>
+			<string>gearshape</string>
 		</dict>
 		<key>ZoomOut</key>
 		<dict>

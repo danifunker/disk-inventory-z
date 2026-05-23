@@ -88,10 +88,10 @@
                                        color: [NSColor systemBlueColor]
                                         text: @"…"];
     _otherUsedLabel = [self addLegendRowAtY: legendY + 24
-                                       color: [DIXPieChartView otherUsedWedgeColor]
+                                       color: [DIXPieChartView otherSpaceColor]
                                         text: @"…"];
     _freeLabel      = [self addLegendRowAtY: legendY + 0
-                                       color: [DIXPieChartView freeWedgeColor]
+                                       color: [DIXPieChartView freeSpaceColor]
                                         text: @"…"];
 
     // Explainer: small italic text describing what "Other" might be.

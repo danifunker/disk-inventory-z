@@ -19,6 +19,7 @@
 #import "MainWindowController.h"
 #import "FileSizeFormatter.h"
 #import "FSItem-Utilities.h"
+#import "DIXPieChartView.h"
 
 @interface TreeMapViewController(Private)
 
@@ -191,12 +192,13 @@
 			color = [[[self document] fileTypeColors] colorForItem: fsItem];
 			break;
 		case FreeSpaceItem:
-			color = [NSColor colorWithCalibratedWhite: 1 alpha: 1];
-			//color = [NSColor colorWithCalibratedRed: 0 green: 0 blue: 0 alpha: 1];
+			// Resolve dynamic/catalog color to concrete RGB first — normalizeColor
+			// queries -colorSpace, which throws on appearance-aware catalog colors.
+			color = [[DIXPieChartView freeSpaceColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
 			color = [TMVCushionRenderer normalizeColor: color];
 			break;
 		case OtherSpaceItem:
-			color = [NSColor colorWithCalibratedRed: 0.2 green: 0.2 blue: 0.2 alpha: 1];
+			color = [[DIXPieChartView otherSpaceColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
 			color = [TMVCushionRenderer normalizeColor: color];
 			break;
 	}

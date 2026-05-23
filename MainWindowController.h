@@ -40,6 +40,9 @@
 	// Created in awakeFromNib if the doc's scan root is a full volume.
 	// nil for folder-only scans.
 	DiskUsagePieController *_diskUsagePiePanel;
+
+	// Lazily created when the treemap-settings toolbar button is first hit.
+	NSPopover *_treeMapSettingsPopover;
 }
 
 + (FileSystemDoc*) documentForView: (NSView*) view;
@@ -68,6 +71,8 @@
 - (IBAction) showInformationPanel:(id)sender;
 - (IBAction) showPhysicalSizes:(id) sender;
 - (IBAction) ignoreCreatorCode:(id) sender;
+
+- (IBAction) showTreeMapSettingsPopover:(id)sender;
 
 - (IBAction) performRenderBenchmark:(id)sender;
 - (IBAction) performLayoutBenchmark:(id)sender;

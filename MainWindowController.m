@@ -16,7 +16,6 @@
 //
 
 #import "MainWindowController.h"
-#import "DIXAboutButton.h"
 #import "FSItem.h"
 #import "InfoPanelController.h"
 #import "SelectionListPanelController.h"
@@ -27,6 +26,15 @@
 #import "FileSizeTransformer.h"
 #import "AppsForItem.h"
 #import "NSURL-Extensions.h"
+#import "Preferences.h"
+#import "DIXPieChartView.h"
+
+// Popover content for the treemap-settings toolbar button. Three checkboxes
+// bound to shared user defaults; treemap windows pick up changes via the
+// KVO bridge in FileSystemDoc (ShowFreeSpace / ShowOtherSpace) and the
+// at-zoom check in TreeMapViewController (AnimatedZooming).
+@interface DIXTreeMapSettingsPopoverVC : NSViewController
+@end
 
 @interface MainWindowController(Private)
 - (void) performMoveToTrashForItem: (FSItem*) selectedItem;
@@ -130,9 +138,6 @@
 	// top-level customView that no parent retains; without this it would
 	// be released when first removed from a superview.
 	[_selectionListPaneView retain];
-
-	// Top-right ⓘ button on the main document window for the About panel.
-	DIXInstallAboutButtonInWindow( [self window] );
 
 	// Status bar at the bottom of the window with persistent scan totals.
 	[self installStatusBar];
@@ -1131,7 +1136,7 @@
 							 types:(NSArray *)types
 {
 	FSItem *item = [(FileSystemDoc*)[self document] selectedItem];
-	
+
 	if ( item != nil && ![item isSpecialItem] )
 	{
 		[item writeToPasteboard: pboard withTypes: types];
@@ -1139,6 +1144,60 @@
 	}
 	else
 		return NO;
+}
+
+#pragma mark -----------------treemap-settings popover-----------------
+
+- (NSToolbarItem *)toolbar:(NSToolbar *)tb
+     itemForItemIdentifier:(NSString *)itemIdentifier
+ willBeInsertedIntoToolbar:(BOOL)willInsert
+{
+	if ( [itemIdentifier isEqualToString: @"TreeMapSettings"] )
+	{
+		NSToolbarItem *item = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdentifier] autorelease];
+		[item setLabel: NSLocalizedString(@"Settings", @"")];
+		[item setPaletteLabel: NSLocalizedString(@"Settings", @"")];
+		[item setToolTip: NSLocalizedString(@"Treemap display options", @"")];
+
+		NSImage *img = [NSImage imageWithSystemSymbolName: @"gearshape"
+								 accessibilityDescription: NSLocalizedString(@"Settings", @"")];
+
+		NSButton *btn = [[NSButton alloc] initWithFrame: NSMakeRect(0, 0, 38, 28)];
+		[btn setBezelStyle: NSBezelStyleTexturedRounded];
+		[btn setImage: img];
+		[btn setImagePosition: NSImageOnly];
+		[btn setTarget: self];
+		[btn setAction: @selector(showTreeMapSettingsPopover:)];
+		[item setView: btn];
+		[btn release];
+		return item;
+	}
+	return [super toolbar: tb itemForItemIdentifier: itemIdentifier willBeInsertedIntoToolbar: willInsert];
+}
+
+- (IBAction) showTreeMapSettingsPopover: (id) sender
+{
+	if ( _treeMapSettingsPopover == nil )
+	{
+		_treeMapSettingsPopover = [[NSPopover alloc] init];
+		[_treeMapSettingsPopover setBehavior: NSPopoverBehaviorTransient];
+		DIXTreeMapSettingsPopoverVC *vc = [[[DIXTreeMapSettingsPopoverVC alloc] init] autorelease];
+		[_treeMapSettingsPopover setContentViewController: vc];
+	}
+
+	NSView *anchor = [sender isKindOfClass: [NSView class]] ? (NSView*)sender : nil;
+	if ( anchor == nil )
+		return;
+
+	[_treeMapSettingsPopover showRelativeToRect: [anchor bounds]
+	                                     ofView: anchor
+	                              preferredEdge: NSRectEdgeMinY];
+}
+
+- (void) dealloc
+{
+	[_treeMapSettingsPopover release];
+	[super dealloc];
 }
 
 @end
@@ -1188,6 +1247,134 @@
             alert.informativeText = subMsg;
         [alert beginSheetModalForWindow: [self window] completionHandler: nil];
  	}
+}
+
+@end
+
+#pragma mark -----------------DIXTreeMapSettingsPopoverVC-----------------
+
+@implementation DIXTreeMapSettingsPopoverVC
+
+- (NSView*) makeRowWithSwatchColor: (NSColor*) color
+                             title: (NSString*) title
+                       defaultsKey: (NSString*) key
+                       description: (NSString*) desc
+{
+	NSView *row = [[[NSView alloc] initWithFrame: NSZeroRect] autorelease];
+	[row setTranslatesAutoresizingMaskIntoConstraints: NO];
+
+	NSButton *check = [NSButton checkboxWithTitle: title target: nil action: NULL];
+	[check setTranslatesAutoresizingMaskIntoConstraints: NO];
+	[check bind: NSValueBinding
+	   toObject: [NSUserDefaultsController sharedUserDefaultsController]
+	withKeyPath: [@"values." stringByAppendingString: key]
+	    options: nil];
+	[row addSubview: check];
+
+	NSView *swatch = nil;
+	if ( color != nil )
+	{
+		swatch = [[[NSView alloc] initWithFrame: NSZeroRect] autorelease];
+		[swatch setTranslatesAutoresizingMaskIntoConstraints: NO];
+		[swatch setWantsLayer: YES];
+		CALayer *layer = [swatch layer];
+		[layer setBackgroundColor: [color CGColor]];
+		[layer setCornerRadius: 7];
+		// 1pt outline so the swatch stays visible even when its color is
+		// near-identical to the popover background (e.g. dark-gray "Other"
+		// on dark mode, or white "Free" on light mode).
+		[layer setBorderWidth: 1];
+		[layer setBorderColor: [[NSColor separatorColor] CGColor]];
+		[row addSubview: swatch];
+	}
+
+	NSTextField *descLabel = [NSTextField wrappingLabelWithString: desc];
+	[descLabel setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+	[descLabel setTextColor: [NSColor secondaryLabelColor]];
+	[descLabel setTranslatesAutoresizingMaskIntoConstraints: NO];
+	[row addSubview: descLabel];
+
+	if ( swatch != nil )
+	{
+		[NSLayoutConstraint activateConstraints: @[
+			[[swatch leadingAnchor] constraintEqualToAnchor: [row leadingAnchor]],
+			[[swatch centerYAnchor] constraintEqualToAnchor: [check centerYAnchor]],
+			[[swatch widthAnchor] constraintEqualToConstant: 14],
+			[[swatch heightAnchor] constraintEqualToConstant: 14],
+			[[check leadingAnchor] constraintEqualToAnchor: [swatch trailingAnchor] constant: 8],
+		]];
+	}
+	else
+	{
+		// Inset the checkbox by the same amount the swatch+gap takes so the
+		// titles line up across all three rows.
+		[[check leadingAnchor] constraintEqualToAnchor: [row leadingAnchor] constant: 20].active = YES;
+	}
+
+	[NSLayoutConstraint activateConstraints: @[
+		[[check topAnchor] constraintEqualToAnchor: [row topAnchor]],
+		[[check trailingAnchor] constraintLessThanOrEqualToAnchor: [row trailingAnchor]],
+		[[descLabel topAnchor] constraintEqualToAnchor: [check bottomAnchor] constant: 2],
+		[[descLabel leadingAnchor] constraintEqualToAnchor: [check leadingAnchor] constant: 18],
+		[[descLabel trailingAnchor] constraintEqualToAnchor: [row trailingAnchor]],
+		[[descLabel bottomAnchor] constraintEqualToAnchor: [row bottomAnchor]],
+	]];
+
+	return row;
+}
+
+- (void) loadView
+{
+	NSView *root = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, 380, 280)] autorelease];
+	[self setView: root];
+
+	NSStackView *stack = [[[NSStackView alloc] initWithFrame: NSZeroRect] autorelease];
+	[stack setOrientation: NSUserInterfaceLayoutOrientationVertical];
+	[stack setAlignment: NSLayoutAttributeLeading];
+	[stack setSpacing: 14];
+	[stack setEdgeInsets: NSEdgeInsetsMake(16, 16, 16, 16)];
+	[stack setTranslatesAutoresizingMaskIntoConstraints: NO];
+	[root addSubview: stack];
+
+	[NSLayoutConstraint activateConstraints: @[
+		[[stack topAnchor] constraintEqualToAnchor: [root topAnchor]],
+		[[stack leadingAnchor] constraintEqualToAnchor: [root leadingAnchor]],
+		[[stack trailingAnchor] constraintEqualToAnchor: [root trailingAnchor]],
+		[[stack bottomAnchor] constraintEqualToAnchor: [root bottomAnchor]],
+		[[root widthAnchor] constraintEqualToConstant: 380],
+	]];
+
+	// Pie wedges, treemap blocks, and these swatches all read from the
+	// same accessors on DIXPieChartView so the three stay in sync.
+	NSColor *freeColor  = [DIXPieChartView freeSpaceColor];
+	NSColor *otherColor = [DIXPieChartView otherSpaceColor];
+
+	NSView *freeRow = [self makeRowWithSwatchColor: freeColor
+	                                         title: NSLocalizedString(@"Show Free Space as blocks", @"")
+	                                   defaultsKey: ShowFreeSpace
+	                                   description: NSLocalizedString(@"This shows free space like a file in the treemap. It helps to see the size relations between the opened folder and the free space on the drive.", @"")];
+
+	NSView *otherRow = [self makeRowWithSwatchColor: otherColor
+	                                          title: NSLocalizedString(@"Show Other Space as blocks", @"")
+	                                    defaultsKey: ShowOtherSpace
+	                                    description: NSLocalizedString(@"This shows space used by not shown files and folders like a file in the treemap. It helps to see how the opened folder compares in size to the rest of the files on the same drive. This option is only available if not a whole drive is shown.", @"")];
+
+	NSView *animRow = [self makeRowWithSwatchColor: nil
+	                                         title: NSLocalizedString(@"Animated Zooming", @"")
+	                                   defaultsKey: AnimatedZooming
+	                                   description: NSLocalizedString(@"Turn this off if the animation is too slow on your machine or if you don't like it.", @"")];
+
+	[stack addArrangedSubview: freeRow];
+	[stack addArrangedSubview: otherRow];
+	[stack addArrangedSubview: animRow];
+
+	// Each row should stretch the full popover width so the wrapping
+	// description labels know how wide they may be.
+	for ( NSView *row in @[freeRow, otherRow, animRow] )
+	{
+		[[row widthAnchor] constraintEqualToAnchor: [stack widthAnchor]
+		                                  constant: -32].active = YES;
+	}
 }
 
 @end
