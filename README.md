@@ -43,6 +43,23 @@ Requires macOS 13 (Ventura) or later.
 - **Fast scans** — folders are walked on a background engine so the window
   stays responsive, with live progress and the ability to cancel.
 
+## Screenshots
+
+<!--
+  Screenshots live in docs/screenshots/. Replace the images below once you've
+  captured them (see docs/screenshots/README.md for the recommended shot list
+  and capture tips). Until then these links will show as broken on GitHub.
+-->
+
+<p align="center">
+  <img src="docs/screenshots/treemap-main.png" alt="Treemap of a scanned volume" width="800">
+</p>
+
+|  |  |
+| --- | --- |
+| ![Kind statistics](docs/screenshots/kind-statistics.png) | ![Disk usage pie](docs/screenshots/disk-usage-pie.png) |
+| ![Disk selection with Scan Settings](docs/screenshots/scan-settings.png) | ![Treemap zoomed in](docs/screenshots/treemap-zoom.png) |
+
 ## Privacy
 
 Disk Inventory Z only reads file **sizes and metadata** — it never reads the
