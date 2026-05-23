@@ -109,6 +109,13 @@ static NSMutableDictionary *_cushionTextAttributes;
 
 - (void) calcLayout: (NSRect) rect
 {
+    // Renderers work in integral backing-store coordinates. Some display
+    // setups (virtualized / paravirtual GPUs, fractional-scale or split-view
+    // layouts) hand the root a fractional backing rect, which trips the
+    // integral-rect assertions below and crashes during -drawRect: in debug
+    // builds. Snap to integral up front so every layout rect is well-formed.
+    rect = NSIntegralRect( rect );
+
     if ( NSEqualRects( _rect, rect ) )
 		return;
 
