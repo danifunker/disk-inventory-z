@@ -142,6 +142,15 @@
 											   object: [self document]];
 	[self updateStatusBar];
 
+	// Stage 8.5 Wave 2: inline scan overlay (replaces the loading sheet).
+	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+	[nc addObserver: self selector: @selector(onScanStarted:)
+			   name: DIXScanStartedNotification object: [self document]];
+	[nc addObserver: self selector: @selector(onScanProgress:)
+			   name: DIXScanProgressNotification object: [self document]];
+	[nc addObserver: self selector: @selector(onScanFinished:)
+			   name: DIXScanFinishedNotification object: [self document]];
+
 	// The nib was authored on a larger display; the saved frame from
 	// NSUserDefaults can exceed the user's current visibleFrame, pushing the
 	// window's bottom (search field, status bar) off the screen. Clamp to
@@ -180,7 +189,227 @@
 		// Disk usage pie panel: auto-show when the scan root is a volume
 		// mount point (i.e. a full-disk scan). Hidden for folder scans.
 		[self showDiskUsagePieIfFullVolumeScan];
+
+		// Move the singleton Info panel out of the way if its restored
+		// frame covers the doc window's cancel overlay. Prefer placing
+		// it directly under the disk-usage pie panel when that's up.
+		[self repositionInfoPanelIfOverlapping];
 	});
+}
+
+- (void) repositionInfoPanelIfOverlapping
+{
+	InfoPanelController *infoCtl = [InfoPanelController sharedController];
+	if ( ![infoCtl panelIsVisible] )
+		return;
+
+	NSWindow *infoPanel = [infoCtl panel];
+	NSWindow *docWindow = [self window];
+	NSRect infoF = [infoPanel frame];
+	NSRect docF  = [docWindow frame];
+
+	NSWindow *pieWindow = (_diskUsagePiePanel != nil) ? [_diskUsagePiePanel window] : nil;
+	BOOL coversPie = pieWindow != nil
+	                 && [pieWindow isVisible]
+	                 && NSIntersectsRect(infoF, [pieWindow frame]);
+	BOOL coversDoc = NSIntersectsRect(infoF, docF);
+
+	if ( !coversPie && !coversDoc )
+		return;
+
+	NSScreen *screen = [docWindow screen] ?: [NSScreen mainScreen];
+	NSRect vis = [screen visibleFrame];
+
+	if ( pieWindow != nil && [pieWindow isVisible] )
+	{
+		// Place directly under the pie panel, left-aligned to it.
+		NSRect pieF = [pieWindow frame];
+		infoF.origin.x = pieF.origin.x;
+		infoF.origin.y = NSMinY(pieF) - infoF.size.height - 12;
+		if ( infoF.origin.y < NSMinY(vis) )
+			infoF.origin.y = NSMinY(vis);
+	}
+	else
+	{
+		// No pie panel — fall back to placing to the right of the doc.
+		infoF.origin.x = NSMaxX(docF) + 20;
+		if ( NSMaxX(infoF) > NSMaxX(vis) )
+			infoF.origin.x = NSMaxX(vis) - infoF.size.width;
+		infoF.origin.y = NSMaxY(docF) - infoF.size.height;
+		if ( infoF.origin.y < NSMinY(vis) )
+			infoF.origin.y = NSMinY(vis);
+	}
+
+	[infoPanel setFrame: infoF display: YES];
+}
+
+#pragma mark ----------------- Wave 2 inline scan overlay -----------------
+
+// Build the centered scan-progress panel and attach it to the window's
+// contentView so it floats above the splitter / outline / treemap. The
+// doc window itself stays fully responsive (no sheet → no window-modal).
+- (void) installScanOverlay
+{
+	if ( _scanOverlay != nil )
+		return;
+
+	NSView *content = [[self window] contentView];
+	const CGFloat W = 460;
+	const CGFloat H = 150;
+
+	NSRect cf = [content bounds];
+	NSRect overlayFrame = NSMakeRect( NSMidX(cf) - W/2, NSMidY(cf) - H/2, W, H );
+
+	NSView *panel = [[NSView alloc] initWithFrame: overlayFrame];
+	[panel setWantsLayer: YES];
+	panel.layer.backgroundColor = [[NSColor windowBackgroundColor] CGColor];
+	panel.layer.cornerRadius = 10;
+	panel.layer.borderWidth = 1;
+	panel.layer.borderColor = [[NSColor separatorColor] CGColor];
+	[panel setAutoresizingMask: NSViewMinXMargin | NSViewMaxXMargin
+								| NSViewMinYMargin | NSViewMaxYMargin];
+
+	// Spinner (top-left)
+	NSProgressIndicator *spinner = [[NSProgressIndicator alloc]
+		initWithFrame: NSMakeRect(16, H - 36, 20, 20)];
+	[spinner setStyle: NSProgressIndicatorStyleSpinning];
+	[spinner setControlSize: NSControlSizeSmall];
+	[spinner setDisplayedWhenStopped: NO];
+	[spinner startAnimation: nil];
+	[panel addSubview: spinner];
+
+	// Title
+	NSTextField *title = [NSTextField labelWithString:
+		NSLocalizedString(@"Scanning…", @"")];
+	[title setFrame: NSMakeRect(44, H - 36, W - 60, 20)];
+	[title setFont: [NSFont boldSystemFontOfSize: [NSFont systemFontSize]]];
+	[panel addSubview: title];
+
+	// Path (single-line, truncating middle)
+	NSTextField *path = [NSTextField labelWithString: @""];
+	[path setFrame: NSMakeRect(16, H - 64, W - 32, 18)];
+	[path setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+	[path setTextColor: [NSColor secondaryLabelColor]];
+	[[path cell] setLineBreakMode: NSLineBreakByTruncatingMiddle];
+	[panel addSubview: path];
+	_scanOverlayPathLabel = path;
+
+	// Count
+	NSTextField *count = [NSTextField labelWithString: @""];
+	[count setFrame: NSMakeRect(16, H - 86, W - 32, 18)];
+	[count setFont: [NSFont monospacedDigitSystemFontOfSize: [NSFont smallSystemFontSize]
+													 weight: NSFontWeightRegular]];
+	[count setTextColor: [NSColor secondaryLabelColor]];
+	[panel addSubview: count];
+	_scanOverlayCountLabel = count;
+
+	// Elapsed wall clock
+	NSTextField *elapsed = [NSTextField labelWithString: @"Elapsed: 00:00"];
+	[elapsed setFrame: NSMakeRect(16, H - 108, W - 32, 18)];
+	[elapsed setFont: [NSFont monospacedDigitSystemFontOfSize: [NSFont smallSystemFontSize]
+													   weight: NSFontWeightRegular]];
+	[elapsed setTextColor: [NSColor secondaryLabelColor]];
+	[panel addSubview: elapsed];
+	_scanOverlayElapsedLabel = elapsed;
+
+	// Cancel button (bottom-right)
+	NSButton *cancel = [NSButton buttonWithTitle: NSLocalizedString(@"Cancel", @"")
+										  target: self
+										  action: @selector(scanOverlayCancelPressed:)];
+	NSRect bf = [cancel frame];
+	bf.origin.x = W - bf.size.width - 16;
+	bf.origin.y = 12;
+	[cancel setFrame: bf];
+	[cancel setKeyEquivalent: @"\e"]; // Esc
+	[panel addSubview: cancel];
+	_scanOverlayCancelButton = cancel;
+	_scanOverlaySpinner = spinner;
+
+	[content addSubview: panel];
+	_scanOverlay = panel;
+}
+
+- (void) tearDownScanOverlay
+{
+	if ( _scanOverlayClockTimer != nil )
+	{
+		[_scanOverlayClockTimer invalidate];
+		_scanOverlayClockTimer = nil; // unsafe-unretained (runloop owned)
+	}
+	[_scanOverlayStartedAt release];
+	_scanOverlayStartedAt = nil;
+
+	if ( _scanOverlay == nil )
+		return;
+	[_scanOverlaySpinner stopAnimation: nil];
+	[_scanOverlay removeFromSuperview];
+	[_scanOverlay release];
+	_scanOverlay = nil;
+	// Subviews dropped with the panel; clear cached refs.
+	_scanOverlayPathLabel = nil;
+	_scanOverlayCountLabel = nil;
+	_scanOverlayElapsedLabel = nil;
+	_scanOverlaySpinner = nil;
+	_scanOverlayCancelButton = nil;
+}
+
+- (void) onScanStarted: (NSNotification*) note
+{
+	[self installScanOverlay];
+	[_scanOverlayPathLabel setStringValue: note.userInfo[DIXScanPath] ?: @""];
+	[_scanOverlayCountLabel setStringValue: @""];
+
+	[_scanOverlayStartedAt release];
+	_scanOverlayStartedAt = [[NSDate date] retain];
+	// Runloop retains the timer; we hold an unsafe-unretained reference
+	// just to call -invalidate from -tearDownScanOverlay.
+	_scanOverlayClockTimer = [NSTimer scheduledTimerWithTimeInterval: 1.0
+															  target: self
+															selector: @selector(tickScanOverlayClock:)
+															userInfo: nil
+															 repeats: YES];
+	[self tickScanOverlayClock: nil];
+}
+
+- (void) tickScanOverlayClock: (NSTimer*) t
+{
+	if ( _scanOverlayElapsedLabel == nil || _scanOverlayStartedAt == nil )
+		return;
+	NSTimeInterval secs = -[_scanOverlayStartedAt timeIntervalSinceNow];
+	if ( secs < 0 ) secs = 0;
+	unsigned long total = (unsigned long) secs;
+	unsigned mm = (unsigned)(total / 60);
+	unsigned ss = (unsigned)(total % 60);
+	[_scanOverlayElapsedLabel setStringValue:
+		[NSString stringWithFormat: NSLocalizedString(@"Elapsed: %02u:%02u", @""), mm, ss]];
+}
+
+- (void) onScanProgress: (NSNotification*) note
+{
+	if ( _scanOverlay == nil )
+		return;
+	NSString *path = note.userInfo[DIXScanPath] ?: @"";
+	NSNumber *items = note.userInfo[DIXScanItemCount] ?: @0;
+
+	NSNumberFormatter *fmt = [[[NSNumberFormatter alloc] init] autorelease];
+	[fmt setNumberStyle: NSNumberFormatterDecimalStyle];
+	[fmt setUsesGroupingSeparator: YES];
+
+	[_scanOverlayPathLabel setStringValue: path];
+	[_scanOverlayCountLabel setStringValue:
+		[NSString stringWithFormat: NSLocalizedString(@"%@ items scanned", @""),
+			[fmt stringFromNumber: items]]];
+}
+
+- (void) onScanFinished: (NSNotification*) note
+{
+	[self tearDownScanOverlay];
+}
+
+- (IBAction) scanOverlayCancelPressed: (id) sender
+{
+	[_scanOverlayCancelButton setEnabled: NO];
+	[(FileSystemDoc*) [self document] requestCancelScan];
 }
 
 // YES if the doc's fileURL points at a volume mount point (the URL's
@@ -656,11 +885,17 @@
 
 #pragma mark -----------------UI elment validation-----------------------
 
-- (BOOL) validateMenuItem: (NSMenuItem*) menuItem
+- (BOOL) validateUserInterfaceItem: (id<NSValidatedUserInterfaceItem>) item
 {
     FileSystemDoc *doc = [self document];
     FSItem *selectedItem = [doc selectedItem];
-	SEL menuAction = [menuItem action];
+	SEL menuAction = [item action];
+	// Body below uses -setTitle: / -setState: on `menuItem`. Preserve the
+	// pre-existing pattern: cast `item` to NSMenuItem* and let the
+	// macro's isKindOfClass: check decide whether to actually fire
+	// -setState: (the legacy code already handled NSToolbarItemValidationAdapter
+	// via that same check).
+	NSMenuItem *menuItem = (NSMenuItem*) item;
 
 #define SET_TITLE( condition, string1, string2 ) \
 	[menuItem setTitle: NSLocalizedString( (condition) ? string1 : string2, @"")]
@@ -668,7 +903,7 @@
 #define SET_TITLE_AND_IMAGE( condition, string1, string2 )	\
 	SET_TITLE( (condition), string1, string2 );				\
 	if ( [menuItem isKindOfClass: [NSToolbarItemValidationAdapter class]] )\
-		 [menuItem setState: (condition) ? NSOffState : NSOnState];
+		 [menuItem setState: (condition) ? NSControlStateValueOff : NSControlStateValueOn];
 	
     if ( menuAction == @selector(openFile:)
 		 || menuAction == @selector(openFileWith:) )
@@ -796,6 +1031,13 @@
 	{
 		[[InfoPanelController sharedController] showPanelWithFSItem: nil];
 	}
+
+	// Close the doc's ancillary floating panels so they don't linger on
+	// screen after the main window goes away.
+	if ( _selectionListPanel != nil )
+		[[_selectionListPanel window] orderOut: nil];
+	if ( _diskUsagePiePanel != nil )
+		[[_diskUsagePiePanel window] orderOut: nil];
 }
 
 #pragma mark -----------------NSMenu delegates-----------------------

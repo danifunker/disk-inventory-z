@@ -21,17 +21,24 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 //for debugging and logging purposes
-unsigned g_fileCount;
-unsigned g_folderCount;
+// _Atomic: the walker thread does ++ during the scan; the main thread
+// reads via the FSItem.h extern in MainWindowController -updateStatusBar.
+// Stale reads are fine — the bar refreshes periodically — so we just need
+// torn-write protection, which _Atomic provides for free under clang.
+_Atomic unsigned g_fileCount;
+_Atomic unsigned g_folderCount;
 
 // Per-scan set of NSURLFileResourceIdentifierKey values for files we've
 // already charged the full size of. When a subsequent hardlink to the same
 // inode appears, its FSItem gets _hardlinkDuplicate=YES and counts as zero
 // bytes. Matches `du -sh` semantics: total disk used = sum of unique inodes,
 // not sum of all directory entries. Cleared at the start of every root scan.
-// Single-threaded by construction (scanning is not concurrent today); if
-// concurrency is ever added, this needs to move to per-document state.
+// Stage 8.5 made scanning concurrent across multiple open documents (each
+// FileSystemDoc has its own serial _scanQueue, but they run in parallel),
+// so all access goes through g_seenHardlinkInodesLock.
+#include <os/lock.h>
 static NSMutableSet *g_seenHardlinkInodes = nil;
+static os_unfair_lock g_seenHardlinkInodesLock = OS_UNFAIR_LOCK_INIT;
 static unsigned g_packageCheckCount = 0;
 
 //global cache for kind names
@@ -81,6 +88,16 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 {
 	//instantiate the dictionaries for global kind names cache
 	g_kindNameDictionary = [[NSMutableDictionary alloc] init];
+}
+
++ (void) resetHardlinkDedup
+{
+	os_unfair_lock_lock(&g_seenHardlinkInodesLock);
+	if ( g_seenHardlinkInodes == nil )
+		g_seenHardlinkInodes = [[NSMutableSet alloc] init];
+	else
+		[g_seenHardlinkInodes removeAllObjects];
+	os_unfair_lock_unlock(&g_seenHardlinkInodesLock);
 }
 
 - (id) initWithPath: (NSString *) path
@@ -355,14 +372,24 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 - (void) insertChild: (FSItem*) newChild updateParent: (BOOL) updateParent
 {
 	unsigned long long myOldSize = [self sizeValue];
-	
+
 	[newChild setParent: self];
-	
-	//insert child sorted by size
-	[_childs insertObject: newChild inArraySortedUsingSelector: @selector(compareSizeDescendingly:)];
-	
+
+	// Sorted insert by size descending. Used to call an Omni category
+	// method -insertObject:inArraySortedUsingSelector: that was removed
+	// with OmniAppKitExtensions; the replacement uses NSMutableArray's
+	// binary-search insertion API.
+	NSUInteger insertIndex = [_childs
+		indexOfObject: newChild
+		inSortedRange: NSMakeRange(0, [_childs count])
+		      options: NSBinarySearchingInsertionIndex
+		usingComparator: ^NSComparisonResult(id a, id b) {
+			return [(FSItem*)a compareSizeDescendingly: (FSItem*)b];
+		}];
+	[_childs insertObject: newChild atIndex: insertIndex];
+
 	[self setSizeValue: [self sizeValue] + [newChild sizeValue]];
-	
+
 	if ( updateParent && ![self isRoot] )
 		[[self parent] childChanged: self oldSize: myOldSize newSize: [self sizeValue]];
 }
@@ -751,9 +778,11 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 
 - (NSArray<NSPasteboardType>*) supportedPasteboardTypes
 {
+	// NSFileContentsPboardType / -writeFileContents: are deprecated and
+	// have no clean equivalent in the NSPasteboardItem flow; the modern
+	// "this is the file" type is NSPasteboardTypeFileURL.
 	NSMutableArray<NSPasteboardType> *types = [NSMutableArray arrayWithObjects: NSPasteboardTypeFileURL,
                                                                                 NSPasteboardTypeString,
-                                                                                NSFileContentsPboardType,
                                                                                 nil ];
 
     NSString * uti = [[self fileURL] cachedUTI];
@@ -778,10 +807,8 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 {
 	NSString * uti = [[self fileURL] cachedUTI];
 
-	//this if clause is derived from the code in NTFilePasteboardSource's "- (NSArray*)pasteboardTypes:(NSArray *)types"
 	return [type isEqualToString: NSPasteboardTypeFileURL]
 			|| [type isEqualToString: NSPasteboardTypeString]
-			|| [type isEqualToString: NSFileContentsPboardType]
 			|| ([type isEqualToString: NSPasteboardTypeTIFF] && [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage])
 			|| ([type isEqualToString: NSPasteboardTypeRTF] && [uti isEqualToString: UTTypeRTF.identifier])
 			|| ([type isEqualToString: NSPasteboardTypeRTFD] && [uti isEqualToString: UTTypeFlatRTFD.identifier])
@@ -791,14 +818,15 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 
 - (void) writeToPasteboard: (NSPasteboard*) pboard
 {
-	//[NTFilePasteboardSource file: [self fileDesc] toPasteboard: pboard types: [NTFilePasteboardSource defaultTypes]];
-	//[NTFilePasteboardSource file: [self fileDesc] toPasteboard: pboard types: [self supportedPasteboardTypes]];
-	
-	[pboard declareTypes:[self supportedPasteboardTypes] owner:self];
-	
-	//NSString *path = [[self fileURL] path];
-	//NSAssert( [pboard setPropertyList:[NSArray arrayWithObject: path] forType:NSFilenamesPboardType], @"can't set pasteboard data (NSFilenamesPboardType)" );
-	//NSAssert( [pboard setString:path forType:NSStringPboardType], @"can't set pasteboard data (NSStringPboardType)" );
+	// Modern NSPasteboardItem flow: a single item with self as the data
+	// provider for every supported type. Data is produced lazily via the
+	// NSPasteboardItemDataProvider callback below.
+	NSArray<NSPasteboardType> *types = [self supportedPasteboardTypes];
+	NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+	[item setDataProvider: self forTypes: types];
+	[pboard clearContents];
+	[pboard writeObjects: @[ item ]];
+	[item release];
 }
 
 - (void) writeToPasteboard: (NSPasteboard*) pasteboard withTypes: (NSArray*) types
@@ -806,71 +834,62 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
 	[NTFilePasteboardSource file: [self fileURL] toPasteboard: pasteboard types: types];
 }
 
-- (void)pasteboard:(NSPasteboard *)pboard provideDataForType:(NSString *)type
+#pragma mark - NSPasteboardItemDataProvider
+
+- (void) pasteboard: (NSPasteboard*) pboard
+               item: (NSPasteboardItem*) item
+ provideDataForType: (NSPasteboardType) type
 {
-	LOG( @"entering FSItem.pasteboard:provideDataForType: %@", type )
-	
     NSURL *url = [self fileURL];
     NSString *path = [url cachedPath];
-    NSString * uti = [url cachedUTI];
+    NSString *uti = [url cachedUTI];
 
 	if ([type isEqualToString:NSPasteboardTypeFileURL])
 	{
-		[pboard setString:[url absoluteString] forType:NSPasteboardTypeFileURL];
+		[item setString:[url absoluteString] forType:NSPasteboardTypeFileURL];
 	}
 	else if ([type isEqualToString:NSPasteboardTypeString])
 	{
-		// set the path
-		[pboard setString:path forType:NSPasteboardTypeString];
-	}
-	else if ([type isEqualToString:NSFileContentsPboardType])
-	{
-		// write the contents
-		[pboard writeFileContents:path];
+		[item setString:path forType:NSPasteboardTypeString];
 	}
     else if ([type isEqualToString:NSPasteboardTypeTIFF])
     {
         if ([uti isEqualToString: UTTypeTIFF.identifier])
-            [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeTIFF];
+            [item setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeTIFF];
         else if ( [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage] )
         {
-            // open the image and return TIFFRepresentation
             NSImage *image = [[[NSImage alloc] initWithContentsOfFile:[url path]] autorelease];
-
             if (image)
             {
                 NSData* data = [image TIFFRepresentation];
-
                 if (data)
-                    [pboard setData:data forType:NSPasteboardTypeTIFF];
+                    [item setData:data forType:NSPasteboardTypeTIFF];
             }
         }
     }
 	else if ([type isEqualToString:NSPasteboardTypeRTF])
 	{
 		if ([uti isEqualToString: UTTypeRTF.identifier])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeRTF];
+			[item setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeRTF];
 	}
 	else if ([type isEqualToString:NSPasteboardTypeRTFD])
 	{
 		if ([uti isEqualToString: UTTypeFlatRTFD.identifier])
 		{
-			NSFileWrapper *tempRTFDData = [[[NSFileWrapper alloc] initWithPath:path] autorelease];
-			[pboard setData:[tempRTFDData serializedRepresentation] forType:NSPasteboardTypeRTFD];
+			NSFileWrapper *tempRTFDData = [[[NSFileWrapper alloc] initWithURL:url options:0 error:nil] autorelease];
+			[item setData:[tempRTFDData serializedRepresentation] forType:NSPasteboardTypeRTFD];
 		}
 	}
 	else if ([type isEqualToString:NSPasteboardTypeHTML])
 	{
 		if ([uti isEqualToString: UTTypeHTML.identifier])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeHTML];
+			[item setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypeHTML];
 	}
 	else if ([type isEqualToString:NSPasteboardTypePDF])
 	{
 		if ([uti isEqualToString: UTTypePDF.identifier])
-			[pboard setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypePDF];
+			[item setData:[NSData dataWithContentsOfFile:path] forType:NSPasteboardTypePDF];
 	}
-	
-	LOG( @"    exiting FSItem.pasteboard:provideDataForType: %@", type )
 }
 
 @end
@@ -979,15 +998,16 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
                                         NSURLFileResourceIdentifierKey,    // unique-per-volume inode id
                                         nil];
 
-    // Reset the seen-inode set at the start of every root scan so a fresh
-    // scan never inherits stale entries from a previous one.
-    if ( [self isRoot] )
-    {
-        if ( g_seenHardlinkInodes == nil )
-            g_seenHardlinkInodes = [[NSMutableSet alloc] init];
-        else
-            [g_seenHardlinkInodes removeAllObjects];
-    }
+    // Hardlink-dedup state is reset by the caller before starting a scan
+    // (FileSystemDoc Stage 8.5 Wave 2 invokes +[FSItem resetHardlinkDedup]
+    // once before walking all top-level subtrees). It must NOT be reset
+    // per-root here, because Wave 2 walks each top-level child as its own
+    // orphan FSItem with parent=nil — every orphan is isRoot=YES and a
+    // per-root reset would defeat dedup across them.
+    os_unfair_lock_lock(&g_seenHardlinkInodesLock);
+    if ( g_seenHardlinkInodes == nil )
+        g_seenHardlinkInodes = [[NSMutableSet alloc] init];
+    os_unfair_lock_unlock(&g_seenHardlinkInodesLock);
 
     // stack of directories (Path to directory currently beeing canned)
     NSMutableArray<FSItem*> *itemStack = [[NSMutableArray alloc] init];
@@ -1051,6 +1071,20 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
         {
             [dirEnum skipDescendants];
             continue;
+        }
+
+        // macOS 26 (Tahoe) magic directories: .nofollow and .resolve appear
+        // at root (and inside /System/Volumes/Data/) as symlink-resolution-
+        // disabled re-rooted views of the filesystem. Walking them would
+        // double-count the entire tree.
+        {
+            NSString *leaf = [currentUrl lastPathComponent];
+            if ( [leaf isEqualToString: @".nofollow"]
+                 || [leaf isEqualToString: @".resolve"] )
+            {
+                [dirEnum skipDescendants];
+                continue;
+            }
         }
 
         // cache all needed properties (NSURL purges all values upon next pass through the run loop)
@@ -1144,10 +1178,12 @@ NSString* FSItemLoadingFailedException = @"FSItemLoadingFailedException";
                                              error: nil];
                 if ( fileID != nil )
                 {
+                    os_unfair_lock_lock(&g_seenHardlinkInodesLock);
                     if ( [g_seenHardlinkInodes containsObject: fileID] )
                         currentItem->_hardlinkDuplicate = YES;
                     else
                         [g_seenHardlinkInodes addObject: fileID];
+                    os_unfair_lock_unlock(&g_seenHardlinkInodesLock);
                 }
             }
         }

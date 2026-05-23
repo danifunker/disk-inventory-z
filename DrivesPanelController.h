@@ -27,6 +27,7 @@
     
     unsigned long long _maxVolumeSize; // size of largest volumes
     BOOL _didSeedInitialSelection;     // first -rebuildVolumesArray seeded row 0
+    NSRect _naturalFrame;              // post-nib size; restored on each -showPanel
 }
 
 + (DrivesPanelController*) sharedController;

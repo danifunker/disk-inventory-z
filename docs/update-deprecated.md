@@ -20,8 +20,8 @@ table below records that too so the next session has the full picture.
 | 7.8 v1.6.0 release | ✅ tagged | 5126ad6 |
 | 7.9 nib→xib conversion (MainMenu, TreeMap, LoadingPanel) | ✅ done | 0d25a91 + v1.7.0 |
 | 8 NSDrawer → NSSplitView + selection-list panel | ✅ done | v1.7.0 |
-| **8.5 Async filesystem scan** (NEW — see below) | ⏸ NOT STARTED | — |
-| 9 Hardening | ⏸ NOT STARTED | — |
+| **8.5 Async filesystem scan + Wave 2 live UI** | ✅ done | v2.0.0 |
+| **9 Hardening (warnings-as-errors)** | ✅ done | v2.0.0 |
 
 ### Deprecation warning count
 **~100 → 0.** Stage 8 removed the last 36 (`NSDrawer`/`NSDrawer*`).
@@ -499,6 +499,43 @@ hardening pass locks in the post-refactor state.
   (no beach-ball, menu items work, About panel opens during a scan).
 - Cancel + close + quit interactions all clean up the walker correctly.
 - No deprecation regressions introduced. **Commit.**
+
+### Stage 8.5 — what actually shipped (v2.0.0)
+- **Async engine.** Per-doc serial `_scanQueue`; walker runs off main; atomic
+  cancel flag; ~4 Hz dispatch_sync refresh barrier from worker → main updates
+  the inline overlay (path + count + elapsed clock).
+- **Top-level orchestration.** `runTopLevelOrchestrationForURL:` enumerates the
+  scan root's direct children itself, builds each as a detached orphan FSItem
+  on the worker, then dispatches each completed orphan to main where it splices
+  into `_rootItem` via `insertChild:updateParent:YES`. `_rootItem` is only
+  mutated on main, so AppKit redraws never race the worker.
+- **Live UI.** Outline view + file-kinds table populate as top-level subtrees
+  complete; treemap waits for scan-finish and rebuilds once (with kindColors
+  reset first, so the palette is assigned in size-descending order).
+- **Inline overlay.** Replaces the loading sheet entirely — centered floating
+  panel over the doc window with spinner, path, item count, elapsed clock,
+  Cancel button. Doc window stays fully responsive (no sheet-modal).
+- **Cancel.** Swaps the partial `_rootItem` for an empty stub before closing
+  so AppKit's deferred CA-flush during termination has nothing freed to walk.
+  Closes the doc, which re-shows the drives panel (so the user lands back on
+  the disk-selection screen instead of quitting).
+- **Tahoe magic-dir skips.** `/.nofollow` and `/.resolve` (macOS 26
+  symlink-resolution re-rooted views) skipped at both top-level and deep-walk
+  levels so disk-usage totals are correct.
+- **Concurrency.** Hardlink dedup `g_seenHardlinkInodes` now guarded by
+  `os_unfair_lock` so multiple open docs scanning in parallel don't corrupt
+  the shared set.
+- **Bug fixes uncovered along the way.** `FSItem.insertChild:updateParent:`
+  no longer calls the long-gone Omni category `-insertObject:inArraySortedUsingSelector:`
+  (used `NSBinarySearchingInsertionIndex` instead) — also unblocks
+  `moveItemToTrash:` / `refreshItem:` which would have hit the same crash.
+- **Drives panel polish.** Re-fits to natural size on each `showPanel` (was
+  inheriting doc-window size); resizes to fit row count when toggles flip;
+  defaults for Network / External / Mounted Images switched to OFF on first
+  launch (local-drives-only default).
+- **Ancillary panels.** Selection list + disk-usage pie are ordered out when
+  the main doc window closes. Info panel reposition logic to avoid covering
+  the doc window's cancel overlay (drops below pie panel when present).
 
 ---
 

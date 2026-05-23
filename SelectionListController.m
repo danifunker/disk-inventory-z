@@ -178,32 +178,36 @@
 		[self rearrangeObjects];
 }
 
-#pragma mark --------NSMenuValidation-----------------
+#pragma mark --------NSUserInterfaceValidations-----------------
 
-- (BOOL) validateMenuItem: (NSMenuItem*) menuItem
+- (BOOL) validateUserInterfaceItem: (id<NSValidatedUserInterfaceItem>) item
 {
-    if ( [menuItem action] == @selector(searchInAll:) )
-		[menuItem setState: (_indexToSearch == FSItemIndexAll) ? NSOnState : NSOffState];
-	else if ( [menuItem action] == @selector(searchInNames:) )
-		[menuItem setState: (_indexToSearch == FSItemIndexName) ? NSOnState : NSOffState];
-	else if ( [menuItem action] == @selector(searchInKindNames:) )
-		[menuItem setState: (_indexToSearch == FSItemIndexKind) ? NSOnState : NSOffState];
-	else if ( [menuItem action] == @selector(searchInPaths:) )
-		[menuItem setState: (_indexToSearch == FSItemIndexPath) ? NSOnState : NSOffState];
-	
+	// Only menu items have setState: — toolbar items don't expose that here.
+	NSMenuItem *menuItem = [item isKindOfClass: [NSMenuItem class]] ? (NSMenuItem*) item : nil;
+	SEL action = [item action];
+
+    if ( action == @selector(searchInAll:) )
+		[menuItem setState: (_indexToSearch == FSItemIndexAll) ? NSControlStateValueOn : NSControlStateValueOff];
+	else if ( action == @selector(searchInNames:) )
+		[menuItem setState: (_indexToSearch == FSItemIndexName) ? NSControlStateValueOn : NSControlStateValueOff];
+	else if ( action == @selector(searchInKindNames:) )
+		[menuItem setState: (_indexToSearch == FSItemIndexKind) ? NSControlStateValueOn : NSControlStateValueOff];
+	else if ( action == @selector(searchInPaths:) )
+		[menuItem setState: (_indexToSearch == FSItemIndexPath) ? NSControlStateValueOn : NSControlStateValueOff];
+
 	return YES;
 }
 
 
-#pragma mark --------NSOutlineView delegate-----------------
+#pragma mark --------NSDraggingSource-----------------
 
-- (NSDragOperation) draggingSourceOperationMaskForLocal:(BOOL)isLocal
+- (NSDragOperation) draggingSession: (NSDraggingSession*) session
+   sourceOperationMaskForDraggingContext: (NSDraggingContext) context
 {
-	//this selector is normally sent to the view itself, but DIXTableView forwards this decision to
-	//it's delagate (like it should be)
-	
 	//drag&drop within the application is not supported
-	return isLocal ? NSDragOperationNone : (/*NSDragOperationLink |*/ NSDragOperationCopy);
+	return ( context == NSDraggingContextWithinApplication )
+	       ? NSDragOperationNone
+	       : NSDragOperationCopy;
 }
 
 @end

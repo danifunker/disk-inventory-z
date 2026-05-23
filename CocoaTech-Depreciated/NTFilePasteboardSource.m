@@ -73,10 +73,14 @@
 
     if (pasteboardTypes)
     {
-        // NSPasteboard provides the data lazily by calling the owner's
-        // -pasteboard:provideDataForType: and retains the owner until the
-        // pasteboard contents change.
-        [pboard declareTypes:pasteboardTypes owner:source];
+        // Modern NSPasteboardItem flow: register `source` as the data
+        // provider for each type; the data is produced lazily via
+        // -pasteboard:item:provideDataForType: below.
+        NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+        [item setDataProvider:source forTypes:pasteboardTypes];
+        [pboard clearContents];
+        [pboard writeObjects:@[ item ]];
+        [item release];
     }
 
     return source;
@@ -126,7 +130,11 @@
     return nil;
 }
 
-- (void)pasteboard:(NSPasteboard *)pboard provideDataForType:(NSString *)type
+#pragma mark - NSPasteboardItemDataProvider
+
+- (void)pasteboard:(NSPasteboard *)pboard
+              item:(NSPasteboardItem *)pasteItem
+provideDataForType:(NSPasteboardType)type
 {
     if (_URLs && [_URLs count])
     {
@@ -141,73 +149,52 @@
                 // NSPasteboardTypeFileURL holds a single file URL; the app only
                 // ever drags/copies one item (single selection), so write the
                 // first URL.
-                [pboard setString:[url absoluteString] forType:NSPasteboardTypeFileURL];
+                [pasteItem setString:[url absoluteString] forType:NSPasteboardTypeFileURL];
             }
             else if ([type isEqualToString:NSPasteboardTypeString])
             {
-                // set the path
-                [pboard setString:[url path] forType:NSPasteboardTypeString];
-            }
-            else if ([type isEqualToString:NSFileContentsPboardType])
-            {
-                // write the contents
-                [pboard writeFileContents:[url path]];
+                [pasteItem setString:[url path] forType:NSPasteboardTypeString];
             }
             else if ([type isEqualToString:NSPasteboardTypeTIFF])
             {
                 if ([uti isEqualToString: UTTypeTIFF.identifier])
-                    [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeTIFF];
+                    [pasteItem setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeTIFF];
                 else if ( [[UTType typeWithIdentifier: uti] conformsToType: UTTypeImage] )
                 {
-                    // open the image and return TIFFRepresentation
                     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:[url path]] autorelease];
-
                     if (image)
                     {
                         NSData* data = [image TIFFRepresentation];
-
                         if (data)
-                            [pboard setData:data forType:NSTIFFPboardType];
+                            [pasteItem setData:data forType:NSPasteboardTypeTIFF];
                     }
                 }
-                else // else send the icon
-                {
-#pragma warning "NTFilePasteBoardSource: providing file icon not implemented"
- /*                   // open the image and return TIFFRepresentation
-                    NSImage* image = [NSImage iconRef:[[desc icon] iconRef] toImage:128 label:[desc label] select:NO];
-
-                    if (image)
-                    {
-                        NSData* data = [image TIFFRepresentation];
-
-                        if (data)
-                            [pboard setData:data forType:NSPasteboardTypeTIFF];
-                    }
- */
-                }
+                // (icon-based fallback for non-image files was always
+                // unimplemented in this code path; leaving the type out
+                // when we don't have data is the correct behavior.)
             }
             else if ([type isEqualToString:NSPasteboardTypeRTF])
             {
                 if ([uti isEqualToString: UTTypeRTF.identifier])
-                    [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeRTF];
+                    [pasteItem setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeRTF];
             }
             else if ([type isEqualToString:NSPasteboardTypeRTFD])
             {
                 if ([uti isEqualToString: UTTypeFlatRTFD.identifier])
                 {
-                    NSFileWrapper *tempRTFDData = [[[NSFileWrapper alloc] initWithPath:[url path]] autorelease];
-                    [pboard setData:[tempRTFDData serializedRepresentation] forType:NSPasteboardTypeRTFD];
+                    NSFileWrapper *tempRTFDData = [[[NSFileWrapper alloc] initWithURL:url options:0 error:nil] autorelease];
+                    [pasteItem setData:[tempRTFDData serializedRepresentation] forType:NSPasteboardTypeRTFD];
                 }
             }
             else if ([type isEqualToString:NSPasteboardTypeHTML])
             {
                 if ([uti isEqualToString: UTTypeHTML.identifier])
-                    [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeHTML];
+                    [pasteItem setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypeHTML];
             }
             else if ([type isEqualToString:NSPasteboardTypePDF])
             {
                 if ([uti isEqualToString: UTTypePDF.identifier])
-                    [pboard setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypePDF];
+                    [pasteItem setData:[NSData dataWithContentsOfFile:[url path]] forType:NSPasteboardTypePDF];
             }
         }
     }

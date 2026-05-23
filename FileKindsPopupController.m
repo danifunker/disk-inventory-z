@@ -168,11 +168,30 @@
 	for ( i = 0; i < [popupItems count]; i++ )
 	{
 		NSMenuItem* menuItem = [popupItems objectAtIndex: i];
-		//the menu item's represented object is a NSNumber giving an array index of our arranged objects
-		NSNumber *index = [menuItem representedObject];
-		FileKindStatistic *stat = [kindStatistics objectAtIndex: [index unsignedIntValue]];
-		
-		if ( ![stat isAllFileKindsItem] )
+		// The menu item's representedObject depends on binding era:
+		//   - Old AppKit: NSNumber index into arrangedObjects.
+		//   - Modern AppKit: the array element directly.
+		// The "all kinds" pseudo-entry inserted at index 0 by
+		// -arrangeObjects: is an NSDictionary {kindName: ...}, so we
+		// also have to skip non-FileKindStatistic items.
+		id repObject = [menuItem representedObject];
+		FileKindStatistic *stat = nil;
+		if ( [repObject isKindOfClass: [NSNumber class]] )
+		{
+			NSUInteger idx = [(NSNumber*)repObject unsignedIntValue];
+			if ( idx < [kindStatistics count] )
+			{
+				id obj = [kindStatistics objectAtIndex: idx];
+				if ( [obj isKindOfClass: [FileKindStatistic class]] )
+					stat = (FileKindStatistic*) obj;
+			}
+		}
+		else if ( [repObject isKindOfClass: [FileKindStatistic class]] )
+		{
+			stat = (FileKindStatistic*) repObject;
+		}
+
+		if ( stat != nil && ![stat isAllFileKindsItem] )
 		{
 			//create a Bitmap with 24 bit color depth and no alpha component							 
 			NSBitmapImageRep* bitmap = [[NSBitmapImageRep alloc]

@@ -59,63 +59,18 @@
         return NULL;
 }
 
-//ask the delegate which drag operations are supported (if we are the dragging source) 
-- (NSDragOperation) draggingSourceOperationMaskForLocal:(BOOL)isLocal
+//ask the delegate which drag operations are supported (if we are the dragging source)
+- (NSDragOperation) draggingSession: (NSDraggingSession*) session
+   sourceOperationMaskForDraggingContext: (NSDraggingContext) context
 {
     id delegate = [self delegate];
-	
-	//forward to our delegate, if possible
-	if ( [delegate  respondsToSelector:@selector(draggingSourceOperationMaskForLocal:)] )
-		return [delegate draggingSourceOperationMaskForLocal: isLocal];
-	else
-		//NSOutlineView implements draggingSourceOperationMaskForLocal 
-		return [super draggingSourceOperationMaskForLocal: isLocal];
-}
 
-//@@test
-- (NSCell*) preparedCellAtColumn: (NSInteger) col row: (NSInteger) row
-{
- //   @try
-    {
-        return [super preparedCellAtColumn:col row:row];
-    }
-/*    @catch (NSException *exception)
-    {
-        NSString *msg = [exception reason];
-        
-        NSLog(@"%@ exception catched: %@", [exception className], msg);
-        
-        
-        NSError *error = NULL;
-        NSRegularExpression *regex = [NSRegularExpression
-                                      regularExpressionWithPattern:@"0x([a-f]*\\d*)*(\\w|$)"
-                                      options:NSRegularExpressionCaseInsensitive
-                                      error:&error];
-        
-        [regex enumerateMatchesInString:msg
-                                options:NSMatchingReportCompletion
-                                  range:NSMakeRange(0, [msg length])
-                             usingBlock:^(NSTextCheckingResult *match, NSMatchingFlags flags, BOOL *stop)
-         {
-             for (NSUInteger i = 0; i < [match numberOfRanges]; i++)
-             {
-                 NSObject *obj = nil;
-                 NSString *objAddress = [msg substringWithRange:[match rangeAtIndex:i]];
-                 
-                 NSScanner* scanner = [NSScanner scannerWithString:objAddress];
-                 if ( [scanner scanHexLongLong:(unsigned long long*)&objAddress] )
-                 {
-                     NSLog(@"%@: %@", objAddress, [obj className]);
-                 }
-                 else
-                 {
-                     NSLog(@"'%@' could not be parsed as hex string", objAddress);
-                 }
-             }
-         }];
-        
-        @throw exception;
-    }*/
+	//forward to our delegate, if possible
+	if ( [delegate respondsToSelector: @selector(draggingSession:sourceOperationMaskForDraggingContext:)] )
+		return [delegate draggingSession: session sourceOperationMaskForDraggingContext: context];
+	else
+		//NSOutlineView's NSDraggingSource conformance handles this for us
+		return [super draggingSession: session sourceOperationMaskForDraggingContext: context];
 }
 
 @end

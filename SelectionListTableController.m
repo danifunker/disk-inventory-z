@@ -95,13 +95,13 @@
     }
 }
 
-- (NSDragOperation) draggingSourceOperationMaskForLocal:(BOOL)isLocal
+- (NSDragOperation) draggingSession: (NSDraggingSession*) session
+   sourceOperationMaskForDraggingContext: (NSDraggingContext) context
 {
-	//this selector is normally sent to the view itself, but DIXOutlineView forwards this decision to
-	//it's delagate (like it should be)
-	
 	//drag&drop within the application is not supported
-	return isLocal ? NSDragOperationNone : (/*NSDragOperationLink |*/ NSDragOperationCopy);
+	return ( context == NSDraggingContextWithinApplication )
+	       ? NSDragOperationNone
+	       : NSDragOperationCopy;
 }
 
 #pragma mark --------NSTableView data source-----------------
@@ -127,11 +127,10 @@ writeRowsWithIndexes:(NSIndexSet *)rowIndexes
 		return NO;
 }
 
-#pragma mark --------NSMenuValidation-----------------
+#pragma mark --------NSUserInterfaceValidations-----------------
 
-- (BOOL) validateMenuItem: (NSMenuItem*) menuItem
+- (BOOL) validateUserInterfaceItem: (id<NSValidatedUserInterfaceItem>) item
 {
-	
 	return YES;
 }
 #pragma mark --------window notifications-----------------

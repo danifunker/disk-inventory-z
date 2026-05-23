@@ -71,14 +71,29 @@
 {
     NSWindow *panel = [self window];
 
-    // First show: park near the bottom-edge of the parent window to evoke
-    // the old drawer's position. After that, autosave takes over.
-    if ( ![panel setFrameUsingName: @"DIXSelectionListPanel"] && _parentWindow != nil )
+    // If the panel is already on screen, leave it exactly where the user
+    // put it. Its contents update via bindings to the document, so we
+    // don't need to re-orderFront or reset the frame just because the
+    // selection changed.
+    if ( [panel isVisible] )
+        return;
+
+    // First show: park along the LEFT edge of the screen by default,
+    // top-aligned to the parent window. After that, autosave takes over.
+    if ( ![panel setFrameUsingName: @"DIXSelectionListPanel"] )
     {
-        NSRect pf = [_parentWindow frame];
-        NSRect wf = [panel frame];
-        wf.origin.x = NSMinX(pf);
-        wf.origin.y = NSMinY(pf) - NSHeight(wf) - 8;
+        NSScreen *screen = (_parentWindow != nil ? [_parentWindow screen] : nil)
+                           ?: [NSScreen mainScreen];
+        NSRect vis = [screen visibleFrame];
+        NSRect wf  = [panel frame];
+        wf.origin.x = NSMinX(vis) + 10;
+        if ( _parentWindow != nil )
+            wf.origin.y = NSMaxY([_parentWindow frame]) - NSHeight(wf);
+        else
+            wf.origin.y = NSMaxY(vis) - NSHeight(wf) - 20;
+        // Clamp to screen so it can't land off the visible area.
+        if ( wf.origin.y < NSMinY(vis) )
+            wf.origin.y = NSMinY(vis);
         [panel setFrame: wf display: NO];
     }
 

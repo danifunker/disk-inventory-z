@@ -58,17 +58,18 @@
         return NULL;
 }
 
-//ask the delegate which drag operations are supported (if we are the dragging source) 
-- (NSDragOperation) draggingSourceOperationMaskForLocal:(BOOL)isLocal
+//ask the delegate which drag operations are supported (if we are the dragging source)
+- (NSDragOperation) draggingSession: (NSDraggingSession*) session
+   sourceOperationMaskForDraggingContext: (NSDraggingContext) context
 {
     id delegate = [self delegate];
-	
+
 	//forward to our delegate, if possible
-	if ( [delegate  respondsToSelector:@selector(draggingSourceOperationMaskForLocal:)] )
-		return [delegate draggingSourceOperationMaskForLocal: isLocal];
+	if ( [delegate respondsToSelector: @selector(draggingSession:sourceOperationMaskForDraggingContext:)] )
+		return [delegate draggingSession: session sourceOperationMaskForDraggingContext: context];
 	else
-		//NSTableView implements draggingSourceOperationMaskForLocal 
-		return [super draggingSourceOperationMaskForLocal: isLocal];
+		//NSTableView's NSDraggingSource conformance handles this for us
+		return [super draggingSession: session sourceOperationMaskForDraggingContext: context];
 }
 
 

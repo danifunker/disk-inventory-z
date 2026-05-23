@@ -12,7 +12,7 @@
 
 @class NTFileDesc;
 
-@interface NTFilePasteboardSource : NSObject
+@interface NTFilePasteboardSource : NSObject <NSPasteboardItemDataProvider>
 {
     NSArray<NSURL*> *_URLs;
 }

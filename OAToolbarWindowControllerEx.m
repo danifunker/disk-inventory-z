@@ -373,7 +373,10 @@ static NSMutableDictionary *g_toolbatStateImages = nil;
 
 	[g_toolbarItemValidationAdapter setToolbarItem: theItem];
 
-	return [self validateMenuItem: (NSMenuItem*) g_toolbarItemValidationAdapter];
+	// Subclasses now implement -validateUserInterfaceItem: (the
+	// -validateMenuItem: that lived here through v1.7 was deprecated and
+	// renamed in v2.0). The adapter masquerades as the toolbar item.
+	return [self validateUserInterfaceItem: (id<NSValidatedUserInterfaceItem>) g_toolbarItemValidationAdapter];
 }
 
 @end

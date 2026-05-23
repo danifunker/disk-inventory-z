@@ -15,7 +15,7 @@
 
 typedef TMVItem* TMVCellId;
 
-@interface TreeMapView : NSView
+@interface TreeMapView : NSView <NSViewToolTipOwner>
 {
     TMVItem *_rootItemRenderer;
     IBOutlet id delegate;

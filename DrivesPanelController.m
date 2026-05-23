@@ -74,9 +74,14 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	if ( self == [DrivesPanelController class] )
 	{
 		[[NSUserDefaults standardUserDefaults] registerDefaults: @{
-			DIXShowNetworkDrivesKey:   @YES,
-			DIXShowExternalDevicesKey: @YES,
-			DIXShowMountedImagesKey:   @YES,
+			// Default: show local drives only. Network Drives default is
+			// OFF so the app doesn't trigger a network-access permission
+			// prompt on every launch; External Devices and Mounted Images
+			// default OFF so the initial disk list is unsurprising. The
+			// user can opt in via the switches at the bottom of the panel.
+			DIXShowNetworkDrivesKey:   @NO,
+			DIXShowExternalDevicesKey: @NO,
+			DIXShowMountedImagesKey:   @NO,
 		}];
 	}
 }
@@ -163,14 +168,20 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		// snapshot summary) — the nib's 45pt rowHeight is short by ~15pt.
 		[_volumesTableView setRowHeight: 60];
 
-		// Filter row below the table. Defaults (everything on) are registered
-		// in +initialize so the volume list built in -rebuildVolumesArray and
-		// these switches stay consistent on first launch.
+		// Filter row below the table. Defaults are registered in +initialize
+		// (local drives only) so the volume list and these switches stay
+		// consistent on first launch.
 		[self installFilterSwitchesInWindow: _volumesPanel];
+
+		// Snapshot the natural frame (nib + installed switches) so we can
+		// restore it every time the panel is re-shown. Without this, AppKit
+		// state restoration / sibling window resizes can leave the panel
+		// stretched to whatever size a doc window had last.
+		_naturalFrame = [_volumesPanel frame];
 	}
 
 	[_volumesPanel makeFirstResponder: _volumesTableView];
-	
+
 	return self;
 }
 
@@ -227,6 +238,17 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 
 - (void) showPanel
 {
+	// Always restore the natural (post-nib + filter-strip) size so the panel
+	// doesn't pick up the larger frame of a doc window that just closed.
+	if ( !NSEqualSizes(_naturalFrame.size, NSZeroSize) )
+	{
+		NSRect cur = [_volumesPanel frame];
+		// Keep the current top-left position; just resize.
+		NSRect tgt = _naturalFrame;
+		tgt.origin.x = cur.origin.x;
+		tgt.origin.y = NSMaxY(cur) - tgt.size.height;
+		[_volumesPanel setFrame: tgt display: NO];
+	}
 	[[self panel] orderFront: nil];
 }
 
@@ -318,16 +340,16 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 	[strip setAutoresizingMask: NSViewWidthSizable | NSViewMaxYMargin];
 
 	NSArray<NSString*> *titles = @[
-		NSLocalizedString(@"Show Network Drives",   @""),
+		NSLocalizedString(@"Show Package Contents", @""),
 		NSLocalizedString(@"Show External Devices", @""),
 		NSLocalizedString(@"Show Mounted Images",   @""),
-		NSLocalizedString(@"Show Package Contents", @""),
+		NSLocalizedString(@"Show Network Drives",   @""),
 	];
 	NSArray<NSString*> *keys = @[
-		DIXShowNetworkDrivesKey,
+		ShowPackageContents,
 		DIXShowExternalDevicesKey,
 		DIXShowMountedImagesKey,
-		ShowPackageContents,
+		DIXShowNetworkDrivesKey,
 	];
 	for ( NSUInteger i = 0; i < [titles count]; i++ )
 		[strip addArrangedSubview: [self labeledSwitchWithTitle: titles[i]
@@ -375,6 +397,53 @@ NSString * const DIXShowMountedImagesKey   = @"DIXShowMountedImages";
 		return;
 
 	[self rebuildVolumesArray];
+	[self resizePanelToFitVolumeRows];
+}
+
+// Resize the panel so the table shows every volume row without scrolling.
+// Keep the top edge of the panel anchored so the title bar doesn't jump.
+- (void) resizePanelToFitVolumeRows
+{
+	NSScrollView *scroller = [_volumesTableView enclosingScrollView];
+	if ( scroller == nil || _volumesPanel == nil )
+		return;
+
+	NSUInteger rows = [_volumesTableView numberOfRows];
+	CGFloat rowH  = [_volumesTableView rowHeight];
+	CGFloat hdrH  = ( [_volumesTableView headerView] != nil )
+	                ? NSHeight([[_volumesTableView headerView] frame])
+	                : 0;
+	CGFloat intra = [_volumesTableView intercellSpacing].height;
+
+	// Desired scroll view content height = all rows + header + spacing.
+	CGFloat desiredContent = (rows * rowH) + (rows > 0 ? (rows - 1) * intra : 0) + hdrH + 2;
+	CGFloat currentContent = NSHeight([scroller frame]);
+	CGFloat delta = desiredContent - currentContent;
+	if ( fabs(delta) < 1 )
+		return;
+
+	NSRect pf = [_volumesPanel frame];
+	NSRect target = pf;
+	target.size.height += delta;
+	// Keep top edge fixed → origin.y moves down by delta.
+	target.origin.y -= delta;
+
+	// Clamp so the panel stays on-screen and respects content min size.
+	NSScreen *screen = [_volumesPanel screen] ?: [NSScreen mainScreen];
+	NSRect vis = [screen visibleFrame];
+	if ( target.size.height > NSHeight(vis) )
+	{
+		// Don't grow past the screen — let the scroll view take over.
+		target.size.height = NSHeight(vis);
+		target.origin.y = NSMaxY(pf) - target.size.height;
+	}
+	if ( target.origin.y < NSMinY(vis) )
+		target.origin.y = NSMinY(vis);
+
+	[_volumesPanel setFrame: target display: YES animate: YES];
+
+	// Update the snapshot so a subsequent close → reopen lands at this size.
+	_naturalFrame = target;
 }
 
 // YES if a given volume kind should be shown given the current switch state.

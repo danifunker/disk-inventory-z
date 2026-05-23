@@ -283,6 +283,23 @@
 	_cancelPressed = YES;
 
 	[_loadingCancelButton setEnabled: NO];
+
+	// Async-scan path: forward to the owner so it can flip its atomic
+	// cancel flag for the worker thread. The owner may also call back
+	// into -close once the worker acknowledges.
+	if ( _cancelTarget != nil && _cancelAction != NULL
+	     && [_cancelTarget respondsToSelector: _cancelAction] )
+	{
+		IMP imp = [_cancelTarget methodForSelector: _cancelAction];
+		void (*fn)(id, SEL, id) = (void*) imp;
+		fn(_cancelTarget, _cancelAction, self);
+	}
+}
+
+- (void) setCancelTarget: (id) target action: (SEL) action
+{
+	_cancelTarget = target;   // weak
+	_cancelAction = action;
 }
 
 @end

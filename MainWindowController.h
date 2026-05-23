@@ -22,6 +22,18 @@
 	// Programmatically-injected status bar at the bottom of the window.
 	NSTextField *_statusBar;
 
+	// Stage 8.5 Wave 2: inline scan overlay (replaces the old loading sheet).
+	// Installed on scan-start, removed on scan-finish. The doc window stays
+	// fully responsive because there is no sheet attached.
+	NSView *_scanOverlay;
+	NSTextField *_scanOverlayPathLabel;
+	NSTextField *_scanOverlayCountLabel;
+	NSTextField *_scanOverlayElapsedLabel;
+	NSProgressIndicator *_scanOverlaySpinner;
+	NSButton *_scanOverlayCancelButton;
+	NSDate *_scanOverlayStartedAt;
+	NSTimer *_scanOverlayClockTimer;
+
 	// Lazily created on first show.
 	SelectionListPanelController *_selectionListPanel;
 

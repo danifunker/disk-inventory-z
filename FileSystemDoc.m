@@ -24,6 +24,7 @@
 #import "InfoPanelController.h"
 #import "FSItem-Utilities.h"
 #import "NSFileManager-Extensions.h"
+#import "DrivesPanelController.h"
 
 NSString *CollectFileKindStatisticsCanceledException = @"CollectFileKindStatisticsCanceledException";
 
@@ -170,6 +171,11 @@ NSString *ViewOptionChangedNotification = @"ViewOptionsChangedNotification";
 NSString *ChangedViewOption = @"ChangedViewOption";
 NSString *NewItem = @"NewItem";
 NSString *OldItem = @"OldItem";
+NSString *DIXScanStartedNotification = @"DIXScanStarted";
+NSString *DIXScanProgressNotification = @"DIXScanProgress";
+NSString *DIXScanFinishedNotification = @"DIXScanFinished";
+NSString *DIXScanPath = @"DIXScanPath";
+NSString *DIXScanItemCount = @"DIXScanItemCount";
 
 @implementation FileSystemDoc
 
@@ -182,7 +188,15 @@ NSString *OldItem = @"OldItem";
         // If an error occurs here, send a [self release] message and return nil.
 		
         _zoomStack = [[NSMutableArray alloc] init];
-		
+
+		// Initialize early (was lazily populated by refreshFileKindStatistics
+		// during the sync scan, but with the async scan in Stage 8.5 the doc
+		// window nib loads BEFORE the scan runs, and bindings query
+		// kindStatistics during nib load. Without a pre-existing dict the
+		// NSAssert in -kindStatistics aborted nib load, blocking awakeFromNib
+		// on every controller in TreeMap.xib.
+		_fileKindStatistics = [[NSMutableDictionary alloc] init];
+
 		_viewOptions = [[NSMutableDictionary alloc] initWithDefaults];
 		
 		NSUserDefaultsController *sharedDefsController = [NSUserDefaultsController sharedUserDefaultsController];
@@ -206,20 +220,55 @@ NSString *OldItem = @"OldItem";
     [_zoomStack release];
 	
     [_rootItem release];
-	
+
 	[_directoryStack release];
 
 	[_kindColors release];
-	
+
+    [_pendingScanURL release];
+    if ( _scanQueue != NULL )
+    {
+        dispatch_release(_scanQueue);
+        _scanQueue = NULL;
+    }
+
     [super dealloc];
+}
+
+- (void) close
+{
+    // Bring the drives panel back when the doc closes (cancelled scan,
+    // Cmd-W, etc.) so the user lands on the disk-selection screen rather
+    // than triggering applicationShouldTerminateAfterLastWindowClosed and
+    // quitting the app. If they open another doc, the standard open path
+    // (MyDocumentController) hides the drives panel again.
+    [super close];
+    [[DrivesPanelController sharedController] showPanel];
 }
 
 - (void) makeWindowControllers
 {
-    // Override method to instantiate controllers for multiple document windows.
     MainWindowController *controller = [[MainWindowController alloc] initWithWindowNibName: [self windowNibName]];
     [self addWindowController:controller];
     [controller release];
+
+    // Stage 8.5: kick off the async scan now that the doc window exists.
+    // -readFromURL:ofType:error: only validates and stashes the URL —
+    // the actual walk happens here so the loading sheet can attach to a
+    // real window. dispatch_async to next runloop turn so showWindows
+    // (called by NSDocumentController right after makeWindowControllers)
+    // gets a chance to make the window visible first.
+    if ( _pendingScanURL != nil )
+    {
+        NSURL *url = [_pendingScanURL retain];
+        [_pendingScanURL release];
+        _pendingScanURL = nil;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self startBackgroundScanForURL: url];
+            [url release];
+        });
+    }
 }
 
 
@@ -236,12 +285,46 @@ NSString *OldItem = @"OldItem";
     // Add any code here that needs to be executed once the windowController has loaded the document's window.
 }
 
-- (BOOL) scanFolderAtURL: (NSURL*) url error: (NSError**) outError
+#pragma mark ----------------- async scan engine (Stage 8.5) -----------------
+
+#include <stdatomic.h>
+
+- (BOOL) isScanInProgress
 {
+    return _scanInProgress;
+}
+
+- (void) requestCancelScan
+{
+    atomic_store(&_cancelRequested, YES);
+}
+
+// NSDocument override: this is the synchronous "read" entry point that
+// NSDocumentController calls. We DO NOT walk the directory tree here —
+// we just validate the URL and stash it for -makeWindowControllers to
+// pick up. Returning YES from here makes NSDocumentController think the
+// doc loaded successfully; the actual scan then happens asynchronously
+// once a window controller is in place.
+- (BOOL) readFromURL: (NSURL*) url
+              ofType: (NSString*) typeName
+               error: (NSError**) outError
+{
+    // Validate: must exist and be a directory.
+    NSNumber *isDir = nil;
+    BOOL ok = [url getResourceValue: &isDir forKey: NSURLIsDirectoryKey error: nil];
+    if ( !ok || ![isDir boolValue] )
+    {
+        if ( outError != nil )
+            *outError = [NSError errorWithDomain: NSCocoaErrorDomain
+                                            code: NSFileReadNoSuchFileError
+                                        userInfo: @{ NSURLErrorKey: url }];
+        return NO;
+    }
+
     if ( ![self checkForProtectedFolders: [url path]] )
     {
         // User chose to grant permissions first. Treat as a user-cancel so
-        // the document doesn't open and no error sheet appears.
+        // NSDocumentController doesn't open the doc or show an error sheet.
         if ( outError != nil )
             *outError = [NSError errorWithDomain: NSCocoaErrorDomain
                                             code: NSUserCancelledError
@@ -249,105 +332,348 @@ NSString *OldItem = @"OldItem";
         return NO;
     }
 
-    //now the real work: loading the folder contents
-    @try
+    [_pendingScanURL release];
+    _pendingScanURL = [url retain];
+
+    // Create an empty root FSItem stub for the URL so the doc window's
+    // nib load (which happens BEFORE the async scan walks the tree) has
+    // a valid root for KVO/bindings to inspect. The walker fills in its
+    // children later. Without this stub, TreeMapViewController's
+    // -awakeFromNib creates "other space" / "free space" items with a
+    // nil parent, and -fileURL recurses forever via -root.
+    [_rootItem release];
+    _rootItem = [[FSItem alloc] initWithURL: url];
+    return YES;
+}
+
+- (void) startBackgroundScanForURL: (NSURL*) url
+{
+    NSParameterAssert( [NSThread isMainThread] );
+    if ( _scanInProgress )
     {
-        g_fileCount = g_folderCount = 0;
-
-		_progressController = [[LoadingPanelController alloc] init];
-		[_progressController startAnimation];
-
-		uint64_t startTime = getTime();
-
-        _rootItem = [[FSItem alloc] initWithURL: url];
-		if ( ![[_rootItem fileURL] stillExists] )
-		{
-			[_rootItem release];
-			_rootItem = nil;
-			[_progressController close];
-			[_progressController release];
-			_progressController = nil;
-			LOG( @"readFromURL: path '%@' doesn't exist", [url path] );
-			if ( outError != nil )
-				*outError = [NSError errorWithDomain: NSCocoaErrorDomain
-				                                code: NSFileReadNoSuchFileError
-				                            userInfo: @{ NSURLErrorKey: url }];
-			return NO;
-		}
-		
-		[_rootItem setDelegate: self];
-		
-        [_rootItem loadChildren];
-        
- 		uint64_t doneLoadingTime = getTime();
-		LOG (@"loading time:  %.2f seconds", subtractTime(doneLoadingTime, startTime));
-		
-        LOG(@"************** Loading complete *******************" );
-        LOG(@"%u items created", g_fileCount + g_folderCount );
-        LOG(@"%u files", g_fileCount );
-        LOG(@"%u folders", g_folderCount );
-        
-		//ok, now we've got an FSItem for every file and directory in the given folder
-		//[_progressController setMessageText: NSLocalizedString( @"Classifying Files", @"")];
-				
-		//collect sizes and file count of all file kinds 
-		[self refreshFileKindStatistics];
-		
-		uint64_t doneFileKindStatsTime = getTime();
-		LOG (@"file kind statistics time:  %.2f seconds", subtractTime(doneFileKindStatsTime, doneLoadingTime));
-
-		// Remember total scan duration so we can show it in the window title.
-		_lastScanDurationSeconds = subtractTime(doneFileKindStatsTime, startTime);
-
-		//the modal session must be ended in the same NS_DURING section (if no exception occured)
-		[_progressController close];
-		[_progressController release];
-		_progressController = nil;
+        LOG(@"startBackgroundScanForURL: refusing — scan already in progress");
+        return;
     }
-    @catch(NSException *localException)
+
+    NSWindow *docWindow = nil;
+    if ( [[self windowControllers] count] > 0 )
     {
-        LOG( @"exception '%@' occured during directory traversal: %@", [localException name], [localException reason] );
-
-		// according to the docu, we should not end a modal session explicitly in the case of an exception
-        // but this seems to be no longer true at least on Mac OS 10.13 (even not when using NS_DURING, NS_HANDLER, ..)
-		//[_progressController closeNoModalEnd];
-		[_progressController close];
-		[_progressController release];
-		_progressController = nil;
-		
-		[_rootItem release];
-		_rootItem = nil;
-
-		if ( [[localException name] isEqualToString: FSItemLoadingCanceledException]
-			 || [[localException name] isEqualToString: CollectFileKindStatisticsCanceledException] )
-		{
-			//loading canceled by user; propagate as user-cancelled so
-			//NSDocumentController doesn't show its own error sheet
-			if ( outError != nil )
-				*outError = [NSError errorWithDomain: NSCocoaErrorDomain
-				                                code: NSUserCancelledError
-				                            userInfo: nil];
-		}
-		else
-		{
-			//error
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-			alert.alertStyle = NSAlertStyleInformational;
-			alert.messageText = NSLocalizedString( @"The folder's content could not be loaded.", @"");
-			if ( [localException reason] != nil )
-				alert.informativeText = [localException reason];
-			[alert runModal];
-		}
-
-        return NO;
+        docWindow = [[[self windowControllers] objectAtIndex: 0] window];
+        [docWindow makeKeyAndOrderFront: nil];
+        // Replace the nib's default "Window" title until the scan finishes
+        // and synchronizeWindowTitleWithDocumentName picks up the real name.
+        [docWindow setTitle: NSLocalizedString(@"Scanning…", @"")];
     }
-    @finally
+
+    // Create the per-doc serial scan queue lazily on first use.
+    if ( _scanQueue == NULL )
     {
+        _scanQueue = dispatch_queue_create("io.github.danifunker.disk-inventory-z.scan",
+                                           DISPATCH_QUEUE_SERIAL);
+    }
+
+    // Reset run-state.
+    atomic_store(&_cancelRequested, NO);
+    _scanInProgress = YES;
+    g_fileCount = 0;
+    g_folderCount = 0;
+
+    // _rootItem was created as an empty stub in -readFromURL:ofType:error:.
+    // The walker builds each top-level child as a detached orphan
+    // (parent=nil) on the worker thread, then dispatches each completed
+    // orphan to main where it's spliced into _rootItem via
+    // -insertChild:updateParent:YES. _rootItem is therefore mutated ONLY
+    // on main — AppKit can safely redraw the treemap / outline at any
+    // time (window resize, expose, modal alerts) without racing the
+    // worker because the worker never touches anything main can see.
+    [_rootItem setDelegate: self];
+
+    [[NSNotificationCenter defaultCenter] postNotificationName: DIXScanStartedNotification
+                                                        object: self
+                                                      userInfo: @{ DIXScanPath: [url path] }];
+
+    uint64_t startTime = getTime();
+    NSURL *capturedURL = [url retain];
+    BOOL usePhysicalSize = [self showPhysicalFileSize];
+    BOOL showPackageContents = [self showPackageContents];
+
+    dispatch_async(_scanQueue, ^{
+        @autoreleasepool
+        {
+            [self runTopLevelOrchestrationForURL: capturedURL
+                                 usePhysicalSize: usePhysicalSize
+                             showPackageContents: showPackageContents];
+
+            BOOL cancelled = atomic_load(&_cancelRequested);
+            uint64_t doneLoadingTime = getTime();
+            LOG(@"loading time: %.2f seconds (cancelled=%d)",
+                subtractTime(doneLoadingTime, startTime), cancelled);
+            LOG(@"%u items: %u files, %u folders",
+                g_fileCount + g_folderCount, g_fileCount, g_folderCount);
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ( !cancelled )
+                {
+                    // Recompute the root's size from scratch. The per-splice
+                    // -insertChild:updateParent:YES accumulates size, but a
+                    // final pass guarantees we account for any edge case
+                    // (hardlink dedup, package sizing) that incremental sums
+                    // might have missed.
+                    [_rootItem recalculateSize: [self showPhysicalFileSize]
+                                  updateParent: NO];
+
+                    // Reset color assignments so the final treemap render
+                    // assigns the palette in size-descending order (matches
+                    // the original sync-scan behavior). Without this the
+                    // colors are whatever got handed out in scan order.
+                    [_kindColors reset];
+                    [_kindColors release];
+                    _kindColors = nil;
+
+                    [self refreshFileKindStatistics];
+                    _lastScanDurationSeconds = subtractTime(getTime(), startTime);
+                }
+                [self finishBackgroundScanCancelled: cancelled];
+                [capturedURL release];
+            });
+        }
+    });
+}
+
+// Worker-side top-level orchestration. Enumerates the scan root's
+// direct children (depth 1), and for each one builds a detached orphan
+// FSItem on this thread, then dispatches the completed orphan to main
+// where it is spliced into _rootItem. The orphan's subtree is entirely
+// worker-local during the walk; once dispatched, ownership transfers
+// to main and the worker never touches it again.
+- (void) runTopLevelOrchestrationForURL: (NSURL*) rootURL
+                        usePhysicalSize: (BOOL) usePhysicalSize
+                    showPackageContents: (BOOL) showPackageContents
+{
+    [FSItem resetHardlinkDedup];
+
+    NSArray<NSURLResourceKey> *keys = @[
+        NSURLIsDirectoryKey, NSURLIsPackageKey, NSURLIsVolumeKey,
+        NSURLNameKey, NSURLTypeIdentifierKey,
+        NSURLFileSizeKey, NSURLTotalFileAllocatedSizeKey
+    ];
+
+    NSError *err = nil;
+    NSArray<NSURL*> *topLevel =
+        [[NSFileManager defaultManager] contentsOfDirectoryAtURL: rootURL
+                                      includingPropertiesForKeys: keys
+                                                         options: 0
+                                                           error: &err];
+    if ( topLevel == nil )
+    {
+        LOG(@"top-level enumeration failed for %@: %@", rootURL, err);
+        return;
+    }
+
+    for ( NSURL *childURL in topLevel ) @autoreleasepool
+    {
+        if ( atomic_load(&_cancelRequested) )
+            break;
+
+        // /Volumes cross-mounts back to the boot volume and to every
+        // disk-image / external mount on the system. Always skip.
+        if ( [[childURL path] isEqualToString: @"/Volumes"] )
+            continue;
+        // .nofollow / .resolve are macOS 26 (Tahoe) magic root directories
+        // that expose a symlink-resolution-disabled re-rooted view of the
+        // filesystem — walking them effectively duplicates the entire
+        // tree. Match by last path component so we catch them whether
+        // they appear at / or under /System/Volumes/Data/ etc.
+        NSString *leaf = [childURL lastPathComponent];
+        if ( [leaf isEqualToString: @".nofollow"]
+             || [leaf isEqualToString: @".resolve"] )
+            continue;
+
+        FSItem *orphan = [[FSItem alloc] initWithURL: childURL];
+        [orphan setDelegate: self];
+
+        // Update the overlay path even for non-folder top-level entries.
+        [_workerCurrentPath release];
+        _workerCurrentPath = [[childURL path] copy];
+
+        BOOL isDir = NO, isPkg = NO, isVol = NO;
+        NSNumber *n = nil;
+        if ( [childURL getResourceValue: &n forKey: NSURLIsDirectoryKey error: nil] && n )
+            isDir = [n boolValue];
+        if ( [childURL getResourceValue: &n forKey: NSURLIsPackageKey error: nil] && n )
+            isPkg = [n boolValue];
+        if ( [childURL getResourceValue: &n forKey: NSURLIsVolumeKey error: nil] && n )
+            isVol = [n boolValue];
+
+        @try
+        {
+            if ( isDir && !isVol && (!isPkg || showPackageContents) )
+            {
+                [orphan loadChildren];
+            }
+            else if ( isDir && isPkg && !showPackageContents )
+            {
+                // Opaque package: sum descendant sizes without allocating
+                // FSItems for the contents.
+                unsigned long long pkgSize = 0;
+                NSDirectoryEnumerator *pkgEnum =
+                    [[NSFileManager defaultManager] enumeratorAtURL: childURL
+                                         includingPropertiesForKeys: @[ NSURLTotalFileAllocatedSizeKey,
+                                                                        NSURLFileAllocatedSizeKey ]
+                                                            options: 0
+                                                       errorHandler: nil];
+                for ( NSURL *u in pkgEnum ) @autoreleasepool
+                {
+                    if ( atomic_load(&_cancelRequested) ) break;
+                    NSNumber *sz = nil;
+                    NSURLResourceKey sk = usePhysicalSize ? NSURLTotalFileAllocatedSizeKey
+                                                          : NSURLFileAllocatedSizeKey;
+                    [u getResourceValue: &sz forKey: sk error: nil];
+                    if ( sz != nil )
+                        pkgSize += [sz unsignedLongLongValue];
+                }
+                [orphan setSizeValue: pkgSize];
+            }
+            // else: regular file (size already set in init), or volume mount
+            // point (we don't descend into mounted volumes).
+        }
+        @catch ( NSException *ex )
+        {
+            // Cancel raises FSItemLoadingCanceledException; drop the partial
+            // orphan and stop iterating.
+            LOG(@"top-level walk exception for %@: %@ — %@",
+                childURL, [ex name], [ex reason]);
+            [orphan release];
+            // Clear walker-thread bookkeeping touched by loadChildren.
+            [_directoryStack release];
+            _directoryStack = nil;
+            break;
+        }
+
+        // Reset per-orphan walker state so the next top-level call into
+        // -fsItemEnteringFolder: sees an empty _directoryStack (its
+        // NSParameterAssert requires lastObject == [item parent]).
         [_directoryStack release];
         _directoryStack = nil;
+
+        // Strip delegate before publishing — once spliced under _rootItem
+        // the orphan inherits the real root's delegate via [self root].
+        [orphan setDelegate: nil];
+
+        if ( atomic_load(&_cancelRequested) )
+        {
+            [orphan release];
+            break;
+        }
+
+        // Transfer ownership of orphan + its entire subtree to main.
+        FSItem *toPublish = orphan;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if ( atomic_load(&_cancelRequested) || !_scanInProgress )
+            {
+                [toPublish release];
+                return;
+            }
+            [_rootItem insertChild: toPublish updateParent: YES];
+            [toPublish release];
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName: FSItemsChangedNotification
+                              object: self];
+        });
+
+        // Refresh the overlay between top-level walks too (in case the
+        // walker hasn't hit a maybeRefreshScanCheckpoint tick recently).
+        [self maybeRefreshScanCheckpoint];
     }
-        
-   return YES;
+}
+
+// Called from the worker thread (-fsItemEnteringFolder: /
+// -fsItemShouldContinueLoading) at the ~4 Hz cadence. Synchronously hops
+// to main and posts notifications so the outline view, treemap, and
+// overlay text refresh from a consistent snapshot of _rootItem. The
+// worker is paused for the duration of the block — that pause IS the
+// thread-safety mechanism (no locks needed, since the only mutator of
+// the tree is this worker queue).
+- (void) scanRefreshCheckpointFromWorker
+{
+    if ( !_scanInProgress )
+        return;
+    if ( atomic_load(&_cancelRequested) )
+        return;
+
+    // Snapshot what's safe to capture before hopping (g_fileCount is
+    // atomic; _workerCurrentPath is set on worker so we can read it here).
+    NSString *path = _workerCurrentPath != nil ? [[_workerCurrentPath copy] autorelease] : @"";
+    NSUInteger items = (NSUInteger) g_fileCount + (NSUInteger) g_folderCount;
+
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        if ( !_scanInProgress )
+            return;
+        // Only the overlay updates live during a scan. _rootItem stays
+        // empty until the worker completes and we swap _workerRoot into
+        // it; that's what makes redraws of the (empty) tree race-free.
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName: DIXScanProgressNotification
+                          object: self
+                        userInfo: @{ DIXScanPath: path,
+                                     DIXScanItemCount: @(items) }];
+    });
+}
+
+- (void) finishBackgroundScanCancelled: (BOOL) cancelled
+{
+    NSParameterAssert( [NSThread isMainThread] );
+
+    if ( _progressController != nil )
+    {
+        [_progressController close];
+        [_progressController release];
+        _progressController = nil;
+    }
+
+    [_directoryStack release];
+    _directoryStack = nil;
+
+    [_workerCurrentPath release];
+    _workerCurrentPath = nil;
+    _workerLastRefreshTime = 0;
+
+    _scanInProgress = NO;
+
+    // Notify the UI to tear down the inline overlay (Wave 2).
+    [[NSNotificationCenter defaultCenter] postNotificationName: DIXScanFinishedNotification
+                                                        object: self
+                                                      userInfo: @{ @"cancelled": @(cancelled) }];
+
+    if ( cancelled )
+    {
+        // Swap the partial tree for an empty stub BEFORE closing. The
+        // TreeMapView keeps a TMVItem renderer cache that holds raw
+        // pointers into our FSItem tree; if we close while that cache
+        // still references the spliced top-level subtrees, the close →
+        // doc-dealloc cascade frees those FSItems and the deferred CA
+        // transaction flush during terminate redraws the treemap against
+        // freed memory (boom). Posting FSItemsChangedNotification with an
+        // empty _rootItem makes TreeMapViewController.itemsChanged rebuild
+        // the renderer cache from nothing, so subsequent draws are safe.
+        NSURL *url = [[[_rootItem fileURL] retain] autorelease];
+        [_rootItem release];
+        _rootItem = [[FSItem alloc] initWithURL: url];
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName: FSItemsChangedNotification object: self];
+
+        [self close];
+        return;
+    }
+
+    // Title sync — let the window controllers pick up the new doc name
+    // now that the scan produced a non-empty model.
+    for ( NSWindowController *wc in [self windowControllers] )
+        [wc synchronizeWindowTitleWithDocumentName];
+
+    // Tell everyone the doc has data now.
+    [[NSNotificationCenter defaultCenter] postNotificationName: FSItemsChangedNotification
+                                                        object: self];
 }
 
 - (IBAction) cancelScanningFolder:(id)sender
@@ -826,13 +1152,6 @@ NSString *OldItem = @"OldItem";
 		[[InfoPanelController sharedController] showPanelWithFSItem: _selectedItem];
 }
 
-- (NSString *)fileName
-{
-    //we should override this method so the window controller will display
-    //the icon of the currently zoomed item (or of the root item) in the window's title bar
-    return [[self zoomedItem] path];
-}
-
 - (NSString *)displayName
 {
     NSString *displayName = [[self zoomedItem] displayName];
@@ -862,8 +1181,9 @@ NSString *OldItem = @"OldItem";
 
 - (NSDictionary*) kindStatistics
 {
-    NSAssert( _fileKindStatistics != nil, @"kind statistics aren't collected yet" );
-
+    // Initialized to an empty NSMutableDictionary in -init so this is never
+    // nil even before the first scan completes. The old NSAssert blew up
+    // during nib load now that the doc window opens before the scan.
     return _fileKindStatistics;
 }
 
@@ -905,38 +1225,60 @@ NSString *OldItem = @"OldItem";
 
 #pragma mark ----------------------FSItem delegates-----------------------------------
 
+// NOTE (Stage 8.5 Wave 2): these delegate callbacks run on the worker
+// scan queue. _directoryStack and _workerCurrentPath are touched only
+// here, so they stay worker-thread-local except inside the dispatch_sync
+// barrier (-scanRefreshCheckpointFromWorker) where the worker is paused
+// and main reads them safely.
 - (BOOL) fsItemEnteringFolder: (FSItem*) item
 {
-	//if we don't show the progress panel, we don't need to do anything
-	if ( _progressController == nil )
+	if ( !_scanInProgress )
 		return YES; //YES == continue loading
-	
+
 	if ( _directoryStack == nil )
 		_directoryStack = [[NSMutableArray alloc] initWithCapacity: 20];
-	
+
 	NSParameterAssert( [_directoryStack lastObject] == [item parent] );
 	[_directoryStack addObject: item];
 
-	//we display only folders 4 levels deep and we don't go into packages
+	// Track the current top-level folder for the inline-overlay progress
+	// text. We surface only the top 4 levels and ignore folders inside
+	// packages, matching the original loading-sheet behavior.
 	if ( [_directoryStack count] <= 4 )
 	{
 		FSItem* parentItem = [item parent];
 		while ( parentItem != nil && ![parentItem isPackage] )
 			parentItem = [parentItem parent];
-		
+
 		if ( parentItem == nil )
-			[_progressController setMessageText: [item displayPath]];
+		{
+			NSString *path = [[item displayPath] copy];
+			[_workerCurrentPath release];
+			_workerCurrentPath = path; // retained via copy above
+		}
 	}
 
-	[_progressController runEventLoop];
-	
-	return ![_progressController cancelPressed];
+	[self maybeRefreshScanCheckpoint];
+	return !atomic_load(&_cancelRequested);
+}
+
+// Time-gate around -scanRefreshCheckpointFromWorker. Called from the
+// per-folder enter callback AND the per-64-files continuation poll, so
+// we get refreshes whether the scan is dominated by huge flat folders
+// or by deep directory trees.
+- (void) maybeRefreshScanCheckpoint
+{
+	uint64_t now = getTime();
+	if ( _workerLastRefreshTime != 0
+		 && subtractTime(now, _workerLastRefreshTime) < 0.25 )
+		return;
+	_workerLastRefreshTime = now;
+	[self scanRefreshCheckpointFromWorker];
 }
 
 - (BOOL) fsItemExittingFolder: (FSItem*) item
 {
-	//if we don't show the progress panel, we don't need to do anything
-	if ( _progressController == nil )
+	if ( !_scanInProgress )
 		return YES; //YES == continue loading
 
     NSAssert( [_directoryStack lastObject] == item, @"last stack object: %@, item: %@", [[_directoryStack lastObject] fileURL], [item fileURL] );
@@ -945,15 +1287,14 @@ NSString *OldItem = @"OldItem";
 	return YES;
 }
 
-//Mid-directory runloop pump (no stack accounting). Called every ~64 files by
-//the walker so we can keep the UI responsive and notice a Cancel press.
+// Periodic checkpoint inside large folders (no stack accounting). Called
+// every ~64 files by the walker so cancel is responsive within ~milliseconds.
+// Also drives the ~4 Hz UI refresh barrier so a single huge flat folder
+// (node_modules, mailbox stores) still updates the live UI.
 - (BOOL) fsItemShouldContinueLoading
 {
-	if ( _progressController == nil )
-		return YES;
-
-	[_progressController runEventLoop];
-	return ![_progressController cancelPressed];
+	[self maybeRefreshScanCheckpoint];
+	return !atomic_load(&_cancelRequested);
 }
 
 - (BOOL) fsItemShouldIgnoreCreatorCode: (FSItem*) item

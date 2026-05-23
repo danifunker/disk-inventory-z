@@ -64,17 +64,38 @@
 	//how long the last scan took, in seconds. Shown in the window title
 	//so the user knows what the cost was after the fact.
 	double _lastScanDurationSeconds;
+
+	// Stage 8.5: async scan engine.
+	// _scanQueue is a per-document serial dispatch queue. Created lazily
+	// the first time a scan is kicked off; the walker runs on it.
+	// _scanInProgress flips on/off around the worker block — read on main.
+	// _cancelRequested is atomic so the worker thread can poll it cheaply
+	// from inside the walker without locks; set from main on Cancel /
+	// document-close / app-quit.
+	dispatch_queue_t _scanQueue;
+	BOOL _scanInProgress;
+	_Atomic BOOL _cancelRequested;
+	// The URL we'll scan on first window-controller appearance. Stored by
+	// -readFromURL:ofType:error: (which is now just URL validation); the
+	// actual walk kicks off from -makeWindowControllers.
+	NSURL *_pendingScanURL;
+
+	// Worker-thread state for the ~4 Hz dispatch_sync refresh barrier.
+	// _workerCurrentPath is set by -fsItemEnteringFolder: on the worker;
+	// read inside the dispatch_sync block (where worker is paused, so no
+	// race). _workerLastRefreshTime is touched only on the worker thread.
+	NSString *_workerCurrentPath;
+	uint64_t _workerLastRefreshTime;
+
 }
 
-// Walk the directory tree rooted at `url`, populating the document's
-// internal model (rootItem + kind statistics). Synchronous on the calling
-// thread; uses the LoadingPanelController for progress + cancel. Returns
-// NO on cancel or error; on cancel, *outError is NSUserCancelledError.
-// Not an NSDocument override -- MyDocumentController calls this directly,
-// bypassing NSDocumentController's URL-based open (which wraps reads in
-// NSFileCoordinator; that machinery doesn't mix with a long-running
-// runloop-pumping directory walk).
-- (BOOL) scanFolderAtURL: (NSURL*) url error: (NSError**) outError;
+// YES if a background walker is currently populating _rootItem for this
+// document. Read-only.
+- (BOOL) isScanInProgress;
+
+// Request that an in-flight background scan abort at its next poll point.
+// Safe to call from main. No-op if no scan is running.
+- (void) requestCancelScan;
 
 // Total scan duration of the last completed scan, in seconds.
 - (double) lastScanDurationSeconds;
@@ -127,3 +148,12 @@ extern NSString *ViewOptionChangedNotification; //the name of the changed option
 extern NSString *ChangedViewOption;
 extern NSString *NewItem;
 extern NSString *OldItem;
+
+// Stage 8.5 Wave 2: posted on main when a background scan begins / finishes.
+// DIXScanProgressNotification is posted ~4 Hz from a dispatch_sync barrier
+// inside the worker, with userInfo {DIXScanPath: NSString*, DIXScanItemCount: NSNumber*}.
+extern NSString *DIXScanStartedNotification;
+extern NSString *DIXScanProgressNotification;
+extern NSString *DIXScanFinishedNotification;
+extern NSString *DIXScanPath;
+extern NSString *DIXScanItemCount;

@@ -50,7 +50,17 @@
 						   selector: @selector(itemsChanged:)
 							   name: FSItemsChangedNotification
 							 object: doc];
-	
+
+    // Stage 8.5 Wave 2: treemap is the most expensive view to redraw, so
+    // we skip every itemsChanged that fires during a live scan and only
+    // do the full rebuild + reload when the scan finishes. That keeps
+    // top-level color assignment consistent (avoids palette drift as new
+    // kinds appear) and dramatically reduces scan-time overhead.
+    [notificationCenter addObserver: self
+						   selector: @selector(scanFinished:)
+							   name: DIXScanFinishedNotification
+							 object: doc];
+
     [notificationCenter addObserver: self
 						   selector: @selector(windowWillClose:)
 							   name: NSWindowWillCloseNotification
@@ -270,15 +280,34 @@
 
 - (void) itemsChanged: (NSNotification*) notification
 {
+	// While a background scan is publishing top-level subtrees, skip the
+	// treemap rebuild — we'd otherwise re-layout the whole tree dozens of
+	// times and the kind→color palette would drift as new kinds appear.
+	// -scanFinished: rebuilds once when the scan completes.
+	if ( [[self document] isScanInProgress] )
+		return;
+
+	[self rebuildSpaceItemsAndReload];
+}
+
+- (void) scanFinished: (NSNotification*) notification
+{
+	// Bypass the isScanInProgress check above (the flag flips to NO just
+	// before this fires, but be explicit either way).
+	[self rebuildSpaceItemsAndReload];
+}
+
+- (void) rebuildSpaceItemsAndReload
+{
 	//create new "free space" and "other space" items
 	//(don't use [self rootItem] as we want the root, not the zoomed item)
 	FSItem *rootItem =  [[self document] rootItem];
-	
+
 	[_otherSpaceItem release];
 	_otherSpaceItem = [[FSItem alloc] initAsOtherSpaceItemForParent: rootItem];
 	[_freeSpaceItem release];
 	_freeSpaceItem = [[FSItem alloc] initAsFreeSpaceItemForParent: rootItem];
-	
+
     [self reloadData];
 }
 

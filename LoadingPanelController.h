@@ -31,6 +31,13 @@
     NSTextField *_statusField;
     NSTimer     *_statusTimer;
     uint64_t     _scanStartTime;
+
+    // Async-scan override (Stage 8.5): when set, the panel's Cancel
+    // button calls _cancelAction on _cancelTarget instead of just
+    // flipping _cancelPressed. Lets the document set its own atomic
+    // cancel flag for the worker thread.
+    id  _cancelTarget;   // weak
+    SEL _cancelAction;
 }
 
 - (id) init; //will start modal session immediately
@@ -47,6 +54,11 @@
 
 - (void) setMessageText: (NSString*) msg; //message will be shown next time "runEventLoop" is called
 - (void) runEventLoop;
+
+// Async-scan callers: route Cancel through (target, action) instead of
+// only setting the internal flag. Action is invoked on main with the
+// LoadingPanelController as `sender`.
+- (void) setCancelTarget: (id) target action: (SEL) action;
 
 - (IBAction) cancel:(id)sender;
 

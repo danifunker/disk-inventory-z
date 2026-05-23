@@ -38,7 +38,7 @@
 - (void) awakeFromNib
 {
 	FileSystemDoc *doc = [self document];
-	
+
 	NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
 	
     [center addObserver: self
@@ -224,13 +224,13 @@ objectValueForTableColumn: (NSTableColumn *) tableColumn
 	return _contextMenu;
 }
 
-- (NSDragOperation) draggingSourceOperationMaskForLocal:(BOOL)isLocal
+- (NSDragOperation) draggingSession: (NSDraggingSession*) session
+   sourceOperationMaskForDraggingContext: (NSDraggingContext) context
 {
-	//this selector is normally sent to the view itself, but DIXOutlineView forwards this decision to
-	//it's delagate (like it should be)
-	
 	//drag&drop within the application is not supported
-	return isLocal ? NSDragOperationNone : (NSDragOperationLink | NSDragOperationCopy );
+	return ( context == NSDraggingContextWithinApplication )
+	       ? NSDragOperationNone
+	       : (NSDragOperationLink | NSDragOperationCopy);
 }
 
 #pragma mark --------NSOutlineView notifications-----------------

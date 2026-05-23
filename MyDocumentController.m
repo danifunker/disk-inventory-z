@@ -108,68 +108,31 @@ BOOL g_EnableLogging;
                                display: (BOOL) displayDocument
                      completionHandler: (void (^)(NSDocument*, BOOL, NSError*)) completionHandler
 {
-	// Bypass NSDocumentController's URL-based open machinery. The framework
-	// wraps reads in NSFileCoordinator and dispatches a continuation block
-	// to the main thread; if our scan runs synchronously on main and pumps
-	// the runloop (which it does, via the progress panel), the continuation
-	// fires before the read has actually finished and over-releases an
-	// autoreleased element when its per-callout autorelease pool pops -- an
-	// EXC_BAD_ACCESS in objc_release with `__144-[NSDocumentController
-	// _coordinateReadingAndGetAlternateContentsForOpeningDocumentAtURL...]`
-	// on the lr. For a directory tree there's nothing to coordinate (we're
-	// not reading file contents), so own the lifecycle directly.
+	// Stage 8.5: the v1.6.0 NSDocumentController bypass that used to live
+	// here is gone. Now that the directory walk runs asynchronously on a
+	// background queue (not synchronously while pumping the runloop), the
+	// NSFileCoordinator continuation that bypass was working around no
+	// longer races. Restore the standard NSDocumentController flow:
+	// readFromURL:ofType:error: validates + stashes the URL,
+	// makeWindowControllers brings up the doc window, then the async scan
+	// kicks off (see FileSystemDoc -makeWindowControllers).
 
-	// Reject non-directories early with a sensible error.
-	NSNumber *isDir = nil;
-	if ( ![url getResourceValue: &isDir forKey: NSURLIsDirectoryKey error: nil]
-	     || ![isDir boolValue] )
+	[super openDocumentWithContentsOfURL: url
+	                             display: displayDocument
+	                   completionHandler: ^(NSDocument *doc, BOOL alreadyOpen, NSError *err)
 	{
-		NSError *err = [NSError errorWithDomain: NSCocoaErrorDomain
-		                                   code: NSFileReadUnsupportedSchemeError
-		                               userInfo: @{ NSURLErrorKey: url }];
+		if ( doc != nil && displayDocument )
+		{
+			// A doc window will appear (now or already on screen). Hide
+			// the drives panel if it was the launch landing page.
+			// Cancelled / errored opens leave the panel visible so the
+			// user has somewhere to go back to.
+			[[[DrivesPanelController sharedController] panel] orderOut: nil];
+		}
+
 		if ( completionHandler != nil )
-			completionHandler( nil, NO, err );
-		return;
-	}
-
-	// Re-show an existing document for this URL rather than re-scanning.
-	NSDocument *existing = [self documentForURL: url];
-	if ( existing != nil )
-	{
-		if ( displayDocument )
-			[existing showWindows];
-		if ( completionHandler != nil )
-			completionHandler( existing, YES, nil );
-		return;
-	}
-
-	FileSystemDoc *doc = [[[FileSystemDoc alloc] init] autorelease];
-	[doc setFileURL: url];
-	[doc setFileType: @"Folder"];
-
-	NSError *scanError = nil;
-	if ( ![doc scanFolderAtURL: url error: &scanError] )
-	{
-		// User-cancel is reported via NSUserCancelledError; don't surface it.
-		if ( completionHandler != nil )
-			completionHandler( nil, NO, scanError );
-		return;
-	}
-
-	[self addDocument: doc];
-	[doc makeWindowControllers];
-	if ( displayDocument )
-	{
-		[doc showWindows];
-
-		// Scan succeeded and a doc window is now front: hide the drives
-		// panel if it was the launch landing page. Cancelled scans leave
-		// the panel visible so the user has somewhere to go back to.
-		[[[DrivesPanelController sharedController] panel] orderOut: nil];
-	}
-
-	if ( completionHandler != nil )
-		completionHandler( doc, NO, nil );
+			completionHandler( doc, alreadyOpen, err );
+	}];
 }
 
 //"Open..." menu handler
@@ -212,13 +175,18 @@ BOOL g_EnableLogging;
 	return TRUE;
 }
 
-- (NSString *)typeFromFileExtension:(NSString *)fileExtensionOrHFSFileType
+- (NSString *)typeForContentsOfURL:(NSURL *)inAbsoluteURL error:(NSError **)outError
 {
-	OSType type = NSHFSTypeCodeFromFileType(fileExtensionOrHFSFileType);
-	if ( type == 0 )
+	// We only ever open folders (the document type registered in Info.plist).
+	// The deprecated -typeFromFileExtension: predecessor used the old HFS
+	// type-code API; the modern URL-based hook just always reports "Folder".
+	NSNumber *isDir = nil;
+	if ( [inAbsoluteURL getResourceValue: &isDir forKey: NSURLIsDirectoryKey error: nil]
+	     && [isDir boolValue] )
+	{
 		return @"Folder";
-	else	
-		return [super typeFromFileExtension: fileExtensionOrHFSFileType];
+	}
+	return [super typeForContentsOfURL: inAbsoluteURL error: outError];
 }
 
 - (IBAction) showPreferencesPanel: (id) sender

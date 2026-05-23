@@ -14,8 +14,8 @@
 
 //
 
-extern unsigned g_fileCount;
-extern unsigned g_folderCount;
+extern _Atomic unsigned g_fileCount;
+extern _Atomic unsigned g_folderCount;
 
 @interface NSString (ComparisonAdditions)
 - (NSComparisonResult) compareAsFilesystemName: (NSString*) other;
@@ -28,7 +28,7 @@ typedef enum
 	FreeSpaceItem	//free space on volume
 } FSItemType;
 
-@interface FSItem : NSObject {
+@interface FSItem : NSObject <NSPasteboardItemDataProvider> {
 	NSURL *_fileURL;
     FSItem *_parent;	//only valid for non-root items
 	NSMutableDictionary *_icons; //holds icons in various sizes (see iconWithSize:)
@@ -44,6 +44,15 @@ typedef enum
 
 - (id) initWithPath: (NSString *) path;
 - (id) initWithURL: (NSURL *) url;
+
+// Reset the cross-scan hardlink-dedup set. Callers driving a multi-orphan
+// scan (FileSystemDoc Stage 8.5 Wave 2) must call this once at the start
+// of the scan so the dedup state is shared across all top-level walks.
++ (void) resetHardlinkDedup;
+
+// Used by the Wave 2 orchestrator to stamp the size onto an opaque
+// package orphan whose contents we walked just to sum allocated bytes.
+- (void) setSizeValue: (unsigned long long) size;
 
 - (id) initAsOtherSpaceItemForParent: (FSItem*) parent;
 - (id) initAsFreeSpaceItemForParent: (FSItem*) parent;
